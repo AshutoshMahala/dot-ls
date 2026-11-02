@@ -26,6 +26,14 @@ def main():
         tail = (tail + [line.rstrip('\n')])[-40:]
     code = process.wait()
     if code:
+        # `zig build test` can report only "failed without output". Run a failed
+        # test binary again without the build protocol to get the error name.
+        for line in list(tail):
+            if line.startswith('failed command: ') and line.endswith(' --listen=-'):
+                rerun = subprocess.run(line[len('failed command: '):-len(' --listen=-')].split(), stdout=subprocess.PIPE,
+                                       stderr=subprocess.STDOUT, text=True, errors='replace', timeout=600)
+                print(rerun.stdout, flush=True)
+                tail = (tail + ['--- direct run of the test binary ---'] + rerun.stdout.splitlines())[-40:]
         title = escape(' '.join(command) + ' failed', ':,')
         print(f'::error title={title}::{escape(chr(10).join(tail))}', flush=True)
     sys.exit(code)
