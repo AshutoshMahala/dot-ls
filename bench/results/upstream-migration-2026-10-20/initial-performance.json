@@ -1,0 +1,2348 @@
+[
+  {
+    "mb": 5,
+    "kind": "plain",
+    "label": "before",
+    "trial": 0,
+    "source_bytes": 5000000,
+    "startup_ms": 3.3349170000000203,
+    "idle": {
+      "t": 0.45255425,
+      "rss_bytes": 2162688,
+      "footprint_bytes": 1376592,
+      "cpu_seconds": 0.0019115,
+      "start_ticks": 5102342816475
+    },
+    "phases": [
+      {
+        "phase": "open",
+        "inserted_errors": 0,
+        "version": 1,
+        "first_diagnostics_ms": 30.015374999999956,
+        "final_diagnostics_ms": 30.015374999999956,
+        "write_ms": 1.813499999999968,
+        "notifications": [
+          {
+            "ms": 30.015374999999956,
+            "wire_bytes": 149,
+            "diagnostics": 0,
+            "errors": 0,
+            "incomplete": false,
+            "codes": {},
+            "examples": []
+          }
+        ],
+        "settled_rss_bytes": 6717440,
+        "settled_footprint_bytes": 5816680,
+        "cpu_through_settle_seconds": 0.054947125,
+        "reported_incomplete": false
+      },
+      {
+        "phase": "edit",
+        "inserted_errors": 1,
+        "version": 2,
+        "first_diagnostics_ms": 35.286083999999995,
+        "final_diagnostics_ms": 35.286083999999995,
+        "write_ms": 1.968541999999962,
+        "notifications": [
+          {
+            "ms": 35.286083999999995,
+            "wire_bytes": 439,
+            "diagnostics": 1,
+            "errors": 1,
+            "incomplete": false,
+            "codes": {
+              "E.Syntax.Byte.003": 1
+            },
+            "examples": [
+              {
+                "data": null,
+                "range": {
+                  "start": {
+                    "line": 96153,
+                    "character": 4
+                  },
+                  "end": {
+                    "line": 96153,
+                    "character": 5
+                  }
+                },
+                "severity": 1,
+                "code": "E.Syntax.Byte.003",
+                "source": "dot-ls",
+                "relatedInformation": [],
+                "message": "Invalid byte 0x40 in DOT syntax.\nremove the byte, or put the text inside a double-quoted identifier"
+              }
+            ]
+          }
+        ],
+        "settled_rss_bytes": 3637248,
+        "settled_footprint_bytes": 2736488,
+        "cpu_through_settle_seconds": 0.051870124999999996,
+        "reported_incomplete": false
+      },
+      {
+        "phase": "edit",
+        "inserted_errors": 0,
+        "version": 3,
+        "first_diagnostics_ms": 30.50987500000013,
+        "final_diagnostics_ms": 30.50987500000013,
+        "write_ms": 2.090499999999995,
+        "notifications": [
+          {
+            "ms": 30.50987500000013,
+            "wire_bytes": 149,
+            "diagnostics": 0,
+            "errors": 0,
+            "incomplete": false,
+            "codes": {},
+            "examples": []
+          }
+        ],
+        "settled_rss_bytes": 6717440,
+        "settled_footprint_bytes": 5816680,
+        "cpu_through_settle_seconds": 0.05513170833333335,
+        "reported_incomplete": false
+      }
+    ],
+    "resources": {
+      "exit_code": 0,
+      "actual_peak_rss_bytes": 17858560,
+      "sampled_peak_rss_bytes": 14680064,
+      "sampled_peak_footprint_bytes": 13795688,
+      "cpu_user_seconds": 0.15425899999999998,
+      "cpu_system_seconds": 0.010879,
+      "safety_stop": null,
+      "stderr": "REF_INDEX_TICKS 184052\nREF_INDEX_TICKS 189968\n"
+    },
+    "reference_phase_ms": [
+      7.668833333333333,
+      7.915333333333333
+    ]
+  },
+  {
+    "mb": 5,
+    "kind": "plain",
+    "label": "after",
+    "trial": 0,
+    "source_bytes": 5000000,
+    "startup_ms": 9.88137499999997,
+    "idle": {
+      "t": 2.107646125,
+      "rss_bytes": 2211840,
+      "footprint_bytes": 1376592,
+      "cpu_seconds": 0.0058615,
+      "start_ticks": 5102382516867
+    },
+    "phases": [
+      {
+        "phase": "open",
+        "inserted_errors": 0,
+        "version": 1,
+        "first_diagnostics_ms": 32.26220800000013,
+        "final_diagnostics_ms": 32.26220800000013,
+        "write_ms": 1.8834580000000045,
+        "notifications": [
+          {
+            "ms": 32.26220800000013,
+            "wire_bytes": 149,
+            "diagnostics": 0,
+            "errors": 0,
+            "incomplete": false,
+            "codes": {},
+            "examples": []
+          }
+        ],
+        "settled_rss_bytes": 6750208,
+        "settled_footprint_bytes": 5816680,
+        "cpu_through_settle_seconds": 0.05639891666666667,
+        "reported_incomplete": false
+      },
+      {
+        "phase": "edit",
+        "inserted_errors": 1,
+        "version": 2,
+        "first_diagnostics_ms": 33.18287499999961,
+        "final_diagnostics_ms": 33.18287499999961,
+        "write_ms": 1.7634999999995848,
+        "notifications": [
+          {
+            "ms": 33.18287499999961,
+            "wire_bytes": 439,
+            "diagnostics": 1,
+            "errors": 1,
+            "incomplete": false,
+            "codes": {
+              "E.Syntax.Byte.003": 1
+            },
+            "examples": [
+              {
+                "data": null,
+                "range": {
+                  "start": {
+                    "line": 96153,
+                    "character": 4
+                  },
+                  "end": {
+                    "line": 96153,
+                    "character": 5
+                  }
+                },
+                "severity": 1,
+                "code": "E.Syntax.Byte.003",
+                "source": "dot-ls",
+                "relatedInformation": [],
+                "message": "Invalid byte 0x40 in DOT syntax.\nremove the byte, or put the text inside a double-quoted identifier"
+              }
+            ]
+          }
+        ],
+        "settled_rss_bytes": 3670016,
+        "settled_footprint_bytes": 2752896,
+        "cpu_through_settle_seconds": 0.048793083333333334,
+        "reported_incomplete": false
+      },
+      {
+        "phase": "edit",
+        "inserted_errors": 0,
+        "version": 3,
+        "first_diagnostics_ms": 34.476916000000024,
+        "final_diagnostics_ms": 34.476916000000024,
+        "write_ms": 2.151582999999846,
+        "notifications": [
+          {
+            "ms": 34.476916000000024,
+            "wire_bytes": 149,
+            "diagnostics": 0,
+            "errors": 0,
+            "incomplete": false,
+            "codes": {},
+            "examples": []
+          }
+        ],
+        "settled_rss_bytes": 6750208,
+        "settled_footprint_bytes": 5833088,
+        "cpu_through_settle_seconds": 0.05914425000000001,
+        "reported_incomplete": false
+      }
+    ],
+    "resources": {
+      "exit_code": 0,
+      "actual_peak_rss_bytes": 17891328,
+      "sampled_peak_rss_bytes": 10829824,
+      "sampled_peak_footprint_bytes": 9929112,
+      "cpu_user_seconds": 0.15869,
+      "cpu_system_seconds": 0.012608999999999999,
+      "safety_stop": null,
+      "stderr": "REF_INDEX_TICKS 186125\nREF_INDEX_TICKS 182680\n"
+    },
+    "reference_phase_ms": [
+      7.755208333333333,
+      7.611666666666667
+    ]
+  },
+  {
+    "mb": 5,
+    "kind": "plain",
+    "label": "after",
+    "trial": 1,
+    "source_bytes": 5000000,
+    "startup_ms": 9.513042000000027,
+    "idle": {
+      "t": 3.752497375,
+      "rss_bytes": 2211840,
+      "footprint_bytes": 1360184,
+      "cpu_seconds": 0.006419291666666667,
+      "start_ticks": 5102421925363
+    },
+    "phases": [
+      {
+        "phase": "open",
+        "inserted_errors": 0,
+        "version": 1,
+        "first_diagnostics_ms": 32.210833000000164,
+        "final_diagnostics_ms": 32.210833000000164,
+        "write_ms": 1.8285829999999947,
+        "notifications": [
+          {
+            "ms": 32.210833000000164,
+            "wire_bytes": 149,
+            "diagnostics": 0,
+            "errors": 0,
+            "incomplete": false,
+            "codes": {},
+            "examples": []
+          }
+        ],
+        "settled_rss_bytes": 6766592,
+        "settled_footprint_bytes": 5833064,
+        "cpu_through_settle_seconds": 0.05646433333333333,
+        "reported_incomplete": false
+      },
+      {
+        "phase": "edit",
+        "inserted_errors": 1,
+        "version": 2,
+        "first_diagnostics_ms": 36.68162499999994,
+        "final_diagnostics_ms": 36.68162499999994,
+        "write_ms": 2.0427080000002817,
+        "notifications": [
+          {
+            "ms": 36.68162499999994,
+            "wire_bytes": 439,
+            "diagnostics": 1,
+            "errors": 1,
+            "incomplete": false,
+            "codes": {
+              "E.Syntax.Byte.003": 1
+            },
+            "examples": [
+              {
+                "data": null,
+                "range": {
+                  "start": {
+                    "line": 96153,
+                    "character": 4
+                  },
+                  "end": {
+                    "line": 96153,
+                    "character": 5
+                  }
+                },
+                "severity": 1,
+                "code": "E.Syntax.Byte.003",
+                "source": "dot-ls",
+                "relatedInformation": [],
+                "message": "Invalid byte 0x40 in DOT syntax.\nremove the byte, or put the text inside a double-quoted identifier"
+              }
+            ]
+          }
+        ],
+        "settled_rss_bytes": 3686400,
+        "settled_footprint_bytes": 2769280,
+        "cpu_through_settle_seconds": 0.05322062500000001,
+        "reported_incomplete": false
+      },
+      {
+        "phase": "edit",
+        "inserted_errors": 0,
+        "version": 3,
+        "first_diagnostics_ms": 32.91433299999991,
+        "final_diagnostics_ms": 32.91433299999991,
+        "write_ms": 1.934291000000421,
+        "notifications": [
+          {
+            "ms": 32.91433299999991,
+            "wire_bytes": 149,
+            "diagnostics": 0,
+            "errors": 0,
+            "incomplete": false,
+            "codes": {},
+            "examples": []
+          }
+        ],
+        "settled_rss_bytes": 6766592,
+        "settled_footprint_bytes": 5833064,
+        "cpu_through_settle_seconds": 0.05720062499999999,
+        "reported_incomplete": false
+      }
+    ],
+    "resources": {
+      "exit_code": 0,
+      "actual_peak_rss_bytes": 17907712,
+      "sampled_peak_rss_bytes": 13172736,
+      "sampled_peak_footprint_bytes": 12255592,
+      "cpu_user_seconds": 0.160413,
+      "cpu_system_seconds": 0.013691,
+      "safety_stop": null,
+      "stderr": "REF_INDEX_TICKS 186450\nREF_INDEX_TICKS 186370\n"
+    },
+    "reference_phase_ms": [
+      7.76875,
+      7.765416666666667
+    ]
+  },
+  {
+    "mb": 5,
+    "kind": "plain",
+    "label": "before",
+    "trial": 1,
+    "source_bytes": 5000000,
+    "startup_ms": 9.381207999999752,
+    "idle": {
+      "t": 5.412784333,
+      "rss_bytes": 2162688,
+      "footprint_bytes": 1360184,
+      "cpu_seconds": 0.0057515,
+      "start_ticks": 5102461791115
+    },
+    "phases": [
+      {
+        "phase": "open",
+        "inserted_errors": 0,
+        "version": 1,
+        "first_diagnostics_ms": 29.888958000000798,
+        "final_diagnostics_ms": 29.888958000000798,
+        "write_ms": 1.91429100000029,
+        "notifications": [
+          {
+            "ms": 29.888958000000798,
+            "wire_bytes": 149,
+            "diagnostics": 0,
+            "errors": 0,
+            "incomplete": false,
+            "codes": {},
+            "examples": []
+          }
+        ],
+        "settled_rss_bytes": 6733824,
+        "settled_footprint_bytes": 5833064,
+        "cpu_through_settle_seconds": 0.05397079166666666,
+        "reported_incomplete": false
+      },
+      {
+        "phase": "edit",
+        "inserted_errors": 1,
+        "version": 2,
+        "first_diagnostics_ms": 29.582167000000048,
+        "final_diagnostics_ms": 29.582167000000048,
+        "write_ms": 1.5850830000001537,
+        "notifications": [
+          {
+            "ms": 29.582167000000048,
+            "wire_bytes": 439,
+            "diagnostics": 1,
+            "errors": 1,
+            "incomplete": false,
+            "codes": {
+              "E.Syntax.Byte.003": 1
+            },
+            "examples": [
+              {
+                "data": null,
+                "range": {
+                  "start": {
+                    "line": 96153,
+                    "character": 4
+                  },
+                  "end": {
+                    "line": 96153,
+                    "character": 5
+                  }
+                },
+                "severity": 1,
+                "code": "E.Syntax.Byte.003",
+                "source": "dot-ls",
+                "relatedInformation": [],
+                "message": "Invalid byte 0x40 in DOT syntax.\nremove the byte, or put the text inside a double-quoted identifier"
+              }
+            ]
+          }
+        ],
+        "settled_rss_bytes": 3653632,
+        "settled_footprint_bytes": 2752872,
+        "cpu_through_settle_seconds": 0.04523866666666666,
+        "reported_incomplete": false
+      },
+      {
+        "phase": "edit",
+        "inserted_errors": 0,
+        "version": 3,
+        "first_diagnostics_ms": 30.494916000000316,
+        "final_diagnostics_ms": 30.494916000000316,
+        "write_ms": 2.0471249999998165,
+        "notifications": [
+          {
+            "ms": 30.494916000000316,
+            "wire_bytes": 149,
+            "diagnostics": 0,
+            "errors": 0,
+            "incomplete": false,
+            "codes": {},
+            "examples": []
+          }
+        ],
+        "settled_rss_bytes": 6733824,
+        "settled_footprint_bytes": 5833064,
+        "cpu_through_settle_seconds": 0.05456645833333332,
+        "reported_incomplete": false
+      }
+    ],
+    "resources": {
+      "exit_code": 0,
+      "actual_peak_rss_bytes": 17874944,
+      "sampled_peak_rss_bytes": 14712832,
+      "sampled_peak_footprint_bytes": 13828480,
+      "cpu_user_seconds": 0.148357,
+      "cpu_system_seconds": 0.012012,
+      "safety_stop": null,
+      "stderr": "REF_INDEX_TICKS 182985\nREF_INDEX_TICKS 185728\n"
+    },
+    "reference_phase_ms": [
+      7.624375,
+      7.738666666666667
+    ]
+  },
+  {
+    "mb": 5,
+    "kind": "plain",
+    "label": "before",
+    "trial": 2,
+    "source_bytes": 5000000,
+    "startup_ms": 8.365750000000283,
+    "idle": {
+      "t": 7.053077208,
+      "rss_bytes": 2162688,
+      "footprint_bytes": 1376592,
+      "cpu_seconds": 0.004966541666666667,
+      "start_ticks": 5102501133817
+    },
+    "phases": [
+      {
+        "phase": "open",
+        "inserted_errors": 0,
+        "version": 1,
+        "first_diagnostics_ms": 30.731666000000324,
+        "final_diagnostics_ms": 30.731666000000324,
+        "write_ms": 1.9264159999998753,
+        "notifications": [
+          {
+            "ms": 30.731666000000324,
+            "wire_bytes": 149,
+            "diagnostics": 0,
+            "errors": 0,
+            "incomplete": false,
+            "codes": {},
+            "examples": []
+          }
+        ],
+        "settled_rss_bytes": 6717440,
+        "settled_footprint_bytes": 5816680,
+        "cpu_through_settle_seconds": 0.05496891666666667,
+        "reported_incomplete": false
+      },
+      {
+        "phase": "edit",
+        "inserted_errors": 1,
+        "version": 2,
+        "first_diagnostics_ms": 34.783917000000386,
+        "final_diagnostics_ms": 34.783917000000386,
+        "write_ms": 2.1897920000002458,
+        "notifications": [
+          {
+            "ms": 34.783917000000386,
+            "wire_bytes": 439,
+            "diagnostics": 1,
+            "errors": 1,
+            "incomplete": false,
+            "codes": {
+              "E.Syntax.Byte.003": 1
+            },
+            "examples": [
+              {
+                "data": null,
+                "range": {
+                  "start": {
+                    "line": 96153,
+                    "character": 4
+                  },
+                  "end": {
+                    "line": 96153,
+                    "character": 5
+                  }
+                },
+                "severity": 1,
+                "code": "E.Syntax.Byte.003",
+                "source": "dot-ls",
+                "relatedInformation": [],
+                "message": "Invalid byte 0x40 in DOT syntax.\nremove the byte, or put the text inside a double-quoted identifier"
+              }
+            ]
+          }
+        ],
+        "settled_rss_bytes": 3637248,
+        "settled_footprint_bytes": 2752896,
+        "cpu_through_settle_seconds": 0.05123354166666667,
+        "reported_incomplete": false
+      },
+      {
+        "phase": "edit",
+        "inserted_errors": 0,
+        "version": 3,
+        "first_diagnostics_ms": 31.917957999999302,
+        "final_diagnostics_ms": 31.917957999999302,
+        "write_ms": 2.0361250000000553,
+        "notifications": [
+          {
+            "ms": 31.917957999999302,
+            "wire_bytes": 149,
+            "diagnostics": 0,
+            "errors": 0,
+            "incomplete": false,
+            "codes": {},
+            "examples": []
+          }
+        ],
+        "settled_rss_bytes": 6717440,
+        "settled_footprint_bytes": 5849496,
+        "cpu_through_settle_seconds": 0.056213499999999986,
+        "reported_incomplete": false
+      }
+    ],
+    "resources": {
+      "exit_code": 0,
+      "actual_peak_rss_bytes": 17858560,
+      "sampled_peak_rss_bytes": 15532032,
+      "sampled_peak_footprint_bytes": 14647656,
+      "cpu_user_seconds": 0.155972,
+      "cpu_system_seconds": 0.01222,
+      "safety_stop": null,
+      "stderr": "REF_INDEX_TICKS 182585\nREF_INDEX_TICKS 183896\n"
+    },
+    "reference_phase_ms": [
+      7.607708333333333,
+      7.662333333333333
+    ]
+  },
+  {
+    "mb": 5,
+    "kind": "plain",
+    "label": "after",
+    "trial": 2,
+    "source_bytes": 5000000,
+    "startup_ms": 9.243249999999037,
+    "idle": {
+      "t": 8.706733875,
+      "rss_bytes": 2211840,
+      "footprint_bytes": 1376592,
+      "cpu_seconds": 0.00572125,
+      "start_ticks": 5102540849041
+    },
+    "phases": [
+      {
+        "phase": "open",
+        "inserted_errors": 0,
+        "version": 1,
+        "first_diagnostics_ms": 31.9306250000011,
+        "final_diagnostics_ms": 31.9306250000011,
+        "write_ms": 1.948875000000072,
+        "notifications": [
+          {
+            "ms": 31.9306250000011,
+            "wire_bytes": 149,
+            "diagnostics": 0,
+            "errors": 0,
+            "incomplete": false,
+            "codes": {},
+            "examples": []
+          }
+        ],
+        "settled_rss_bytes": 6766592,
+        "settled_footprint_bytes": 5833064,
+        "cpu_through_settle_seconds": 0.056466416666666665,
+        "reported_incomplete": false
+      },
+      {
+        "phase": "edit",
+        "inserted_errors": 1,
+        "version": 2,
+        "first_diagnostics_ms": 37.15691700000079,
+        "final_diagnostics_ms": 37.15691700000079,
+        "write_ms": 2.1881669999999076,
+        "notifications": [
+          {
+            "ms": 37.15691700000079,
+            "wire_bytes": 439,
+            "diagnostics": 1,
+            "errors": 1,
+            "incomplete": false,
+            "codes": {
+              "E.Syntax.Byte.003": 1
+            },
+            "examples": [
+              {
+                "data": null,
+                "range": {
+                  "start": {
+                    "line": 96153,
+                    "character": 4
+                  },
+                  "end": {
+                    "line": 96153,
+                    "character": 5
+                  }
+                },
+                "severity": 1,
+                "code": "E.Syntax.Byte.003",
+                "source": "dot-ls",
+                "relatedInformation": [],
+                "message": "Invalid byte 0x40 in DOT syntax.\nremove the byte, or put the text inside a double-quoted identifier"
+              }
+            ]
+          }
+        ],
+        "settled_rss_bytes": 3686400,
+        "settled_footprint_bytes": 2769280,
+        "cpu_through_settle_seconds": 0.05364741666666666,
+        "reported_incomplete": false
+      },
+      {
+        "phase": "edit",
+        "inserted_errors": 0,
+        "version": 3,
+        "first_diagnostics_ms": 34.42074999999889,
+        "final_diagnostics_ms": 34.42074999999889,
+        "write_ms": 2.126249999999885,
+        "notifications": [
+          {
+            "ms": 34.42074999999889,
+            "wire_bytes": 149,
+            "diagnostics": 0,
+            "errors": 0,
+            "incomplete": false,
+            "codes": {},
+            "examples": []
+          }
+        ],
+        "settled_rss_bytes": 6766592,
+        "settled_footprint_bytes": 5865880,
+        "cpu_through_settle_seconds": 0.05888987500000002,
+        "reported_incomplete": false
+      }
+    ],
+    "resources": {
+      "exit_code": 0,
+      "actual_peak_rss_bytes": 17907712,
+      "sampled_peak_rss_bytes": 15892480,
+      "sampled_peak_footprint_bytes": 14958952,
+      "cpu_user_seconds": 0.162299,
+      "cpu_system_seconds": 0.013328999999999999,
+      "safety_stop": null,
+      "stderr": "REF_INDEX_TICKS 193007\nREF_INDEX_TICKS 189525\n"
+    },
+    "reference_phase_ms": [
+      8.041958333333334,
+      7.896875
+    ]
+  },
+  {
+    "mb": 5,
+    "kind": "html",
+    "label": "before",
+    "trial": 0,
+    "source_bytes": 5000000,
+    "startup_ms": 3.6364589999990926,
+    "idle": {
+      "t": 10.396427166,
+      "rss_bytes": 2162688,
+      "footprint_bytes": 1376592,
+      "cpu_seconds": 0.0022309583333333335,
+      "start_ticks": 5102581549678
+    },
+    "phases": [
+      {
+        "phase": "open",
+        "inserted_errors": 0,
+        "version": 1,
+        "first_diagnostics_ms": 26.45487499999888,
+        "final_diagnostics_ms": 26.86474999999966,
+        "write_ms": 1.7976659999998645,
+        "notifications": [
+          {
+            "ms": 26.45487499999888,
+            "wire_bytes": 149,
+            "diagnostics": 0,
+            "errors": 0,
+            "incomplete": false,
+            "codes": {},
+            "examples": []
+          },
+          {
+            "ms": 26.86474999999966,
+            "wire_bytes": 149,
+            "diagnostics": 0,
+            "errors": 0,
+            "incomplete": false,
+            "codes": {},
+            "examples": []
+          }
+        ],
+        "settled_rss_bytes": 6766592,
+        "settled_footprint_bytes": 5849448,
+        "cpu_through_settle_seconds": 0.051303375000000005,
+        "reported_incomplete": false
+      },
+      {
+        "phase": "edit",
+        "inserted_errors": 1,
+        "version": 2,
+        "first_diagnostics_ms": 32.452250000000404,
+        "final_diagnostics_ms": 32.86520800000048,
+        "write_ms": 2.0242909999996783,
+        "notifications": [
+          {
+            "ms": 32.452250000000404,
+            "wire_bytes": 441,
+            "diagnostics": 1,
+            "errors": 1,
+            "incomplete": false,
+            "codes": {
+              "E.Syntax.Byte.003": 1
+            },
+            "examples": [
+              {
+                "data": null,
+                "range": {
+                  "start": {
+                    "line": 176466,
+                    "character": 4
+                  },
+                  "end": {
+                    "line": 176466,
+                    "character": 5
+                  }
+                },
+                "severity": 1,
+                "code": "E.Syntax.Byte.003",
+                "source": "dot-ls",
+                "relatedInformation": [],
+                "message": "Invalid byte 0x40 in DOT syntax.\nremove the byte, or put the text inside a double-quoted identifier"
+              }
+            ]
+          },
+          {
+            "ms": 32.86520800000048,
+            "wire_bytes": 441,
+            "diagnostics": 1,
+            "errors": 1,
+            "incomplete": false,
+            "codes": {
+              "E.Syntax.Byte.003": 1
+            },
+            "examples": [
+              {
+                "data": null,
+                "range": {
+                  "start": {
+                    "line": 176466,
+                    "character": 4
+                  },
+                  "end": {
+                    "line": 176466,
+                    "character": 5
+                  }
+                },
+                "severity": 1,
+                "code": "E.Syntax.Byte.003",
+                "source": "dot-ls",
+                "relatedInformation": [],
+                "message": "Invalid byte 0x40 in DOT syntax.\nremove the byte, or put the text inside a double-quoted identifier"
+              }
+            ]
+          }
+        ],
+        "settled_rss_bytes": 5341184,
+        "settled_footprint_bytes": 4440448,
+        "cpu_through_settle_seconds": 0.05280133333333334,
+        "reported_incomplete": false
+      },
+      {
+        "phase": "edit",
+        "inserted_errors": 0,
+        "version": 3,
+        "first_diagnostics_ms": 27.276291999999813,
+        "final_diagnostics_ms": 27.69824999999848,
+        "write_ms": 2.080708999999459,
+        "notifications": [
+          {
+            "ms": 27.276291999999813,
+            "wire_bytes": 149,
+            "diagnostics": 0,
+            "errors": 0,
+            "incomplete": false,
+            "codes": {},
+            "examples": []
+          },
+          {
+            "ms": 27.69824999999848,
+            "wire_bytes": 149,
+            "diagnostics": 0,
+            "errors": 0,
+            "incomplete": false,
+            "codes": {},
+            "examples": []
+          }
+        ],
+        "settled_rss_bytes": 6766592,
+        "settled_footprint_bytes": 5865856,
+        "cpu_through_settle_seconds": 0.052732708333333336,
+        "reported_incomplete": false
+      }
+    ],
+    "resources": {
+      "exit_code": 0,
+      "actual_peak_rss_bytes": 18038784,
+      "sampled_peak_rss_bytes": 12419072,
+      "sampled_peak_footprint_bytes": 11534744,
+      "cpu_user_seconds": 0.149051,
+      "cpu_system_seconds": 0.011082999999999999,
+      "safety_stop": null,
+      "stderr": "REF_INDEX_TICKS 107260\nREF_INDEX_TICKS 109138\n"
+    },
+    "reference_phase_ms": [
+      4.469166666666667,
+      4.547416666666667
+    ]
+  },
+  {
+    "mb": 5,
+    "kind": "html",
+    "label": "after",
+    "trial": 0,
+    "source_bytes": 5000000,
+    "startup_ms": 9.275541999999248,
+    "idle": {
+      "t": 12.136342458,
+      "rss_bytes": 2211840,
+      "footprint_bytes": 1376592,
+      "cpu_seconds": 0.005499166666666667,
+      "start_ticks": 5102623183021
+    },
+    "phases": [
+      {
+        "phase": "open",
+        "inserted_errors": 0,
+        "version": 1,
+        "first_diagnostics_ms": 30.009083999999575,
+        "final_diagnostics_ms": 30.428167000000172,
+        "write_ms": 1.8654589999993476,
+        "notifications": [
+          {
+            "ms": 30.009083999999575,
+            "wire_bytes": 149,
+            "diagnostics": 0,
+            "errors": 0,
+            "incomplete": false,
+            "codes": {},
+            "examples": []
+          },
+          {
+            "ms": 30.428167000000172,
+            "wire_bytes": 149,
+            "diagnostics": 0,
+            "errors": 0,
+            "incomplete": false,
+            "codes": {},
+            "examples": []
+          }
+        ],
+        "settled_rss_bytes": 6815744,
+        "settled_footprint_bytes": 5865832,
+        "cpu_through_settle_seconds": 0.05414779166666667,
+        "reported_incomplete": false
+      },
+      {
+        "phase": "edit",
+        "inserted_errors": 1,
+        "version": 2,
+        "first_diagnostics_ms": 34.89245799999985,
+        "final_diagnostics_ms": 35.318458000000774,
+        "write_ms": 2.072082999999836,
+        "notifications": [
+          {
+            "ms": 34.89245799999985,
+            "wire_bytes": 441,
+            "diagnostics": 1,
+            "errors": 1,
+            "incomplete": false,
+            "codes": {
+              "E.Syntax.Byte.003": 1
+            },
+            "examples": [
+              {
+                "data": null,
+                "range": {
+                  "start": {
+                    "line": 176466,
+                    "character": 4
+                  },
+                  "end": {
+                    "line": 176466,
+                    "character": 5
+                  }
+                },
+                "severity": 1,
+                "code": "E.Syntax.Byte.003",
+                "source": "dot-ls",
+                "relatedInformation": [],
+                "message": "Invalid byte 0x40 in DOT syntax.\nremove the byte, or put the text inside a double-quoted identifier"
+              }
+            ]
+          },
+          {
+            "ms": 35.318458000000774,
+            "wire_bytes": 441,
+            "diagnostics": 1,
+            "errors": 1,
+            "incomplete": false,
+            "codes": {
+              "E.Syntax.Byte.003": 1
+            },
+            "examples": [
+              {
+                "data": null,
+                "range": {
+                  "start": {
+                    "line": 176466,
+                    "character": 4
+                  },
+                  "end": {
+                    "line": 176466,
+                    "character": 5
+                  }
+                },
+                "severity": 1,
+                "code": "E.Syntax.Byte.003",
+                "source": "dot-ls",
+                "relatedInformation": [],
+                "message": "Invalid byte 0x40 in DOT syntax.\nremove the byte, or put the text inside a double-quoted identifier"
+              }
+            ]
+          }
+        ],
+        "settled_rss_bytes": 5390336,
+        "settled_footprint_bytes": 4456832,
+        "cpu_through_settle_seconds": 0.053936125,
+        "reported_incomplete": false
+      },
+      {
+        "phase": "edit",
+        "inserted_errors": 0,
+        "version": 3,
+        "first_diagnostics_ms": 31.762332999999643,
+        "final_diagnostics_ms": 32.15933299999918,
+        "write_ms": 2.0821249999993796,
+        "notifications": [
+          {
+            "ms": 31.762332999999643,
+            "wire_bytes": 149,
+            "diagnostics": 0,
+            "errors": 0,
+            "incomplete": false,
+            "codes": {},
+            "examples": []
+          },
+          {
+            "ms": 32.15933299999918,
+            "wire_bytes": 149,
+            "diagnostics": 0,
+            "errors": 0,
+            "incomplete": false,
+            "codes": {},
+            "examples": []
+          }
+        ],
+        "settled_rss_bytes": 6815744,
+        "settled_footprint_bytes": 5882240,
+        "cpu_through_settle_seconds": 0.055879750000000006,
+        "reported_incomplete": false
+      }
+    ],
+    "resources": {
+      "exit_code": 0,
+      "actual_peak_rss_bytes": 18055168,
+      "sampled_peak_rss_bytes": 12468224,
+      "sampled_peak_footprint_bytes": 11551128,
+      "cpu_user_seconds": 0.158045,
+      "cpu_system_seconds": 0.012385,
+      "safety_stop": null,
+      "stderr": "REF_INDEX_TICKS 112869\nREF_INDEX_TICKS 108681\n"
+    },
+    "reference_phase_ms": [
+      4.702875,
+      4.528375
+    ]
+  },
+  {
+    "mb": 5,
+    "kind": "html",
+    "label": "after",
+    "trial": 1,
+    "source_bytes": 5000000,
+    "startup_ms": 9.108792000001031,
+    "idle": {
+      "t": 13.781254916,
+      "rss_bytes": 2211840,
+      "footprint_bytes": 1376592,
+      "cpu_seconds": 0.005375833333333333,
+      "start_ticks": 5102662555316
+    },
+    "phases": [
+      {
+        "phase": "open",
+        "inserted_errors": 0,
+        "version": 1,
+        "first_diagnostics_ms": 30.566375000001145,
+        "final_diagnostics_ms": 30.98462500000032,
+        "write_ms": 1.6550000000012943,
+        "notifications": [
+          {
+            "ms": 30.566375000001145,
+            "wire_bytes": 149,
+            "diagnostics": 0,
+            "errors": 0,
+            "incomplete": false,
+            "codes": {},
+            "examples": []
+          },
+          {
+            "ms": 30.98462500000032,
+            "wire_bytes": 149,
+            "diagnostics": 0,
+            "errors": 0,
+            "incomplete": false,
+            "codes": {},
+            "examples": []
+          }
+        ],
+        "settled_rss_bytes": 6799360,
+        "settled_footprint_bytes": 5849448,
+        "cpu_through_settle_seconds": 0.054834083333333325,
+        "reported_incomplete": false
+      },
+      {
+        "phase": "edit",
+        "inserted_errors": 1,
+        "version": 2,
+        "first_diagnostics_ms": 34.79974999999946,
+        "final_diagnostics_ms": 35.21816700000002,
+        "write_ms": 2.0058330000001234,
+        "notifications": [
+          {
+            "ms": 34.79974999999946,
+            "wire_bytes": 441,
+            "diagnostics": 1,
+            "errors": 1,
+            "incomplete": false,
+            "codes": {
+              "E.Syntax.Byte.003": 1
+            },
+            "examples": [
+              {
+                "data": null,
+                "range": {
+                  "start": {
+                    "line": 176466,
+                    "character": 4
+                  },
+                  "end": {
+                    "line": 176466,
+                    "character": 5
+                  }
+                },
+                "severity": 1,
+                "code": "E.Syntax.Byte.003",
+                "source": "dot-ls",
+                "relatedInformation": [],
+                "message": "Invalid byte 0x40 in DOT syntax.\nremove the byte, or put the text inside a double-quoted identifier"
+              }
+            ]
+          },
+          {
+            "ms": 35.21816700000002,
+            "wire_bytes": 441,
+            "diagnostics": 1,
+            "errors": 1,
+            "incomplete": false,
+            "codes": {
+              "E.Syntax.Byte.003": 1
+            },
+            "examples": [
+              {
+                "data": null,
+                "range": {
+                  "start": {
+                    "line": 176466,
+                    "character": 4
+                  },
+                  "end": {
+                    "line": 176466,
+                    "character": 5
+                  }
+                },
+                "severity": 1,
+                "code": "E.Syntax.Byte.003",
+                "source": "dot-ls",
+                "relatedInformation": [],
+                "message": "Invalid byte 0x40 in DOT syntax.\nremove the byte, or put the text inside a double-quoted identifier"
+              }
+            ]
+          }
+        ],
+        "settled_rss_bytes": 5373952,
+        "settled_footprint_bytes": 4440448,
+        "cpu_through_settle_seconds": 0.05419841666666667,
+        "reported_incomplete": false
+      },
+      {
+        "phase": "edit",
+        "inserted_errors": 0,
+        "version": 3,
+        "first_diagnostics_ms": 32.09687500000058,
+        "final_diagnostics_ms": 32.49291700000079,
+        "write_ms": 2.0237920000010234,
+        "notifications": [
+          {
+            "ms": 32.09687500000058,
+            "wire_bytes": 149,
+            "diagnostics": 0,
+            "errors": 0,
+            "incomplete": false,
+            "codes": {},
+            "examples": []
+          },
+          {
+            "ms": 32.49291700000079,
+            "wire_bytes": 149,
+            "diagnostics": 0,
+            "errors": 0,
+            "incomplete": false,
+            "codes": {},
+            "examples": []
+          }
+        ],
+        "settled_rss_bytes": 6799360,
+        "settled_footprint_bytes": 5865856,
+        "cpu_through_settle_seconds": 0.05646137500000001,
+        "reported_incomplete": false
+      }
+    ],
+    "resources": {
+      "exit_code": 0,
+      "actual_peak_rss_bytes": 18038784,
+      "sampled_peak_rss_bytes": 12271616,
+      "sampled_peak_footprint_bytes": 11338136,
+      "cpu_user_seconds": 0.159297,
+      "cpu_system_seconds": 0.012426,
+      "safety_stop": null,
+      "stderr": "REF_INDEX_TICKS 112662\nREF_INDEX_TICKS 109606\n"
+    },
+    "reference_phase_ms": [
+      4.69425,
+      4.566916666666667
+    ]
+  },
+  {
+    "mb": 5,
+    "kind": "html",
+    "label": "before",
+    "trial": 1,
+    "source_bytes": 5000000,
+    "startup_ms": 8.559291999999274,
+    "idle": {
+      "t": 15.434799375,
+      "rss_bytes": 2162688,
+      "footprint_bytes": 1360184,
+      "cpu_seconds": 0.004972708333333333,
+      "start_ticks": 5102702368101
+    },
+    "phases": [
+      {
+        "phase": "open",
+        "inserted_errors": 0,
+        "version": 1,
+        "first_diagnostics_ms": 26.088624999999865,
+        "final_diagnostics_ms": 26.49854099999871,
+        "write_ms": 1.8850829999994545,
+        "notifications": [
+          {
+            "ms": 26.088624999999865,
+            "wire_bytes": 149,
+            "diagnostics": 0,
+            "errors": 0,
+            "incomplete": false,
+            "codes": {},
+            "examples": []
+          },
+          {
+            "ms": 26.49854099999871,
+            "wire_bytes": 149,
+            "diagnostics": 0,
+            "errors": 0,
+            "incomplete": false,
+            "codes": {},
+            "examples": []
+          }
+        ],
+        "settled_rss_bytes": 6766592,
+        "settled_footprint_bytes": 5833040,
+        "cpu_through_settle_seconds": 0.051098000000000005,
+        "reported_incomplete": false
+      },
+      {
+        "phase": "edit",
+        "inserted_errors": 1,
+        "version": 2,
+        "first_diagnostics_ms": 29.812166000001028,
+        "final_diagnostics_ms": 30.22791599999941,
+        "write_ms": 1.9158749999999003,
+        "notifications": [
+          {
+            "ms": 29.812166000001028,
+            "wire_bytes": 441,
+            "diagnostics": 1,
+            "errors": 1,
+            "incomplete": false,
+            "codes": {
+              "E.Syntax.Byte.003": 1
+            },
+            "examples": [
+              {
+                "data": null,
+                "range": {
+                  "start": {
+                    "line": 176466,
+                    "character": 4
+                  },
+                  "end": {
+                    "line": 176466,
+                    "character": 5
+                  }
+                },
+                "severity": 1,
+                "code": "E.Syntax.Byte.003",
+                "source": "dot-ls",
+                "relatedInformation": [],
+                "message": "Invalid byte 0x40 in DOT syntax.\nremove the byte, or put the text inside a double-quoted identifier"
+              }
+            ]
+          },
+          {
+            "ms": 30.22791599999941,
+            "wire_bytes": 441,
+            "diagnostics": 1,
+            "errors": 1,
+            "incomplete": false,
+            "codes": {
+              "E.Syntax.Byte.003": 1
+            },
+            "examples": [
+              {
+                "data": null,
+                "range": {
+                  "start": {
+                    "line": 176466,
+                    "character": 4
+                  },
+                  "end": {
+                    "line": 176466,
+                    "character": 5
+                  }
+                },
+                "severity": 1,
+                "code": "E.Syntax.Byte.003",
+                "source": "dot-ls",
+                "relatedInformation": [],
+                "message": "Invalid byte 0x40 in DOT syntax.\nremove the byte, or put the text inside a double-quoted identifier"
+              }
+            ]
+          }
+        ],
+        "settled_rss_bytes": 5341184,
+        "settled_footprint_bytes": 4424040,
+        "cpu_through_settle_seconds": 0.04961979166666667,
+        "reported_incomplete": false
+      },
+      {
+        "phase": "edit",
+        "inserted_errors": 0,
+        "version": 3,
+        "first_diagnostics_ms": 26.039042000000734,
+        "final_diagnostics_ms": 26.464125000000394,
+        "write_ms": 1.906042000001662,
+        "notifications": [
+          {
+            "ms": 26.039042000000734,
+            "wire_bytes": 149,
+            "diagnostics": 0,
+            "errors": 0,
+            "incomplete": false,
+            "codes": {},
+            "examples": []
+          },
+          {
+            "ms": 26.464125000000394,
+            "wire_bytes": 149,
+            "diagnostics": 0,
+            "errors": 0,
+            "incomplete": false,
+            "codes": {},
+            "examples": []
+          }
+        ],
+        "settled_rss_bytes": 6766592,
+        "settled_footprint_bytes": 5849448,
+        "cpu_through_settle_seconds": 0.05171329166666665,
+        "reported_incomplete": false
+      }
+    ],
+    "resources": {
+      "exit_code": 0,
+      "actual_peak_rss_bytes": 18006016,
+      "sampled_peak_rss_bytes": 13303808,
+      "sampled_peak_footprint_bytes": 12403072,
+      "cpu_user_seconds": 0.14646399999999998,
+      "cpu_system_seconds": 0.012036999999999999,
+      "safety_stop": null,
+      "stderr": "REF_INDEX_TICKS 113201\nREF_INDEX_TICKS 115726\n"
+    },
+    "reference_phase_ms": [
+      4.716708333333333,
+      4.821916666666667
+    ]
+  },
+  {
+    "mb": 5,
+    "kind": "html",
+    "label": "before",
+    "trial": 2,
+    "source_bytes": 5000000,
+    "startup_ms": 8.381917000001238,
+    "idle": {
+      "t": 17.065876666,
+      "rss_bytes": 2162688,
+      "footprint_bytes": 1376592,
+      "cpu_seconds": 0.004923083333333333,
+      "start_ticks": 5102741540481
+    },
+    "phases": [
+      {
+        "phase": "open",
+        "inserted_errors": 0,
+        "version": 1,
+        "first_diagnostics_ms": 26.40166699999824,
+        "final_diagnostics_ms": 26.8147919999997,
+        "write_ms": 1.8308339999997258,
+        "notifications": [
+          {
+            "ms": 26.40166699999824,
+            "wire_bytes": 149,
+            "diagnostics": 0,
+            "errors": 0,
+            "incomplete": false,
+            "codes": {},
+            "examples": []
+          },
+          {
+            "ms": 26.8147919999997,
+            "wire_bytes": 149,
+            "diagnostics": 0,
+            "errors": 0,
+            "incomplete": false,
+            "codes": {},
+            "examples": []
+          }
+        ],
+        "settled_rss_bytes": 6766592,
+        "settled_footprint_bytes": 5849448,
+        "cpu_through_settle_seconds": 0.05135304166666667,
+        "reported_incomplete": false
+      },
+      {
+        "phase": "edit",
+        "inserted_errors": 1,
+        "version": 2,
+        "first_diagnostics_ms": 31.479833999998874,
+        "final_diagnostics_ms": 31.893875000001515,
+        "write_ms": 1.8956249999995123,
+        "notifications": [
+          {
+            "ms": 31.479833999998874,
+            "wire_bytes": 441,
+            "diagnostics": 1,
+            "errors": 1,
+            "incomplete": false,
+            "codes": {
+              "E.Syntax.Byte.003": 1
+            },
+            "examples": [
+              {
+                "data": null,
+                "range": {
+                  "start": {
+                    "line": 176466,
+                    "character": 4
+                  },
+                  "end": {
+                    "line": 176466,
+                    "character": 5
+                  }
+                },
+                "severity": 1,
+                "code": "E.Syntax.Byte.003",
+                "source": "dot-ls",
+                "relatedInformation": [],
+                "message": "Invalid byte 0x40 in DOT syntax.\nremove the byte, or put the text inside a double-quoted identifier"
+              }
+            ]
+          },
+          {
+            "ms": 31.893875000001515,
+            "wire_bytes": 441,
+            "diagnostics": 1,
+            "errors": 1,
+            "incomplete": false,
+            "codes": {
+              "E.Syntax.Byte.003": 1
+            },
+            "examples": [
+              {
+                "data": null,
+                "range": {
+                  "start": {
+                    "line": 176466,
+                    "character": 4
+                  },
+                  "end": {
+                    "line": 176466,
+                    "character": 5
+                  }
+                },
+                "severity": 1,
+                "code": "E.Syntax.Byte.003",
+                "source": "dot-ls",
+                "relatedInformation": [],
+                "message": "Invalid byte 0x40 in DOT syntax.\nremove the byte, or put the text inside a double-quoted identifier"
+              }
+            ]
+          }
+        ],
+        "settled_rss_bytes": 5341184,
+        "settled_footprint_bytes": 4440448,
+        "cpu_through_settle_seconds": 0.051730916666666675,
+        "reported_incomplete": false
+      },
+      {
+        "phase": "edit",
+        "inserted_errors": 0,
+        "version": 3,
+        "first_diagnostics_ms": 27.911040999999415,
+        "final_diagnostics_ms": 28.329875000000726,
+        "write_ms": 2.046708000001729,
+        "notifications": [
+          {
+            "ms": 27.911040999999415,
+            "wire_bytes": 149,
+            "diagnostics": 0,
+            "errors": 0,
+            "incomplete": false,
+            "codes": {},
+            "examples": []
+          },
+          {
+            "ms": 28.329875000000726,
+            "wire_bytes": 149,
+            "diagnostics": 0,
+            "errors": 0,
+            "incomplete": false,
+            "codes": {},
+            "examples": []
+          }
+        ],
+        "settled_rss_bytes": 6766592,
+        "settled_footprint_bytes": 5865856,
+        "cpu_through_settle_seconds": 0.053020624999999974,
+        "reported_incomplete": false
+      }
+    ],
+    "resources": {
+      "exit_code": 0,
+      "actual_peak_rss_bytes": 18006016,
+      "sampled_peak_rss_bytes": 13058048,
+      "sampled_peak_footprint_bytes": 12140904,
+      "cpu_user_seconds": 0.149839,
+      "cpu_system_seconds": 0.012352,
+      "safety_stop": null,
+      "stderr": "REF_INDEX_TICKS 113944\nREF_INDEX_TICKS 107326\n"
+    },
+    "reference_phase_ms": [
+      4.747666666666667,
+      4.471916666666667
+    ]
+  },
+  {
+    "mb": 5,
+    "kind": "html",
+    "label": "after",
+    "trial": 2,
+    "source_bytes": 5000000,
+    "startup_ms": 7.5923330000016165,
+    "idle": {
+      "t": 18.800175625,
+      "rss_bytes": 2211840,
+      "footprint_bytes": 1376592,
+      "cpu_seconds": 0.004413583333333333,
+      "start_ticks": 5102783048326
+    },
+    "phases": [
+      {
+        "phase": "open",
+        "inserted_errors": 0,
+        "version": 1,
+        "first_diagnostics_ms": 29.63483299999936,
+        "final_diagnostics_ms": 30.055208000000277,
+        "write_ms": 1.809375000000557,
+        "notifications": [
+          {
+            "ms": 29.63483299999936,
+            "wire_bytes": 149,
+            "diagnostics": 0,
+            "errors": 0,
+            "incomplete": false,
+            "codes": {},
+            "examples": []
+          },
+          {
+            "ms": 30.055208000000277,
+            "wire_bytes": 149,
+            "diagnostics": 0,
+            "errors": 0,
+            "incomplete": false,
+            "codes": {},
+            "examples": []
+          }
+        ],
+        "settled_rss_bytes": 6799360,
+        "settled_footprint_bytes": 5849448,
+        "cpu_through_settle_seconds": 0.05455533333333333,
+        "reported_incomplete": false
+      },
+      {
+        "phase": "edit",
+        "inserted_errors": 1,
+        "version": 2,
+        "first_diagnostics_ms": 35.62200000000004,
+        "final_diagnostics_ms": 36.03604199999921,
+        "write_ms": 2.098332999999286,
+        "notifications": [
+          {
+            "ms": 35.62200000000004,
+            "wire_bytes": 441,
+            "diagnostics": 1,
+            "errors": 1,
+            "incomplete": false,
+            "codes": {
+              "E.Syntax.Byte.003": 1
+            },
+            "examples": [
+              {
+                "data": null,
+                "range": {
+                  "start": {
+                    "line": 176466,
+                    "character": 4
+                  },
+                  "end": {
+                    "line": 176466,
+                    "character": 5
+                  }
+                },
+                "severity": 1,
+                "code": "E.Syntax.Byte.003",
+                "source": "dot-ls",
+                "relatedInformation": [],
+                "message": "Invalid byte 0x40 in DOT syntax.\nremove the byte, or put the text inside a double-quoted identifier"
+              }
+            ]
+          },
+          {
+            "ms": 36.03604199999921,
+            "wire_bytes": 441,
+            "diagnostics": 1,
+            "errors": 1,
+            "incomplete": false,
+            "codes": {
+              "E.Syntax.Byte.003": 1
+            },
+            "examples": [
+              {
+                "data": null,
+                "range": {
+                  "start": {
+                    "line": 176466,
+                    "character": 4
+                  },
+                  "end": {
+                    "line": 176466,
+                    "character": 5
+                  }
+                },
+                "severity": 1,
+                "code": "E.Syntax.Byte.003",
+                "source": "dot-ls",
+                "relatedInformation": [],
+                "message": "Invalid byte 0x40 in DOT syntax.\nremove the byte, or put the text inside a double-quoted identifier"
+              }
+            ]
+          }
+        ],
+        "settled_rss_bytes": 5373952,
+        "settled_footprint_bytes": 4440448,
+        "cpu_through_settle_seconds": 0.05508379166666666,
+        "reported_incomplete": false
+      },
+      {
+        "phase": "edit",
+        "inserted_errors": 0,
+        "version": 3,
+        "first_diagnostics_ms": 31.363917000000185,
+        "final_diagnostics_ms": 31.78945799999866,
+        "write_ms": 2.1310829999983127,
+        "notifications": [
+          {
+            "ms": 31.363917000000185,
+            "wire_bytes": 149,
+            "diagnostics": 0,
+            "errors": 0,
+            "incomplete": false,
+            "codes": {},
+            "examples": []
+          },
+          {
+            "ms": 31.78945799999866,
+            "wire_bytes": 149,
+            "diagnostics": 0,
+            "errors": 0,
+            "incomplete": false,
+            "codes": {},
+            "examples": []
+          }
+        ],
+        "settled_rss_bytes": 6799360,
+        "settled_footprint_bytes": 5865856,
+        "cpu_through_settle_seconds": 0.05635579166666667,
+        "reported_incomplete": false
+      }
+    ],
+    "resources": {
+      "exit_code": 0,
+      "actual_peak_rss_bytes": 18071552,
+      "sampled_peak_rss_bytes": 12451840,
+      "sampled_peak_footprint_bytes": 11534744,
+      "cpu_user_seconds": 0.158691,
+      "cpu_system_seconds": 0.013420999999999999,
+      "safety_stop": null,
+      "stderr": "REF_INDEX_TICKS 114048\nREF_INDEX_TICKS 115687\n"
+    },
+    "reference_phase_ms": [
+      4.752,
+      4.820291666666667
+    ]
+  },
+  {
+    "mb": 5,
+    "kind": "quoted",
+    "label": "before",
+    "trial": 0,
+    "source_bytes": 4999970,
+    "startup_ms": 7.864209000000955,
+    "idle": {
+      "t": 20.452612416,
+      "rss_bytes": 2162688,
+      "footprint_bytes": 1376592,
+      "cpu_seconds": 0.004840791666666667,
+      "start_ticks": 5102822814612
+    },
+    "phases": [
+      {
+        "phase": "open",
+        "inserted_errors": 0,
+        "version": 1,
+        "first_diagnostics_ms": 21.464833999999655,
+        "final_diagnostics_ms": 21.464833999999655,
+        "write_ms": 1.903334000001422,
+        "notifications": [
+          {
+            "ms": 21.464833999999655,
+            "wire_bytes": 149,
+            "diagnostics": 0,
+            "errors": 0,
+            "incomplete": false,
+            "codes": {},
+            "examples": []
+          }
+        ],
+        "settled_rss_bytes": 5406720,
+        "settled_footprint_bytes": 4505960,
+        "cpu_through_settle_seconds": 0.04275408333333333,
+        "reported_incomplete": false
+      },
+      {
+        "phase": "edit",
+        "inserted_errors": 0,
+        "version": 2,
+        "first_diagnostics_ms": 24.269249999999687,
+        "final_diagnostics_ms": 24.269249999999687,
+        "write_ms": 1.86462499999962,
+        "notifications": [
+          {
+            "ms": 24.269249999999687,
+            "wire_bytes": 149,
+            "diagnostics": 0,
+            "errors": 0,
+            "incomplete": false,
+            "codes": {},
+            "examples": []
+          }
+        ],
+        "settled_rss_bytes": 5406720,
+        "settled_footprint_bytes": 4522368,
+        "cpu_through_settle_seconds": 0.04622195833333332,
+        "reported_incomplete": false
+      },
+      {
+        "phase": "edit",
+        "inserted_errors": 0,
+        "version": 3,
+        "first_diagnostics_ms": 23.10770800000128,
+        "final_diagnostics_ms": 23.10770800000128,
+        "write_ms": 2.143165999999752,
+        "notifications": [
+          {
+            "ms": 23.10770800000128,
+            "wire_bytes": 149,
+            "diagnostics": 0,
+            "errors": 0,
+            "incomplete": false,
+            "codes": {},
+            "examples": []
+          }
+        ],
+        "settled_rss_bytes": 5406720,
+        "settled_footprint_bytes": 4538776,
+        "cpu_through_settle_seconds": 0.04476000000000002,
+        "reported_incomplete": false
+      }
+    ],
+    "resources": {
+      "exit_code": 0,
+      "actual_peak_rss_bytes": 17891328,
+      "sampled_peak_rss_bytes": 9175040,
+      "sampled_peak_footprint_bytes": 8290664,
+      "cpu_user_seconds": 0.12817,
+      "cpu_system_seconds": 0.011092,
+      "safety_stop": null,
+      "stderr": "REF_INDEX_TICKS 284581\nREF_INDEX_TICKS 297537\nREF_INDEX_TICKS 289456\n"
+    },
+    "reference_phase_ms": [
+      11.857541666666666,
+      12.397375,
+      12.060666666666666
+    ]
+  },
+  {
+    "mb": 5,
+    "kind": "quoted",
+    "label": "after",
+    "trial": 0,
+    "source_bytes": 4999970,
+    "startup_ms": 8.083041999999097,
+    "idle": {
+      "t": 22.181239,
+      "rss_bytes": 2211840,
+      "footprint_bytes": 1376592,
+      "cpu_seconds": 0.004880708333333333,
+      "start_ticks": 5102864310201
+    },
+    "phases": [
+      {
+        "phase": "open",
+        "inserted_errors": 0,
+        "version": 1,
+        "first_diagnostics_ms": 23.16733400000004,
+        "final_diagnostics_ms": 23.16733400000004,
+        "write_ms": 1.8884169999999756,
+        "notifications": [
+          {
+            "ms": 23.16733400000004,
+            "wire_bytes": 149,
+            "diagnostics": 0,
+            "errors": 0,
+            "incomplete": false,
+            "codes": {},
+            "examples": []
+          }
+        ],
+        "settled_rss_bytes": 5439488,
+        "settled_footprint_bytes": 4505960,
+        "cpu_through_settle_seconds": 0.05075983333333333,
+        "reported_incomplete": false
+      },
+      {
+        "phase": "edit",
+        "inserted_errors": 0,
+        "version": 2,
+        "first_diagnostics_ms": 24.051082999999807,
+        "final_diagnostics_ms": 24.051082999999807,
+        "write_ms": 1.9938330000002225,
+        "notifications": [
+          {
+            "ms": 24.051082999999807,
+            "wire_bytes": 149,
+            "diagnostics": 0,
+            "errors": 0,
+            "incomplete": false,
+            "codes": {},
+            "examples": []
+          }
+        ],
+        "settled_rss_bytes": 5439488,
+        "settled_footprint_bytes": 4522368,
+        "cpu_through_settle_seconds": 0.05068804166666666,
+        "reported_incomplete": false
+      },
+      {
+        "phase": "edit",
+        "inserted_errors": 0,
+        "version": 3,
+        "first_diagnostics_ms": 23.5180409999991,
+        "final_diagnostics_ms": 23.5180409999991,
+        "write_ms": 1.9435829999991938,
+        "notifications": [
+          {
+            "ms": 23.5180409999991,
+            "wire_bytes": 149,
+            "diagnostics": 0,
+            "errors": 0,
+            "incomplete": false,
+            "codes": {},
+            "examples": []
+          }
+        ],
+        "settled_rss_bytes": 5439488,
+        "settled_footprint_bytes": 4538776,
+        "cpu_through_settle_seconds": 0.05310237500000002,
+        "reported_incomplete": false
+      }
+    ],
+    "resources": {
+      "exit_code": 0,
+      "actual_peak_rss_bytes": 17924096,
+      "sampled_peak_rss_bytes": 11878400,
+      "sampled_peak_footprint_bytes": 10977688,
+      "cpu_user_seconds": 0.14926399999999998,
+      "cpu_system_seconds": 0.01098,
+      "safety_stop": null,
+      "stderr": "REF_INDEX_TICKS 439409\nREF_INDEX_TICKS 416835\nREF_INDEX_TICKS 486064\n"
+    },
+    "reference_phase_ms": [
+      18.308708333333332,
+      17.368125,
+      20.252666666666666
+    ]
+  },
+  {
+    "mb": 5,
+    "kind": "quoted",
+    "label": "after",
+    "trial": 1,
+    "source_bytes": 4999970,
+    "startup_ms": 9.174624999999992,
+    "idle": {
+      "t": 23.905705541,
+      "rss_bytes": 2211840,
+      "footprint_bytes": 1376592,
+      "cpu_seconds": 0.0056205,
+      "start_ticks": 5102905629430
+    },
+    "phases": [
+      {
+        "phase": "open",
+        "inserted_errors": 0,
+        "version": 1,
+        "first_diagnostics_ms": 22.346290999998075,
+        "final_diagnostics_ms": 22.346290999998075,
+        "write_ms": 1.8017909999983317,
+        "notifications": [
+          {
+            "ms": 22.346290999998075,
+            "wire_bytes": 149,
+            "diagnostics": 0,
+            "errors": 0,
+            "incomplete": false,
+            "codes": {},
+            "examples": []
+          }
+        ],
+        "settled_rss_bytes": 5439488,
+        "settled_footprint_bytes": 4505960,
+        "cpu_through_settle_seconds": 0.049312166666666664,
+        "reported_incomplete": false
+      },
+      {
+        "phase": "edit",
+        "inserted_errors": 0,
+        "version": 2,
+        "first_diagnostics_ms": 26.001167000000436,
+        "final_diagnostics_ms": 26.001167000000436,
+        "write_ms": 1.9972919999986516,
+        "notifications": [
+          {
+            "ms": 26.001167000000436,
+            "wire_bytes": 149,
+            "diagnostics": 0,
+            "errors": 0,
+            "incomplete": false,
+            "codes": {},
+            "examples": []
+          }
+        ],
+        "settled_rss_bytes": 5439488,
+        "settled_footprint_bytes": 4522368,
+        "cpu_through_settle_seconds": 0.05387604166666666,
+        "reported_incomplete": false
+      },
+      {
+        "phase": "edit",
+        "inserted_errors": 0,
+        "version": 3,
+        "first_diagnostics_ms": 22.34391600000052,
+        "final_diagnostics_ms": 22.34391600000052,
+        "write_ms": 1.656083000000308,
+        "notifications": [
+          {
+            "ms": 22.34391600000052,
+            "wire_bytes": 149,
+            "diagnostics": 0,
+            "errors": 0,
+            "incomplete": false,
+            "codes": {},
+            "examples": []
+          }
+        ],
+        "settled_rss_bytes": 5439488,
+        "settled_footprint_bytes": 4522368,
+        "cpu_through_settle_seconds": 0.049186750000000015,
+        "reported_incomplete": false
+      }
+    ],
+    "resources": {
+      "exit_code": 0,
+      "actual_peak_rss_bytes": 17989632,
+      "sampled_peak_rss_bytes": 11878400,
+      "sampled_peak_footprint_bytes": 10961280,
+      "cpu_user_seconds": 0.14710099999999998,
+      "cpu_system_seconds": 0.011672,
+      "safety_stop": null,
+      "stderr": "REF_INDEX_TICKS 428261\nREF_INDEX_TICKS 442650\nREF_INDEX_TICKS 426868\n"
+    },
+    "reference_phase_ms": [
+      17.84420833333333,
+      18.44375,
+      17.786166666666666
+    ]
+  },
+  {
+    "mb": 5,
+    "kind": "quoted",
+    "label": "before",
+    "trial": 1,
+    "source_bytes": 4999970,
+    "startup_ms": 5.265708999999674,
+    "idle": {
+      "t": 25.62344175,
+      "rss_bytes": 2162688,
+      "footprint_bytes": 1376592,
+      "cpu_seconds": 0.00265775,
+      "start_ticks": 5102946861102
+    },
+    "phases": [
+      {
+        "phase": "open",
+        "inserted_errors": 0,
+        "version": 1,
+        "first_diagnostics_ms": 24.55237499999896,
+        "final_diagnostics_ms": 24.55237499999896,
+        "write_ms": 1.9618329999993023,
+        "notifications": [
+          {
+            "ms": 24.55237499999896,
+            "wire_bytes": 149,
+            "diagnostics": 0,
+            "errors": 0,
+            "incomplete": false,
+            "codes": {},
+            "examples": []
+          }
+        ],
+        "settled_rss_bytes": 5406720,
+        "settled_footprint_bytes": 4505960,
+        "cpu_through_settle_seconds": 0.045450791666666664,
+        "reported_incomplete": false
+      },
+      {
+        "phase": "edit",
+        "inserted_errors": 0,
+        "version": 2,
+        "first_diagnostics_ms": 23.281082999996983,
+        "final_diagnostics_ms": 23.281082999996983,
+        "write_ms": 2.0641250000004163,
+        "notifications": [
+          {
+            "ms": 23.281082999996983,
+            "wire_bytes": 149,
+            "diagnostics": 0,
+            "errors": 0,
+            "incomplete": false,
+            "codes": {},
+            "examples": []
+          }
+        ],
+        "settled_rss_bytes": 5406720,
+        "settled_footprint_bytes": 4522368,
+        "cpu_through_settle_seconds": 0.045595583333333335,
+        "reported_incomplete": false
+      },
+      {
+        "phase": "edit",
+        "inserted_errors": 0,
+        "version": 3,
+        "first_diagnostics_ms": 20.285166000000743,
+        "final_diagnostics_ms": 20.285166000000743,
+        "write_ms": 1.9385000000013974,
+        "notifications": [
+          {
+            "ms": 20.285166000000743,
+            "wire_bytes": 149,
+            "diagnostics": 0,
+            "errors": 0,
+            "incomplete": false,
+            "codes": {},
+            "examples": []
+          }
+        ],
+        "settled_rss_bytes": 5406720,
+        "settled_footprint_bytes": 4522368,
+        "cpu_through_settle_seconds": 0.04077954166666667,
+        "reported_incomplete": false
+      }
+    ],
+    "resources": {
+      "exit_code": 0,
+      "actual_peak_rss_bytes": 17891328,
+      "sampled_peak_rss_bytes": 9338880,
+      "sampled_peak_footprint_bytes": 8470936,
+      "cpu_user_seconds": 0.12526199999999998,
+      "cpu_system_seconds": 0.009868,
+      "safety_stop": null,
+      "stderr": "REF_INDEX_TICKS 277263\nREF_INDEX_TICKS 304348\nREF_INDEX_TICKS 278227\n"
+    },
+    "reference_phase_ms": [
+      11.552625,
+      12.681166666666666,
+      11.592791666666667
+    ]
+  },
+  {
+    "mb": 5,
+    "kind": "quoted",
+    "label": "before",
+    "trial": 2,
+    "source_bytes": 4999970,
+    "startup_ms": 7.951583000000539,
+    "idle": {
+      "t": 27.336305625,
+      "rss_bytes": 2162688,
+      "footprint_bytes": 1376592,
+      "cpu_seconds": 0.004741541666666667,
+      "start_ticks": 5102987967207
+    },
+    "phases": [
+      {
+        "phase": "open",
+        "inserted_errors": 0,
+        "version": 1,
+        "first_diagnostics_ms": 20.1188330000015,
+        "final_diagnostics_ms": 20.1188330000015,
+        "write_ms": 1.5422080000000449,
+        "notifications": [
+          {
+            "ms": 20.1188330000015,
+            "wire_bytes": 149,
+            "diagnostics": 0,
+            "errors": 0,
+            "incomplete": false,
+            "codes": {},
+            "examples": []
+          }
+        ],
+        "settled_rss_bytes": 5406720,
+        "settled_footprint_bytes": 4505960,
+        "cpu_through_settle_seconds": 0.040609875,
+        "reported_incomplete": false
+      },
+      {
+        "phase": "edit",
+        "inserted_errors": 0,
+        "version": 2,
+        "first_diagnostics_ms": 22.893082999999592,
+        "final_diagnostics_ms": 22.893082999999592,
+        "write_ms": 1.9836660000009942,
+        "notifications": [
+          {
+            "ms": 22.893082999999592,
+            "wire_bytes": 149,
+            "diagnostics": 0,
+            "errors": 0,
+            "incomplete": false,
+            "codes": {},
+            "examples": []
+          }
+        ],
+        "settled_rss_bytes": 5406720,
+        "settled_footprint_bytes": 4522368,
+        "cpu_through_settle_seconds": 0.04466829166666666,
+        "reported_incomplete": false
+      },
+      {
+        "phase": "edit",
+        "inserted_errors": 0,
+        "version": 3,
+        "first_diagnostics_ms": 23.30812499999979,
+        "final_diagnostics_ms": 23.30812499999979,
+        "write_ms": 2.1302500000004443,
+        "notifications": [
+          {
+            "ms": 23.30812499999979,
+            "wire_bytes": 149,
+            "diagnostics": 0,
+            "errors": 0,
+            "incomplete": false,
+            "codes": {},
+            "examples": []
+          }
+        ],
+        "settled_rss_bytes": 5406720,
+        "settled_footprint_bytes": 4505960,
+        "cpu_through_settle_seconds": 0.045332000000000025,
+        "reported_incomplete": false
+      }
+    ],
+    "resources": {
+      "exit_code": 0,
+      "actual_peak_rss_bytes": 17891328,
+      "sampled_peak_rss_bytes": 9322496,
+      "sampled_peak_footprint_bytes": 8438120,
+      "cpu_user_seconds": 0.125448,
+      "cpu_system_seconds": 0.010575,
+      "safety_stop": null,
+      "stderr": "REF_INDEX_TICKS 281103\nREF_INDEX_TICKS 294847\nREF_INDEX_TICKS 298369\n"
+    },
+    "reference_phase_ms": [
+      11.712625,
+      12.285291666666666,
+      12.432041666666667
+    ]
+  },
+  {
+    "mb": 5,
+    "kind": "quoted",
+    "label": "after",
+    "trial": 2,
+    "source_bytes": 4999970,
+    "startup_ms": 8.159124999998824,
+    "idle": {
+      "t": 29.048418375,
+      "rss_bytes": 2211840,
+      "footprint_bytes": 1360184,
+      "cpu_seconds": 0.00480575,
+      "start_ticks": 5103028990563
+    },
+    "phases": [
+      {
+        "phase": "open",
+        "inserted_errors": 0,
+        "version": 1,
+        "first_diagnostics_ms": 25.32337499999926,
+        "final_diagnostics_ms": 25.32337499999926,
+        "write_ms": 1.9626670000008062,
+        "notifications": [
+          {
+            "ms": 25.32337499999926,
+            "wire_bytes": 149,
+            "diagnostics": 0,
+            "errors": 0,
+            "incomplete": false,
+            "codes": {},
+            "examples": []
+          }
+        ],
+        "settled_rss_bytes": 5439488,
+        "settled_footprint_bytes": 4489552,
+        "cpu_through_settle_seconds": 0.05339970833333334,
+        "reported_incomplete": false
+      },
+      {
+        "phase": "edit",
+        "inserted_errors": 0,
+        "version": 2,
+        "first_diagnostics_ms": 23.069958000000668,
+        "final_diagnostics_ms": 23.069958000000668,
+        "write_ms": 2.061832999999069,
+        "notifications": [
+          {
+            "ms": 23.069958000000668,
+            "wire_bytes": 149,
+            "diagnostics": 0,
+            "errors": 0,
+            "incomplete": false,
+            "codes": {},
+            "examples": []
+          }
+        ],
+        "settled_rss_bytes": 5439488,
+        "settled_footprint_bytes": 4505960,
+        "cpu_through_settle_seconds": 0.04906724999999999,
+        "reported_incomplete": false
+      },
+      {
+        "phase": "edit",
+        "inserted_errors": 0,
+        "version": 3,
+        "first_diagnostics_ms": 24.300707999998394,
+        "final_diagnostics_ms": 24.300707999998394,
+        "write_ms": 2.076207999998303,
+        "notifications": [
+          {
+            "ms": 24.300707999998394,
+            "wire_bytes": 149,
+            "diagnostics": 0,
+            "errors": 0,
+            "incomplete": false,
+            "codes": {},
+            "examples": []
+          }
+        ],
+        "settled_rss_bytes": 5439488,
+        "settled_footprint_bytes": 4505960,
+        "cpu_through_settle_seconds": 0.05147625000000003,
+        "reported_incomplete": false
+      }
+    ],
+    "resources": {
+      "exit_code": 0,
+      "actual_peak_rss_bytes": 17924096,
+      "sampled_peak_rss_bytes": 11878400,
+      "sampled_peak_footprint_bytes": 10961280,
+      "cpu_user_seconds": 0.148223,
+      "cpu_system_seconds": 0.011406,
+      "safety_stop": null,
+      "stderr": "REF_INDEX_TICKS 451157\nREF_INDEX_TICKS 408316\nREF_INDEX_TICKS 431600\n"
+    },
+    "reference_phase_ms": [
+      18.79820833333333,
+      17.013166666666667,
+      17.98333333333333
+    ]
+  }
+]

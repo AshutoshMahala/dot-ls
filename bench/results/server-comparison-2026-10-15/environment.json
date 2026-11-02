@@ -1,0 +1,55 @@
+{
+  "date": "2026-10-15",
+  "platform": "macOS-27.0.1-arm64-arm-64bit",
+  "machine": "arm64",
+  "cpu": "Apple M4 Pro",
+  "logical_cpus": "14",
+  "memory_bytes": "51539607552",
+  "node": "v26.11.1",
+  "node_default_heap_limit_bytes": 4395630592,
+  "dot_language_server": "3.2.1",
+  "dot_language_support": "4.4.2",
+  "dot_ls_build": "Zig 0.16.0 ReleaseSafe; current source; default limits and background features",
+  "dot_ls_sha256": "06634ddefd6c88f0d168ad6825401b43b57b27a322643d8bb53f234e389d2344",
+  "dot_ls_binary_bytes": 800824,
+  "server_js_sha256": "96a0dd310ab9445f92aec446fdcb9502943930c9afcc6749b9593a3736280fd1",
+  "source_files_sha256": {
+    "src/positions.zig": "cf464824091bde12da4329388ec2ca8e2ba2eeccf6b4c5919acbdcaeeb99f14d",
+    "src/main.zig": "959c06e275356bd5ec41d2b49e8afb3e2d5c8558c36e1c6358beda4523229738",
+    "src/parser_session_tests.zig": "dc7e2a6d50a1bded36855dcd10ec2fd2fc02a80395b451fcbed6160b6baa6656",
+    "src/json_message.zig": "c37b6298e20578bdf1dd0f210e63772b487b52ba34a543162332665535b38793",
+    "src/completion_context.zig": "30e01bf44c4e7ac3cd8b4145a762ccdd62b103db0d7770490b3fb4dc37b89215",
+    "src/analysis.zig": "43006f4ec8e66146a63f8b7cae1bb4d736749b430ff780c8f8a1529f51ef0b69",
+    "src/labels.zig": "9edb606c0f77a98fd0b0fa09876b17fb91b2925fd8d3ed1fc0c349fbeb407443",
+    "src/completion.zig": "061308c1066d3349da47e41ef412f0d8630845fe3a54a817ad210dc5ed14567f",
+    "src/diagnostic_text.zig": "b2068a0758e92e61d480af0d5dd8e68bb9c73ec21bf095a1a1dad0eb9c3d5952",
+    "src/references.zig": "36409e5c560dc9b5edc14ee83536cf63b224cef442ca5f4cb72fe21dde54c523"
+  },
+  "client_capabilities": "UTF-16; relatedInformation and diagnostic version support; no workspace/configuration capability",
+  "memory": "Main child server only. proc_pid_rusage at 20 ms; actual high-water RSS from macOS wait4. Python client and editor excluded.",
+  "runtime_environment": {
+    "NODE_OPTIONS": null,
+    "NODE_ENV": null,
+    "MallocStackLogging": null,
+    "DYLD_INSERT_LIBRARIES": null
+  },
+  "initial_benchmark_sha256": "6ddd32de964cb3261637eea43f75bb5f28cf45fa55d757884d93280a13cf49c3",
+  "final_benchmark_sha256": "dd19d1773a6611976098fee2755e71abdf34aeaefc606180c0f117182be971c5",
+  "harness_changes": "Added matched 0/1-error sweep controls; separated resource-limit coverage notices from response success; reran affected dot-ls HTML 20 MB cases. Timing boundaries unchanged.",
+  "startup_sample_count_per_server": 15,
+  "main_fresh_processes_per_case": 3,
+  "error_sweep_fresh_processes_per_count": 1,
+  "error_sweep_repeat_count": 2,
+  "additional_dependency_versions": {
+    "vscode-languageserver": "10.1.2",
+    "vscode-languageserver-textdocument": "1.0.15",
+    "vscode-jsonrpc": "9.0.3"
+  },
+  "limits_observed": {
+    "dot_ls_syntax_diagnostics": 1000,
+    "dot_ls_selected_html_labels": 65536,
+    "benchmark_response_deadline_ms": 10000,
+    "benchmark_rss_stop_bytes": 6000000000
+  },
+  "raw_analysis_complete_field": "Earlier rows derive this solely from absence of an incomplete notice; it is not feature-parity or complete-coverage proof."
+}

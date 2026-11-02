@@ -1,0 +1,112 @@
+{
+  "builds": {
+    "before": {
+      "binary": "/Users/ash/dev/dotls/dotls/zig-out/bin/dot-ls",
+      "sha256": "41cdac5fe95afeef08054c5fdfb1b861c3703a8bcd1afb5ae8f3e31d9f3b749d"
+    },
+    "after": {
+      "binary": "/private/tmp/dot-ls-packaged-zed-2026-10-25/extensions/work/dotls/dot-ls-0.0.1-aarch64-macos/dot-ls",
+      "sha256": "18612baf7ac06e0a1c7598dd88a417b75ac15534890c866d5a73ea0a056cd3b9"
+    }
+  },
+  "method": "Three fresh processes per size/layout/build, alternating order. Plaintext hover; open, broken edit, repair. Server RSS excludes Zed and the Python harness.",
+  "limitation": "Preliminary: attempts to launch a separate Zed profile may overlap early trials. Do not infer a speedup or isolated cold-start result.",
+  "rows": [
+    {
+      "mb": 5,
+      "kind": "plain",
+      "before": {
+        "open_final_diagnostics_ms": 39.72154100000003,
+        "settled_rss_bytes": 7438336,
+        "startup_ms": 8.411874999999291,
+        "peak_rss_bytes": 17940480
+      },
+      "after": {
+        "open_final_diagnostics_ms": 37.535666000000134,
+        "settled_rss_bytes": 7340032,
+        "startup_ms": 8.762458000000528,
+        "peak_rss_bytes": 17825792
+      }
+    },
+    {
+      "mb": 5,
+      "kind": "html",
+      "before": {
+        "open_final_diagnostics_ms": 35.07633399999932,
+        "settled_rss_bytes": 7290880,
+        "startup_ms": 7.759457999998887,
+        "peak_rss_bytes": 18055168
+      },
+      "after": {
+        "open_final_diagnostics_ms": 34.159582999999216,
+        "settled_rss_bytes": 7192576,
+        "startup_ms": 8.329542000000245,
+        "peak_rss_bytes": 17956864
+      }
+    },
+    {
+      "mb": 20,
+      "kind": "plain",
+      "before": {
+        "open_final_diagnostics_ms": 112.46491600000041,
+        "settled_rss_bytes": 21807104,
+        "startup_ms": 7.778250000001208,
+        "peak_rss_bytes": 63963136
+      },
+      "after": {
+        "open_final_diagnostics_ms": 105.23350000000065,
+        "settled_rss_bytes": 21708800,
+        "startup_ms": 7.58008300000057,
+        "peak_rss_bytes": 63799296
+      }
+    },
+    {
+      "mb": 20,
+      "kind": "html",
+      "before": {
+        "open_final_diagnostics_ms": 103.06750000000164,
+        "settled_rss_bytes": 20791296,
+        "startup_ms": 7.903458999997781,
+        "peak_rss_bytes": 64061440
+      },
+      "after": {
+        "open_final_diagnostics_ms": 96.83508300000199,
+        "settled_rss_bytes": 20692992,
+        "startup_ms": 8.042916999997374,
+        "peak_rss_bytes": 63963136
+      }
+    },
+    {
+      "mb": 40,
+      "kind": "plain",
+      "before": {
+        "open_final_diagnostics_ms": 188.48870800000128,
+        "settled_rss_bytes": 40927232,
+        "startup_ms": 7.413708000001407,
+        "peak_rss_bytes": 125239296
+      },
+      "after": {
+        "open_final_diagnostics_ms": 186.61687499999857,
+        "settled_rss_bytes": 40828928,
+        "startup_ms": 7.047958000001131,
+        "peak_rss_bytes": 125140992
+      }
+    },
+    {
+      "mb": 40,
+      "kind": "html",
+      "before": {
+        "open_final_diagnostics_ms": 170.29024999999365,
+        "settled_rss_bytes": 38813696,
+        "startup_ms": 7.317624999998884,
+        "peak_rss_bytes": 125321216
+      },
+      "after": {
+        "open_final_diagnostics_ms": 166.7638750000009,
+        "settled_rss_bytes": 38715392,
+        "startup_ms": 8.201416999995104,
+        "peak_rss_bytes": 125288448
+      }
+    }
+  ]
+}

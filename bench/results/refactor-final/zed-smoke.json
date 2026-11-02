@@ -1,0 +1,16 @@
+{
+  "project": "/Users/ash/dev/dotls/dotls",
+  "fixture": "examples/zed-smoke.dot",
+  "server_process": {
+    "pid": 87088,
+    "parent_pid": 3212,
+    "executable": "/Users/ash/dev/dotls/dotls/zig-out/bin/dot-ls",
+    "arguments": [
+      "lsp"
+    ],
+    "observed_cpu_percent": 0
+  },
+  "launch_confirmed": true,
+  "visual_repair_verified": false,
+  "blocker": "UI tool returned screenshots from a different Zed window and then noWindowsAvailable. Did not save or discard existing dirty buffers."
+}

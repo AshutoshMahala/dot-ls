@@ -1,0 +1,155 @@
+--- a/src/dot/parse_engine.zig
++++ b/src/dot/parse_engine.zig
+@@ -188,6 +188,81 @@
+             return delivery;
+         }
+ 
++        /// Count-only session. Caller-owned nesting scratch; no syntax pools,
++        /// allocation, or retained document. Source and scratch stay alive across yields.
++        pub const MeasureSession = struct {
++            const Self = @This();
++            const Driver = DriverFor(*syntax_impl.CountingSink);
++            counting: syntax_impl.CountingSink = .{},
++            scratch: scratch_impl.Stack,
++            machine: Driver,
++            terminal: ?MeasureResult = null,
++
++            pub fn init(source: []const u8, memory: ParseScratch, diagnostics: DiagnosticSink, options: Options) Self {
++                return .{
++                    .scratch = .{ .frames = memory.frames },
++                    .machine = .{
++                        .tokens = @FieldType(Driver, "tokens").init(source),
++                        .events = undefined,
++                        .processor = options.processor,
++                        .diagnostics = diagnostics,
++                        .settings = options.parsing,
++                        .cancellation = options.cancellation,
++                    },
++                };
++            }
++            pub fn scratchMemory(self: *const Self) ParseScratch {
++                return .{ .frames = self.scratch.frames };
++            }
++            fn bind(self: *Self) void {
++                self.machine.events = &self.counting;
++                self.machine.scratch = &self.scratch;
++            }
++            pub fn advance(self: *Self, budget: usize) SessionProgress {
++                if (!metering) @compileError("metering is disabled; use run()");
++                self.bind();
++                const progress = self.machine.advance(budget);
++                self.settle();
++                return .{
++                    .phase = progress.phase,
++                    .source_frontier = progress.source_frontier,
++                    .completed_statements = progress.completed_statements,
++                    .completed_pairs = progress.completed_pairs,
++                    .work_used = progress.work_used,
++                    .accepted_deviations = self.machine.acceptedDeviations(),
++                    .warnings = self.machine.warnings,
++                    .syntax_errors = self.machine.syntaxErrors(),
++                    .outcome = if (self.terminal) |r| r.outcome else null,
++                    .diagnostic_delivery = if (self.terminal) |r| r.diagnostic_delivery else self.machine.delivery,
++                    .diagnostic_stop = if (self.terminal) |r| r.diagnostic_stop else null,
++                };
++            }
++            pub fn run(self: *Self) MeasureResult {
++                self.bind();
++                _ = self.machine.runToCompletion();
++                self.settle();
++                return self.terminal.?;
++            }
++            pub fn result(self: *const Self) ?MeasureResult {
++                return self.terminal;
++            }
++            pub fn cancel(self: *Self) MeasureResult {
++                self.bind();
++                _ = self.machine.cancel();
++                self.settle();
++                return self.terminal.?;
++            }
++            pub fn deinit(self: *Self) void {
++                _ = self.cancel();
++            }
++            fn settle(self: *Self) void {
++                if (self.terminal != null) return;
++                const parsed = self.machine.terminal orelse return;
++                self.terminal = publicResult(MeasureResult, parsed);
++                if (parsed.outcome == .success) self.terminal.?.capacities = self.counting.counts;
++            }
++        };
++
+         pub const Session = struct {
+             const Self = @This();
+             const Driver = DriverFor(*FixedBuilder);
+--- a/src/dot/profile.zig
++++ b/src/dot/profile.zig
+@@ -197,6 +197,68 @@
+                 .diagnostic_delivery = if (parsed.diagnostic_delivery == .failed or checked.diagnostic_delivery == .failed) .failed else .complete,
+             };
+         }
++
++        /// Count-only resumable parsing. Fixed caller scratch; no AST allocation.
++        /// Results publish capacities only after successful completion.
++        pub const MeasureSession = struct {
++            const Self = @This();
++            const Drivers = union(Variant) {
++                scalar_immediate: EngineFor(.scalar_immediate).MeasureSession,
++                scalar_cancellable: EngineFor(.scalar_cancellable).MeasureSession,
++                scalar_metered: EngineFor(.scalar_metered).MeasureSession,
++                scalar_metered_cancellable: EngineFor(.scalar_metered_cancellable).MeasureSession,
++                block_immediate: EngineFor(.block_immediate).MeasureSession,
++                block_cancellable: EngineFor(.block_cancellable).MeasureSession,
++                block_metered: EngineFor(.block_metered).MeasureSession,
++                block_metered_cancellable: EngineFor(.block_metered_cancellable).MeasureSession,
++            };
++            driver: if (runtime_policy) Drivers else FixedEngine.MeasureSession,
++            pub fn init(source: []const u8, scratch: api.ParseScratch, diagnostics: api.DiagnosticSink, options: FixedParseOptions) Checked(Self) {
++                const effective = if (runtime_policy) try settings(options) else settings(options);
++                return initResolved(source, scratch, diagnostics, effective, options.cancellation);
++            }
++            fn initResolved(source: []const u8, scratch: api.ParseScratch, diagnostics: api.DiagnosticSink, effective: State, hook: Hook) Self {
++                return .{ .driver = if (runtime_policy) switch (variantOf(effective)) {
++                    inline else => |variant| @unionInit(Drivers, @tagName(variant), EngineFor(variant).MeasureSession.init(source, scratch, diagnostics, engineOptions(EngineFor(variant), effective, hook))),
++                } else FixedEngine.MeasureSession.init(source, scratch, diagnostics, engineOptions(FixedEngine, effective, hook)) };
++            }
++            pub fn advance(self: *Self, budget: usize) (if (runtime_policy) error{MeteringDisabled}!api.SessionProgress else api.SessionProgress) {
++                if (runtime_policy) return switch (self.driver) {
++                    inline else => |*driver, variant| if (comptime variant.metered()) driver.advance(budget) else error.MeteringDisabled,
++                };
++                if (!baseline.execution.metering) @compileError("metering is disabled; use run()");
++                return self.driver.advance(budget);
++            }
++            pub fn run(self: *Self) api.MeasureResult {
++                if (runtime_policy) return switch (self.driver) {
++                    inline else => |*driver| driver.run(),
++                };
++                return self.driver.run();
++            }
++            pub fn result(self: *const Self) ?api.MeasureResult {
++                if (runtime_policy) return switch (self.driver) {
++                    inline else => |*driver| driver.result(),
++                };
++                return self.driver.result();
++            }
++            pub fn cancel(self: *Self) api.MeasureResult {
++                if (runtime_policy) return switch (self.driver) {
++                    inline else => |*driver| driver.cancel(),
++                };
++                return self.driver.cancel();
++            }
++            pub fn deinit(self: *Self) void {
++                _ = self.cancel();
++            }
++            pub fn reset(self: *Self, source: []const u8, diagnostics: api.DiagnosticSink, options: FixedParseOptions) Checked(void) {
++                const effective = if (runtime_policy) try settings(options) else settings(options);
++                const scratch = if (runtime_policy) switch (self.driver) {
++                    inline else => |*driver| driver.scratchMemory(),
++                } else self.driver.scratchMemory();
++                _ = self.cancel();
++                self.* = initResolved(source, scratch, diagnostics, effective, options.cancellation);
++            }
++        };
+ 
+         /// Fixed-storage session. Policy is latched until reset. Runtime variants
+         /// use one tagged union (largest driver, not eight driver instances).

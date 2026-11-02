@@ -1,0 +1,6 @@
+// Put the cursor on an error and open Zed's code actions (Cmd+.).
+// Both repairs below come from the parser. No AST is retained.
+digraph QuickFixes {
+    a -- b;
+    b [label=<<B>&amp</B>>];
+}

@@ -1,0 +1,9 @@
+// Hover over shape, label or rankdir to see attribute help.
+// Use a quick fix on the last node to insert the closing bracket.
+digraph MessageTemplates {
+    graph [rankdir=LR];
+    start [shape=box, label="Start here"];
+    finish [shape=ellipse];
+    start -> finish;
+    broken [color=red
+}

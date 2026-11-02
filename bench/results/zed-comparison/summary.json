@@ -1,0 +1,41 @@
+{
+  "results": [
+    {
+      "server": "dot-language-server",
+      "source_mb": 5,
+      "open_ms": 865.305333,
+      "error_ms": 596.754791,
+      "repair_ms": 650.5155,
+      "sampled_peak_rss_bytes": 1330216960,
+      "trace": "graphviz-22803.jsonl"
+    },
+    {
+      "server": "dot-language-server",
+      "source_mb": 20,
+      "open_ms": 3021.75275,
+      "error_ms": 1617.923834,
+      "repair_ms": 1676.749625,
+      "sampled_peak_rss_bytes": 2561671168,
+      "trace": "graphviz-26501.jsonl"
+    },
+    {
+      "server": "dotls",
+      "source_mb": 5,
+      "open_ms": 22.340375,
+      "error_ms": 27.133417,
+      "repair_ms": 26.79625,
+      "sampled_peak_rss_bytes": 8912896,
+      "trace": "dotls-28571.jsonl"
+    },
+    {
+      "server": "dotls",
+      "source_mb": 20,
+      "open_ms": 86.640208,
+      "error_ms": 91.577375,
+      "repair_ms": 82.883584,
+      "sampled_peak_rss_bytes": 41435136,
+      "trace": "dotls-30691.jsonl"
+    }
+  ],
+  "notes": "In-Zed relay measurements. Diagnostic interval starts just before forwarding the full notification to server, ends when relay receives diagnostics. Excludes keystroke handling, Zed serialization, relay input JSON decoding and final UI painting. One sample per phase. Graphviz omits diagnostic version; single-change phases awaited individually. Its earlier paste trials are excluded from latency summary. Sampled RSS can miss brief peaks. Node and Python relay processes are separate; RSS here is the actual server only."
+}

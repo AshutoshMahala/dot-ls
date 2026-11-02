@@ -1,0 +1,57 @@
+[
+  {
+    "suite": "protocol",
+    "exit": 0,
+    "output": "26 replies/findings match except the expected server version."
+  },
+  {
+    "suite": "lsp",
+    "exit": 0,
+    "output": "{\n  \"checks\": \"passed\",\n  \"binary_bytes\": 985064,\n  \"startup_ms_median\": 2.2007910000000077,\n  \"startup_ms_max\": 2.7357919999999867,\n  \"edit_bytes\": 800012,\n  \"edit_ms_median\": 9.825270999999997,\n  \"edit_ms_max\": 10.400875000000031\n}\n"
+  },
+  {
+    "suite": "validation",
+    "exit": 0,
+    "output": "DOT policy protocol checks passed (UTF-8/16/32, limits, repair, HTML merge).\n"
+  },
+  {
+    "suite": "completion",
+    "exit": 0,
+    "output": "Completion: contexts, partial input, UTF-8/16/32, line endings, limits and deferred lifecycle passed\n"
+  },
+  {
+    "suite": "attributes",
+    "exit": 0,
+    "output": "Attributes: owner filtering, quoted names, UTF-8/16/32, hover exclusions and stale/cancelled requests passed\n"
+  },
+  {
+    "suite": "references",
+    "exit": 0,
+    "output": "Node references: identities, chains, scopes, encodings, limits, invalid syntax and lifecycle passed\n"
+  },
+  {
+    "suite": "html",
+    "exit": 0,
+    "output": "HTML: staged merge, selection, UTF-8/16/32, moved labels, repairs, limits, 70,000-label tail coverage and obsolete generations passed\n"
+  },
+  {
+    "suite": "code_actions",
+    "exit": 0,
+    "output": "Code actions: parser edits apply cleanly; UTF-8/16/32, HTML rebase, filters, stale generations and versioned edits passed.\n"
+  },
+  {
+    "suite": "outline",
+    "exit": 0,
+    "output": "document outline protocol checks passed\n"
+  },
+  {
+    "suite": "output",
+    "exit": 0,
+    "output": "Output: partial intake, paused/resumed reader, intact large reply, close/cancel input, bounded exit and broken pipe passed.\n"
+  },
+  {
+    "suite": "templates",
+    "exit": 0,
+    "output": "Templates: Markdown/plaintext preference, malformed capabilities, example, link and plain diagnostic passed.\n"
+  }
+]

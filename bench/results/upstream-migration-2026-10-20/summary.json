@@ -1,0 +1,187 @@
+{
+  "platform": "macOS-27.0.1-arm64-arm-64bit",
+  "units": "decimal MB; milliseconds",
+  "method": "Three fresh processes per size/kind/build, alternating before/after order. Each receives open/error/repair; quoted stress receives three identical snapshots. Requests are pre-encoded. Diagnostics includes full sync intake. Reference stage surrounds builder.finish and publication, excludes outer parsing and HTML. Native mach ticks converted using mach_timebase_info. Actual server peak RSS from wait4. No editor. Two sample-only logging lines are the same in both builds. Final candidate removes these lines. 5 MB results have timing variation; do not infer a speedup.",
+  "rows": [
+    {
+      "mb": 5,
+      "kind": "plain",
+      "before": {
+        "open_diagnostics_ms": 29.216583000000185,
+        "edit_diagnostics_ms": 31.137625500000432,
+        "reference_stage_ms": 7.597229166666667,
+        "peak_rss_bytes": 17858560,
+        "idle_rss_bytes": 2162688,
+        "startup_ms": 7.8268330000001995
+      },
+      "after": {
+        "open_diagnostics_ms": 21.052582999999903,
+        "edit_diagnostics_ms": 23.66670800000015,
+        "reference_stage_ms": 6.933041666666666,
+        "peak_rss_bytes": 17924096,
+        "idle_rss_bytes": 2228224,
+        "startup_ms": 9.496374999999446
+      }
+    },
+    {
+      "mb": 5,
+      "kind": "html",
+      "before": {
+        "open_diagnostics_ms": 26.32958299999899,
+        "edit_diagnostics_ms": 30.499499999999458,
+        "reference_stage_ms": 4.710125,
+        "peak_rss_bytes": 18006016,
+        "idle_rss_bytes": 2162688,
+        "startup_ms": 7.823458000000727
+      },
+      "after": {
+        "open_diagnostics_ms": 27.808000000000277,
+        "edit_diagnostics_ms": 30.018145499999704,
+        "reference_stage_ms": 4.729895833333334,
+        "peak_rss_bytes": 18055168,
+        "idle_rss_bytes": 2228224,
+        "startup_ms": 9.198083000001134
+      }
+    },
+    {
+      "mb": 5,
+      "kind": "quoted",
+      "before": {
+        "open_diagnostics_ms": 22.382791000001845,
+        "edit_diagnostics_ms": 22.815812500001087,
+        "reference_stage_ms": 11.958333333333334,
+        "peak_rss_bytes": 17891328,
+        "idle_rss_bytes": 2162688,
+        "startup_ms": 7.961916999999374
+      },
+      "after": {
+        "open_diagnostics_ms": 23.62262499999801,
+        "edit_diagnostics_ms": 23.68831250000092,
+        "reference_stage_ms": 18.53275,
+        "peak_rss_bytes": 17940480,
+        "idle_rss_bytes": 2228224,
+        "startup_ms": 7.187625000000253
+      }
+    },
+    {
+      "mb": 20,
+      "kind": "plain",
+      "before": {
+        "open_diagnostics_ms": 81.0475420000003,
+        "edit_diagnostics_ms": 89.44208300000156,
+        "reference_stage_ms": 28.199145833333333,
+        "peak_rss_bytes": 63848448,
+        "idle_rss_bytes": 2162688,
+        "startup_ms": 8.024333999998134
+      },
+      "after": {
+        "open_diagnostics_ms": 83.59937499999859,
+        "edit_diagnostics_ms": 88.4360209999997,
+        "reference_stage_ms": 29.851916666666668,
+        "peak_rss_bytes": 63897600,
+        "idle_rss_bytes": 2228224,
+        "startup_ms": 9.143958000002783
+      }
+    },
+    {
+      "mb": 20,
+      "kind": "html",
+      "before": {
+        "open_diagnostics_ms": 70.63275000000147,
+        "edit_diagnostics_ms": 83.76927100000131,
+        "reference_stage_ms": 16.805833333333332,
+        "peak_rss_bytes": 63963136,
+        "idle_rss_bytes": 2162688,
+        "startup_ms": 7.888250000000596
+      },
+      "after": {
+        "open_diagnostics_ms": 71.04883399999551,
+        "edit_diagnostics_ms": 76.50795849999525,
+        "reference_stage_ms": 18.1765625,
+        "peak_rss_bytes": 64045056,
+        "idle_rss_bytes": 2228224,
+        "startup_ms": 8.389833999999041
+      }
+    },
+    {
+      "mb": 20,
+      "kind": "quoted",
+      "before": {
+        "open_diagnostics_ms": 58.66912500000154,
+        "edit_diagnostics_ms": 60.55345850000293,
+        "reference_stage_ms": 35.509625,
+        "peak_rss_bytes": 63963136,
+        "idle_rss_bytes": 2162688,
+        "startup_ms": 7.558041999999432
+      },
+      "after": {
+        "open_diagnostics_ms": 59.913125000001344,
+        "edit_diagnostics_ms": 60.66131249999884,
+        "reference_stage_ms": 56.19108333333334,
+        "peak_rss_bytes": 64012288,
+        "idle_rss_bytes": 2228224,
+        "startup_ms": 7.863417000010031
+      }
+    },
+    {
+      "mb": 40,
+      "kind": "plain",
+      "before": {
+        "open_diagnostics_ms": 153.85762500000055,
+        "edit_diagnostics_ms": 169.16612500000383,
+        "reference_stage_ms": 64.74854166666667,
+        "peak_rss_bytes": 125173760,
+        "idle_rss_bytes": 2162688,
+        "startup_ms": 7.3451250000005075
+      },
+      "after": {
+        "open_diagnostics_ms": 162.34545799999012,
+        "edit_diagnostics_ms": 170.11393799999297,
+        "reference_stage_ms": 66.95691666666667,
+        "peak_rss_bytes": 125239296,
+        "idle_rss_bytes": 2228224,
+        "startup_ms": 7.67458299999646
+      }
+    },
+    {
+      "mb": 40,
+      "kind": "html",
+      "before": {
+        "open_diagnostics_ms": 138.82408399999235,
+        "edit_diagnostics_ms": 151.1708330000019,
+        "reference_stage_ms": 38.77922916666667,
+        "peak_rss_bytes": 125272064,
+        "idle_rss_bytes": 2162688,
+        "startup_ms": 7.820084000002225
+      },
+      "after": {
+        "open_diagnostics_ms": 136.6114580000044,
+        "edit_diagnostics_ms": 149.90077099999866,
+        "reference_stage_ms": 40.69277083333333,
+        "peak_rss_bytes": 125321216,
+        "idle_rss_bytes": 2228224,
+        "startup_ms": 7.731958000007921
+      }
+    },
+    {
+      "mb": 40,
+      "kind": "quoted",
+      "before": {
+        "open_diagnostics_ms": 111.55712500000448,
+        "edit_diagnostics_ms": 109.6353745000016,
+        "reference_stage_ms": 75.0455,
+        "peak_rss_bytes": 125435904,
+        "idle_rss_bytes": 2162688,
+        "startup_ms": 7.622166999993851
+      },
+      "after": {
+        "open_diagnostics_ms": 116.02283300000238,
+        "edit_diagnostics_ms": 111.56389599999272,
+        "reference_stage_ms": 120.93241666666667,
+        "peak_rss_bytes": 125485056,
+        "idle_rss_bytes": 2228224,
+        "startup_ms": 7.518957999991471
+      }
+    }
+  ]
+}

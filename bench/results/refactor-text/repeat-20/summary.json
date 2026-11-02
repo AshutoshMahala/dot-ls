@@ -1,0 +1,65 @@
+{
+  "platform": "macOS-27.0.1-arm64-arm-64bit",
+  "build": "Repeat for timing variability: both Zig 0.17.0 safe and parser 75ce950; same binaries as parent comparison.",
+  "method": "Three fresh processes per size/layout/build, alternating order. Pre-encoded open/broken/repair. Readiness includes the completion reply after diagnostics. Settled RSS waits for all background work. Actual peak RSS uses wait4; editor and harness memory excluded. No concurrent builds/tests/UI actions during measurement. Check each run for feature support; unsupported-method error timing is not a hover baseline.",
+  "builds": {
+    "before": {
+      "binary": "/private/tmp/dot-ls-refactor-text-hq9fj6g4/before",
+      "sha256": "1e5523456aedff808b235a903315cd17b7f9104e7c9db0bd53569caccb4a3000"
+    },
+    "after": {
+      "binary": "/Users/ash/dev/dotls/dotls/zig-out/bin/dot-ls",
+      "sha256": "73e1df5e9c1352aae26fe2c72840c49fbeb204836b718e52e1d4639dd2a832ae"
+    }
+  },
+  "rows": [
+    {
+      "mb": 20,
+      "kind": "plain",
+      "before": {
+        "open_diagnostics_ms": 112.49187499999991,
+        "edit_diagnostics_ms": 112.57506299999997,
+        "open_completion_ready_ms": 183.48162499999975,
+        "settled_rss_bytes": 21872640,
+        "peak_rss_bytes": 63995904,
+        "idle_rss_bytes": 2342912,
+        "startup_ms": 6.9069170000002345,
+        "hover_ms": 0.06858300000001094
+      },
+      "after": {
+        "open_diagnostics_ms": 101.79079200000007,
+        "edit_diagnostics_ms": 104.42862550000021,
+        "open_completion_ready_ms": 174.32454199999992,
+        "settled_rss_bytes": 21856256,
+        "peak_rss_bytes": 64012288,
+        "idle_rss_bytes": 2326528,
+        "startup_ms": 8.017209000000136,
+        "hover_ms": 0.06370899999996738
+      }
+    },
+    {
+      "mb": 20,
+      "kind": "html",
+      "before": {
+        "open_diagnostics_ms": 102.54458300000024,
+        "edit_diagnostics_ms": 107.4344579999984,
+        "open_completion_ready_ms": 177.73866699999985,
+        "settled_rss_bytes": 20840448,
+        "peak_rss_bytes": 64126976,
+        "idle_rss_bytes": 2342912,
+        "startup_ms": 8.342084000002359,
+        "hover_ms": 0.06649999999908118
+      },
+      "after": {
+        "open_diagnostics_ms": 91.32479199999999,
+        "edit_diagnostics_ms": 103.89085450000036,
+        "open_completion_ready_ms": 164.72212499999904,
+        "settled_rss_bytes": 20824064,
+        "peak_rss_bytes": 64110592,
+        "idle_rss_bytes": 2326528,
+        "startup_ms": 8.04845800000109,
+        "hover_ms": 0.0625829999982841
+      }
+    }
+  ]
+}

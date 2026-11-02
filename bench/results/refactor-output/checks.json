@@ -1,0 +1,55 @@
+{
+  "sha256": "bfb4874eebb33ba25371643308fab3cd0f9c5e86f86a16680bff978d2baeba35",
+  "suites": [
+    {
+      "suite": "lsp",
+      "code": 0,
+      "output": "{\n  \"checks\": \"passed\",\n  \"binary_bytes\": 964920,\n  \"startup_ms_median\": 2.4086660000000037,\n  \"startup_ms_max\": 2.769958000000017,\n  \"edit_bytes\": 800012,\n  \"edit_ms_median\": 8.612395999999979,\n  \"edit_ms_max\": 8.97966599999997\n}\n"
+    },
+    {
+      "suite": "protocol",
+      "code": 0,
+      "output": "Protocol boundaries passed: framing, lifecycle/error order, IDs, source updates and 26 captured replies/findings; exact baseline parity.\n"
+    },
+    {
+      "suite": "validation",
+      "code": 0,
+      "output": "DOT policy protocol checks passed (UTF-8/16/32, limits, repair, HTML merge).\n"
+    },
+    {
+      "suite": "completion",
+      "code": 0,
+      "output": "Completion: contexts, partial input, UTF-8/16/32, line endings, limits and deferred lifecycle passed\n"
+    },
+    {
+      "suite": "attributes",
+      "code": 0,
+      "output": "Attributes: owner filtering, quoted names, UTF-8/16/32, hover exclusions and stale/cancelled requests passed\n"
+    },
+    {
+      "suite": "references",
+      "code": 0,
+      "output": "Node references: identities, chains, scopes, encodings, limits, invalid syntax and lifecycle passed\n"
+    },
+    {
+      "suite": "html",
+      "code": 0,
+      "output": "HTML: staged merge, selection, UTF-8/16/32, moved labels, repairs, limits, 70,000-label tail coverage and obsolete generations passed\n"
+    },
+    {
+      "suite": "code_actions",
+      "code": 0,
+      "output": "Code actions: parser edits apply cleanly; UTF-8/16/32, HTML rebase, filters, stale generations and versioned edits passed.\n"
+    },
+    {
+      "suite": "outline",
+      "code": 0,
+      "output": "document outline protocol checks passed\n"
+    },
+    {
+      "suite": "output",
+      "code": 0,
+      "output": "Output: partial intake, paused/resumed reader, intact large reply, close/cancel input, bounded exit and broken pipe passed.\n"
+    }
+  ]
+}

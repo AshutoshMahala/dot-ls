@@ -1,0 +1,70 @@
+{
+  "unchanged_modules": {
+    "json_message.zig": {
+      "after": "protocol/json_message.zig",
+      "bytes_unchanged": true
+    },
+    "analysis/parser_policy.zig": {
+      "after": "analysis/parser_policy.zig",
+      "bytes_unchanged": true
+    },
+    "analysis/dot.zig": {
+      "after": "analysis/dot.zig",
+      "bytes_unchanged": true
+    },
+    "analysis/validation.zig": {
+      "after": "analysis/validation.zig",
+      "bytes_unchanged": true
+    },
+    "analysis/diagnostic_text.zig": {
+      "after": "analysis/diagnostic_text.zig",
+      "bytes_unchanged": true
+    },
+    "features/attributes.zig": {
+      "after": "features/attributes.zig",
+      "bytes_unchanged": true
+    },
+    "features/completion_context.zig": {
+      "after": "features/completion_context.zig",
+      "bytes_unchanged": true
+    },
+    "features/labels.zig": {
+      "after": "features/labels.zig",
+      "bytes_unchanged": true
+    },
+    "features/references.zig": {
+      "after": "features/references.zig",
+      "bytes_unchanged": true
+    },
+    "tests/parser_sessions.zig": {
+      "after": "tests/parser_sessions.zig",
+      "bytes_unchanged": true
+    },
+    "text/positions.zig": {
+      "after": "text/positions.zig",
+      "bytes_unchanged": true
+    },
+    "text/coordinates.zig": {
+      "after": "text/coordinates.zig",
+      "bytes_unchanged": true
+    },
+    "text/types.zig": {
+      "after": "text/types.zig",
+      "bytes_unchanged": true
+    }
+  },
+  "unchanged_state_phase_methods": {
+    "releaseIntake": "unchanged except named error-code aliases",
+    "find": "unchanged except named error-code aliases",
+    "setFixes": "unchanged except named error-code aliases",
+    "invalidate": "unchanged except named error-code aliases",
+    "update": "unchanged except named error-code aliases",
+    "work": "unchanged except named error-code aliases",
+    "buildContext": "unchanged except named error-code aliases",
+    "dropHtmlCache": "unchanged except named error-code aliases",
+    "buildHtml": "unchanged except named error-code aliases",
+    "analyzeHtml": "unchanged except named error-code aliases",
+    "buildIndex": "unchanged except named error-code aliases",
+    "deinit": "unchanged except named error-code aliases"
+  }
+}

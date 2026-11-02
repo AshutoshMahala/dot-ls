@@ -1,0 +1,122 @@
+# Builds the release archives, tests them on each supported system, and
+# creates a draft GitHub release for a version tag such as v0.0.1.
+name: Package
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  ZIG_VERSION: 0.17.0
+  RUSTUP_TOOLCHAIN: 1.99.1
+  WASI_SDK_VERSION: '34'
+  WASI_SDK_SHA256: b761e3a0721dbae9c09a0059e5fdb2bf917d1b4a8a7b430fb3b5aafb0984b2c4
+
+jobs:
+  build:
+    name: Build archives
+    runs-on: ubuntu-24.04
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Read version
+        id: version
+        run: |
+          version="$(cat VERSION)"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          if [[ "$GITHUB_REF" == refs/tags/* && "$GITHUB_REF_NAME" != "v$version" ]]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match VERSION $version. The Zed adapter downloads tag v$version."
+            exit 1
+          fi
+
+      - uses: mlugg/setup-zig@v2
+        with:
+          version: ${{ env.ZIG_VERSION }}
+          use-cache: false
+
+      - name: Install Rust ${{ env.RUSTUP_TOOLCHAIN }} with wasm32-wasip2
+        run: rustup toolchain install "$RUSTUP_TOOLCHAIN" --profile minimal --target wasm32-wasip2
+
+      - name: Install WASI SDK ${{ env.WASI_SDK_VERSION }}
+        run: |
+          archive="$RUNNER_TEMP/wasi-sdk.tar.gz"
+          curl -fsSL -o "$archive" "https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-$WASI_SDK_VERSION/wasi-sdk-$WASI_SDK_VERSION.0-x86_64-linux.tar.gz"
+          echo "$WASI_SDK_SHA256  $archive" | sha256sum -c -
+          mkdir "$RUNNER_TEMP/wasi-sdk"
+          tar -xzf "$archive" -C "$RUNNER_TEMP/wasi-sdk" --strip-components=1
+          echo "WASI_CLANG=$RUNNER_TEMP/wasi-sdk/bin/clang" >> "$GITHUB_ENV"
+
+      - name: Build native and Zed archives
+        run: python3 tools/package_release.py --output dist --zed --wasi-clang "$WASI_CLANG" --grammar-cache "$RUNNER_TEMP/grammars"
+
+      - name: Check archives
+        run: python3 tools/check_release.py dist --output "$RUNNER_TEMP/checks/structure.json"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: dot-ls-${{ steps.version.outputs.version }}
+          path: dist/
+          if-no-files-found: error
+
+  runtime:
+    name: Run tests on ${{ matrix.target }}
+    needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-24.04, target: x86_64-linux-musl }
+          - { os: ubuntu-24.04-arm, target: aarch64-linux-musl }
+          - { os: macos-15, target: aarch64-macos }
+          - { os: macos-15-intel, target: x86_64-macos }
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: dot-ls-${{ needs.build.outputs.version }}
+          path: dist
+
+      # Extracts the matching archive into a clean folder and runs all protocol
+      # test suites against it. The other archives get structure checks only.
+      - name: Check archives and run protocol tests
+        run: python3 tools/check_release.py dist --runtime --output "$RUNNER_TEMP/checks/${{ matrix.target }}.json"
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: checks-${{ matrix.target }}
+          path: ${{ runner.temp }}/checks/
+          if-no-files-found: ignore
+
+  release:
+    name: Create draft release
+    needs: [build, runtime]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: dot-ls-${{ needs.build.outputs.version }}
+          path: dist
+
+      - name: Create draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" dist/* \
+            --repo "$GITHUB_REPOSITORY" \
+            --verify-tag \
+            --draft \
+            --title "dot-ls ${{ needs.build.outputs.version }}" \
+            --notes "Native dot-ls servers for macOS and Linux, the prebuilt Zed extension, and SHA256SUMS. See the README for install steps."

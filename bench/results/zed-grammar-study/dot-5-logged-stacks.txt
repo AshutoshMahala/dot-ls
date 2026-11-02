@@ -1,0 +1,110 @@
+malloc_history Report Version:  2.0
+Process:         zed [92103]
+Path:            /private/tmp/*/Zed Bench.app/Contents/MacOS/zed
+Load Address:    0x104e74000
+Identifier:      dev.dotls.ZedBench
+Version:         1.24.2 (20261014.161923)
+Code Type:       ARM64
+Platform:        macOS
+Parent Process:  launchd [1]
+Target Type:     live task
+
+Date/Time:       2026-10-15 12:03:28.750 -0700
+Launch Time:     2026-10-15 12:00:41.567 -0700
+OS Version:      macOS 27.0.1 (26A434)
+Report Version:  7
+Analysis Tool:   /usr/bin/malloc_history
+
+Physical footprint:         483.8M
+Physical footprint (peak):  612.9M
+Idle exit:                  untracked
+----
+
+VM region sizes shown as dirty + swapped/compressed - purgableVolatile.
+
+Stack logging was dynamically enabled in target process after it was launched so no backtraces are available for earlier allocations.
+Stack logging was enabled for 167.0 seconds, which is 99.9% of the process's total lifetime of 167.2 seconds.
+
+Malloc blocks with no stack:   5100   total size: 218K
+   VM regions with no stack:     26   total size: 1376K
+
+Call graph:
+    2169634 (365M) << TOTAL >>
+      2069867 (215M) start_wqthread  (in libsystem_pthread.dylib) + 8  [0x18a884ce0]
+      + 2066404 (214M) _pthread_wqthread  (in libsystem_pthread.dylib) + 232  [0x18a885f60]
+      + ! 2066404 (214M) _dispatch_worker_thread2  (in libdispatch.dylib) + 184  [0x18a6db248]
+      + !   2064581 (214M) _dispatch_root_queue_drain  (in libdispatch.dylib) + 360  [0x18a6daaac]
+      + !   : 2064228 (214M) _dispatch_queue_override_invoke  (in libdispatch.dylib) + 848  [0x18a6cce4c]
+      + !   : | 2064228 (214M) _dispatch_queue_override_invoke.cold.3  (in libdispatch.dylib) + 32  [0x18a6ff5ec]
+      + !   : |   2064228 (214M) _dispatch_client_callout  (in libdispatch.dylib) + 16  [0x18a6e25a0]
+      + !   : |     2064164 (214M) ???  (in zed)  load address 0x104e74000 + 0x3dd2d30  [0x108c46d30]
+      + !   : |     + 2058793 (204M) ???  (in zed)  load address 0x104e74000 + 0x432e038  [0x1091a2038]
+      + !   : |     + ! 2058793 (204M) ???  (in zed)  load address 0x104e74000 + 0x4316c20  [0x10918ac20]
+      + !   : |     + !   2058793 (204M) ???  (in zed)  load address 0x104e74000 + 0x4339094  [0x1091ad094]
+      + !   : |     + !     2058792 (204M) ???  (in zed)  load address 0x104e74000 + 0x43335d8  [0x1091a75d8]
+      + !   : |     + !     : 2058791 (204M) ???  (in zed)  load address 0x104e74000 + 0x437cc20  [0x1091f0c20]
+      + !   : |     + !     : | 2058791 (204M) ts_parser_parse_with_options  (in zed) + 48  [0x10f6f53d0]
+      + !   : |     + !     : |   2058788 (204M) ts_parser_parse  (in zed) + 2600  [0x10f6efff4]
+      + !   : |     + !     : |   + 1941136 (193M) ???  (in zed)  load address 0x104e74000 + 0xa87fa68  [0x10f6f3a68]
+      + !   : |     + !     : |   + ! 1941127 (193M) ???  (in zed)  load address 0x104e74000 + 0xa89518c  [0x10f70918c]
+      + !   : |     + !     : |   + ! : 1941127 (193M) ???  (in zed)  load address 0x104e74000 + 0xa889548  [0x10f6fd548]
+      + !   : |     + !     : |   + ! :   1941127 (193M) ???  (in zed)  load address 0x104e74000 + 0xa87530c  [0x10f6e930c]
+      + !   : |     + !     : |   + ! :     1941127 (193M) _malloc_zone_malloc_instrumented_or_legacy  (in libsystem_malloc.dylib) + 152  [0x18a6b0630]
+      + !   : |     + !     : |   + ! 7 (1.75K) ???  (in zed)  load address 0x104e74000 + 0xa895478  [0x10f709478]
+      + !   : |     + !     : |   + ! : 7 (1.75K) ???  (in zed)  load address 0x104e74000 + 0xa889288  [0x10f6fd288]
+      + !   : |     + !     : |   + ! :   7 (1.75K) ???  (in zed)  load address 0x104e74000 + 0xa87530c  [0x10f6e930c]
+      + !   : |     + !     : |   + ! :     7 (1.75K) _malloc_zone_malloc_instrumented_or_legacy  (in libsystem_malloc.dylib) + 152  [0x18a6b0630]
+      + !   : |     + !     : |   + ! 1 (128 bytes) ???  (in zed)  load address 0x104e74000 + 0xa8953c8  [0x10f7093c8]
+      + !   : |     + !     : |   + ! : 1 (128 bytes) ???  (in zed)  load address 0x104e74000 + 0xa88c858  [0x10f700858]
+      + !   : |     + !     : |   + ! :   1 (128 bytes) ???  (in zed)  load address 0x104e74000 + 0xa875374  [0x10f6e9374]
+      + !   : |     + !     : |   + ! :     1 (128 bytes) _realloc  (in libsystem_malloc.dylib) + 456  [0x18a6b1358]
+      + !   : |     + !     : |   + ! :       1 (128 bytes) _malloc_zone_realloc  (in libsystem_malloc.dylib) + 148  [0x18a6b0b2c]
+      + !   : |     + !     : |   + ! 1 (80 bytes) ???  (in zed)  load address 0x104e74000 + 0xa8953b4  [0x10f7093b4]
+      + !   : |     + !     : |   + !   1 (80 bytes) ???  (in zed)  load address 0x104e74000 + 0xa88ba70  [0x10f6ffa70]
+      + !   : |     + !     : |   + !     1 (80 bytes) ???  (in zed)  load address 0x104e74000 + 0xa87530c  [0x10f6e930c]
+      + !   : |     + !     : |   + !       1 (80 bytes) _malloc_zone_malloc_instrumented_or_legacy  (in libsystem_malloc.dylib) + 152  [0x18a6b0630]
+      + !   : |     + !     : |   + 117644 (10.8M) ???  (in zed)  load address 0x104e74000 + 0xa87f414  [0x10f6f3414]
+      + !   : |     + !     : |   + ! 117644 (10.8M) ???  (in zed)  load address 0x104e74000 + 0xa88bc30  [0x10f6ffc30]
+      + !   : |     + !     : |   + !   117644 (10.8M) ???  (in zed)  load address 0x104e74000 + 0xa87530c  [0x10f6e930c]
+      + !   : |     + !     : |   + !     117644 (10.8M) _malloc_zone_malloc_instrumented_or_legacy  (in libsystem_malloc.dylib) + 152  [0x18a6b0630]
+      + !   : |     + !     : |   + 6 (1.50K) ???  (in zed)  load address 0x104e74000 + 0xa88023c  [0x10f6f423c]
+      + !   : |     + !     : |   + ! 6 (1.50K) ???  (in zed)  load address 0x104e74000 + 0xa889288  [0x10f6fd288]
+      + !   : |     + !     : |   + !   6 (1.50K) ???  (in zed)  load address 0x104e74000 + 0xa87530c  [0x10f6e930c]
+      + !   : |     + !     : |   + !     6 (1.50K) _malloc_zone_malloc_instrumented_or_legacy  (in libsystem_malloc.dylib) + 152  [0x18a6b0630]
+      + !   : |     + !     : |   + 1 (256 bytes) ???  (in zed)  load address 0x104e74000 + 0xa880270  [0x10f6f4270]
+      + !   : |     + !     : |   + ! 1 (256 bytes) ???  (in zed)  load address 0x104e74000 + 0xa889288  [0x10f6fd288]
+      + !   : |     + !     : |   + !   1 (256 bytes) ???  (in zed)  load address 0x104e74000 + 0xa87530c  [0x10f6e930c]
+      + !   : |     + !     : |   + !     1 (256 bytes) _malloc_zone_malloc_instrumented_or_legacy  (in libsystem_malloc.dylib) + 152  [0x18a6b0630]
+      + !   : |     + !     : |   + 1 (128 bytes) ???  (in zed)  load address 0x104e74000 + 0xa880040  [0x10f6f4040]
+      + !   : |     + !     : |   +   1 (128 bytes) ???  (in zed)  load address 0x104e74000 + 0xa896194  [0x10f70a194]
+      + !   : |     + !     : |   +     1 (128 bytes) ???  (in zed)  load address 0x104e74000 + 0xa875374  [0x10f6e9374]
+      + !   : |     + !     : |   +       1 (128 bytes) _realloc  (in libsystem_malloc.dylib) + 456  [0x18a6b1358]
+      + !   : |     + !     : |   +         1 (128 bytes) _malloc_zone_realloc  (in libsystem_malloc.dylib) + 148  [0x18a6b0b2c]
+      + !   : |     + !     : |   1 (272K) ts_parser_parse  (in zed) + 928  [0x10f6ef96c]
+      + !   : |     + !     : |   + 1 (272K) ???  (in zed)  load address 0x104e74000 + 0xa88c0dc  [0x10f7000dc]
+      + !   : |     + !     : |   +   1 (272K) ???  (in zed)  load address 0x104e74000 + 0xa875374  [0x10f6e9374]
+      + !   : |     + !     : |   +     1 (272K) _realloc  (in libsystem_malloc.dylib) + 456  [0x18a6b1358]
+      + !   : |     + !     : |   +       1 (272K) _malloc_zone_realloc  (in libsystem_malloc.dylib) + 148  [0x18a6b0b2c]
+      + !   : |     + !     : |   1 (48 bytes) ts_parser_parse  (in zed) + 1368  [0x10f6efb24]
+      + !   : |     + !     : |   + 1 (48 bytes) ???  (in zed)  load address 0x104e74000 + 0xa87530c  [0x10f6e930c]
+      + !   : |     + !     : |   +   1 (48 bytes) _malloc_zone_malloc_instrumented_or_legacy  (in libsystem_malloc.dylib) + 152  [0x18a6b0630]
+      + !   : |     + !     : |   1 (32 bytes) ts_parser_parse  (in zed) + 1444  [0x10f6efb70]
+      + !   : |     + !     : |     1 (32 bytes) ???  (in zed)  load address 0x104e74000 + 0xa875340  [0x10f6e9340]
+      + !   : |     + !     : |       1 (32 bytes) _malloc_zone_calloc_instrumented_or_legacy  (in libsystem_malloc.dylib) + 132  [0x18a6b0820]
+      + !   : |     + !     : 1 (32 bytes) ???  (in zed)  load address 0x104e74000 + 0x437ca24  [0x1091f0a24]
+      + !   : |     + !     :   1 (32 bytes) _RNvMsc_Cs41toxAE5YYR_11tree_sitterNtB5_6Parser19set_included_ranges  (in zed) + 120  [0x10d8237c4]
+      + !   : |     + !     :     1 (32 bytes) ???  (in zed)  load address 0x104e74000 + 0xa877e68  [0x10f6ebe68]
+      + !   : |     + !     :       1 (32 bytes) ???  (in zed)  load address 0x104e74000 + 0xa875374  [0x10f6e9374]
+      + !   : |     + !     :         1 (32 bytes) _realloc  (in libsystem_malloc.dylib) + 456  [0x18a6b1358]
+      + !   : |     + !     :           1 (32 bytes) _malloc_zone_realloc  (in libsystem_malloc.dylib) + 148  [0x18a6b0b2c]
+      + !   : |     + !     1 (3.00K) ???  (in zed)  load address 0x104e74000 + 0x4336b30  [0x1091aab30]
+      + !   : |     + !       1 (3.00K) ???  (in zed)  load address 0x104e74000 + 0x4362814  [0x1091d6814]
+      + !   : |     + !         1 (3.00K) _malloc_zone_malloc_instrumented_or_legacy  (in libsystem_malloc.dylib) + 152  [0x18a6b0630]
+      + !   : |     + 20 (3.05M) ???  (in zed)  load address 0x104e74000 + 0x6d4c364  [0x10bbc0364]
+      + !   : |     + ! 16 (3.05M) ???  (in zed)  load address 0x104e74000 + 0x6d42508  [0x10bbb6508]
+      + !   : |     + ! : 10 (3.05M) _RNvMs0_NtNtCskn2qEEIKXGp_4heed4envs16env_open_optionsNtB5_14EnvOpenOptions24raw_open_with_encryption  (in zed) + 1704  [0x108d450cc]
+      + !   : |     + ! : | 1 (2.02M) mdb_env_open  (in zed) + 180  [0x10fc6ba74]
+      + !   : |     + ! : | + 1 (2.02M) _malloc_zone_calloc_instrumented_or_legacy  (in libsystem_malloc.dylib) + 132  [0x18a6b0820]
+      + !   : |     + ! : | 1 (1.02M) mdb_env_open  (in zed) + 160  [0x10fc6ba60]
+      + !   : |     + ! : | + 1 (1.02M) mdb_midl_alloc  (in zed) + 28  [0x10eb9e7cc]
+      + !   : |     + ! : | +   1 (1.02M) _malloc_zone_malloc_instrumented_or_legacy  (in libsystem_malloc.dylib) + 152  [0x18a6b0630]

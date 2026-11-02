@@ -1,0 +1,4475 @@
+{
+  "runs": [
+    {
+      "mb": 5,
+      "samples": [
+        [
+          {
+            "stage": "dot_and_capture",
+            "us": 3983,
+            "total_peak_bytes": 7500113,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 4999990,
+                "peak": 7500113,
+                "allocations": 1
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 1
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "stage": "html_check_or_reuse",
+            "us": 3651,
+            "total_peak_bytes": 9123798,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 4999990,
+                "peak": 7500113,
+                "allocations": 1
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 1
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4113496,
+                "peak": 4113496,
+                "allocations": 2012
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "sample": 0,
+            "html_us": 3651,
+            "labels": 1000,
+            "checked": 1000,
+            "reused": 0,
+            "cache_payload_bytes": 4062072,
+            "cache_entries": 1000,
+            "diagnostics": 2,
+            "incomplete": false
+          },
+          {
+            "stage": "dot_and_capture",
+            "us": 3602,
+            "total_peak_bytes": 11613449,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 4999990,
+                "peak": 7500113,
+                "allocations": 2
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 2
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4113336,
+                "peak": 4113496,
+                "allocations": 2012
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "stage": "html_check_or_reuse",
+            "us": 1123,
+            "total_peak_bytes": 11613449,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 4999990,
+                "peak": 7500113,
+                "allocations": 2
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 2
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4164760,
+                "peak": 4190224,
+                "allocations": 2023
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "sample": 1,
+            "html_us": 1123,
+            "labels": 1000,
+            "checked": 0,
+            "reused": 1000,
+            "cache_payload_bytes": 4062072,
+            "cache_entries": 1000,
+            "diagnostics": 2,
+            "incomplete": false
+          },
+          {
+            "stage": "dot_and_capture",
+            "us": 3419,
+            "total_peak_bytes": 11613449,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 4999990,
+                "peak": 7500113,
+                "allocations": 3
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 3
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4113336,
+                "peak": 4190224,
+                "allocations": 2023
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "stage": "html_check_or_reuse",
+            "us": 1157,
+            "total_peak_bytes": 11613449,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 4999990,
+                "peak": 7500113,
+                "allocations": 3
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 3
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4168822,
+                "peak": 4194286,
+                "allocations": 2036
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "sample": 2,
+            "html_us": 1157,
+            "labels": 1000,
+            "checked": 1,
+            "reused": 999,
+            "cache_payload_bytes": 4062072,
+            "cache_entries": 1000,
+            "diagnostics": 2,
+            "incomplete": false
+          },
+          {
+            "stage": "dot_and_capture",
+            "us": 3227,
+            "total_peak_bytes": 11613450,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 4999991,
+                "peak": 7500114,
+                "allocations": 4
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 4
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4113336,
+                "peak": 4194286,
+                "allocations": 2036
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "stage": "html_check_or_reuse",
+            "us": 1052,
+            "total_peak_bytes": 11613450,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 4999991,
+                "peak": 7500114,
+                "allocations": 4
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 4
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4164760,
+                "peak": 4194286,
+                "allocations": 2047
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "sample": 3,
+            "html_us": 1052,
+            "labels": 1000,
+            "checked": 0,
+            "reused": 1000,
+            "cache_payload_bytes": 4062072,
+            "cache_entries": 1000,
+            "diagnostics": 2,
+            "incomplete": false
+          }
+        ],
+        [
+          {
+            "stage": "dot_and_capture",
+            "us": 3077,
+            "total_peak_bytes": 7500113,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 4999990,
+                "peak": 7500113,
+                "allocations": 1
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 1
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "stage": "html_check_or_reuse",
+            "us": 3035,
+            "total_peak_bytes": 9123798,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 4999990,
+                "peak": 7500113,
+                "allocations": 1
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 1
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4113496,
+                "peak": 4113496,
+                "allocations": 2012
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "sample": 0,
+            "html_us": 3035,
+            "labels": 1000,
+            "checked": 1000,
+            "reused": 0,
+            "cache_payload_bytes": 4062072,
+            "cache_entries": 1000,
+            "diagnostics": 2,
+            "incomplete": false
+          },
+          {
+            "stage": "dot_and_capture",
+            "us": 3055,
+            "total_peak_bytes": 11613449,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 4999990,
+                "peak": 7500113,
+                "allocations": 2
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 2
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4113336,
+                "peak": 4113496,
+                "allocations": 2012
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "stage": "html_check_or_reuse",
+            "us": 1010,
+            "total_peak_bytes": 11613449,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 4999990,
+                "peak": 7500113,
+                "allocations": 2
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 2
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4164760,
+                "peak": 4190224,
+                "allocations": 2023
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "sample": 1,
+            "html_us": 1010,
+            "labels": 1000,
+            "checked": 0,
+            "reused": 1000,
+            "cache_payload_bytes": 4062072,
+            "cache_entries": 1000,
+            "diagnostics": 2,
+            "incomplete": false
+          },
+          {
+            "stage": "dot_and_capture",
+            "us": 2991,
+            "total_peak_bytes": 11613449,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 4999990,
+                "peak": 7500113,
+                "allocations": 3
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 3
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4113336,
+                "peak": 4190224,
+                "allocations": 2023
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "stage": "html_check_or_reuse",
+            "us": 1065,
+            "total_peak_bytes": 11613449,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 4999990,
+                "peak": 7500113,
+                "allocations": 3
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 3
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4168822,
+                "peak": 4194286,
+                "allocations": 2036
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "sample": 2,
+            "html_us": 1065,
+            "labels": 1000,
+            "checked": 1,
+            "reused": 999,
+            "cache_payload_bytes": 4062072,
+            "cache_entries": 1000,
+            "diagnostics": 2,
+            "incomplete": false
+          },
+          {
+            "stage": "dot_and_capture",
+            "us": 2920,
+            "total_peak_bytes": 11613450,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 4999991,
+                "peak": 7500114,
+                "allocations": 4
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 4
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4113336,
+                "peak": 4194286,
+                "allocations": 2036
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "stage": "html_check_or_reuse",
+            "us": 1011,
+            "total_peak_bytes": 11613450,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 4999991,
+                "peak": 7500114,
+                "allocations": 4
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 4
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4164760,
+                "peak": 4194286,
+                "allocations": 2047
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "sample": 3,
+            "html_us": 1011,
+            "labels": 1000,
+            "checked": 0,
+            "reused": 1000,
+            "cache_payload_bytes": 4062072,
+            "cache_entries": 1000,
+            "diagnostics": 2,
+            "incomplete": false
+          }
+        ],
+        [
+          {
+            "stage": "dot_and_capture",
+            "us": 2801,
+            "total_peak_bytes": 7500113,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 4999990,
+                "peak": 7500113,
+                "allocations": 1
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 1
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "stage": "html_check_or_reuse",
+            "us": 2734,
+            "total_peak_bytes": 9123798,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 4999990,
+                "peak": 7500113,
+                "allocations": 1
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 1
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4113496,
+                "peak": 4113496,
+                "allocations": 2012
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "sample": 0,
+            "html_us": 2734,
+            "labels": 1000,
+            "checked": 1000,
+            "reused": 0,
+            "cache_payload_bytes": 4062072,
+            "cache_entries": 1000,
+            "diagnostics": 2,
+            "incomplete": false
+          },
+          {
+            "stage": "dot_and_capture",
+            "us": 2866,
+            "total_peak_bytes": 11613449,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 4999990,
+                "peak": 7500113,
+                "allocations": 2
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 2
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4113336,
+                "peak": 4113496,
+                "allocations": 2012
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "stage": "html_check_or_reuse",
+            "us": 911,
+            "total_peak_bytes": 11613449,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 4999990,
+                "peak": 7500113,
+                "allocations": 2
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 2
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4164760,
+                "peak": 4190224,
+                "allocations": 2023
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "sample": 1,
+            "html_us": 911,
+            "labels": 1000,
+            "checked": 0,
+            "reused": 1000,
+            "cache_payload_bytes": 4062072,
+            "cache_entries": 1000,
+            "diagnostics": 2,
+            "incomplete": false
+          },
+          {
+            "stage": "dot_and_capture",
+            "us": 2726,
+            "total_peak_bytes": 11613449,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 4999990,
+                "peak": 7500113,
+                "allocations": 3
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 3
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4113336,
+                "peak": 4190224,
+                "allocations": 2023
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "stage": "html_check_or_reuse",
+            "us": 896,
+            "total_peak_bytes": 11613449,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 4999990,
+                "peak": 7500113,
+                "allocations": 3
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 3
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4168822,
+                "peak": 4194286,
+                "allocations": 2036
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "sample": 2,
+            "html_us": 896,
+            "labels": 1000,
+            "checked": 1,
+            "reused": 999,
+            "cache_payload_bytes": 4062072,
+            "cache_entries": 1000,
+            "diagnostics": 2,
+            "incomplete": false
+          },
+          {
+            "stage": "dot_and_capture",
+            "us": 2715,
+            "total_peak_bytes": 11613450,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 4999991,
+                "peak": 7500114,
+                "allocations": 4
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 4
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4113336,
+                "peak": 4194286,
+                "allocations": 2036
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "stage": "html_check_or_reuse",
+            "us": 850,
+            "total_peak_bytes": 11613450,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 4999991,
+                "peak": 7500114,
+                "allocations": 4
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 4
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4164760,
+                "peak": 4194286,
+                "allocations": 2047
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "sample": 3,
+            "html_us": 850,
+            "labels": 1000,
+            "checked": 0,
+            "reused": 1000,
+            "cache_payload_bytes": 4062072,
+            "cache_entries": 1000,
+            "diagnostics": 2,
+            "incomplete": false
+          }
+        ],
+        [
+          {
+            "stage": "dot_and_capture",
+            "us": 2792,
+            "total_peak_bytes": 7500113,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 4999990,
+                "peak": 7500113,
+                "allocations": 1
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 1
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "stage": "html_check_or_reuse",
+            "us": 2555,
+            "total_peak_bytes": 9123798,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 4999990,
+                "peak": 7500113,
+                "allocations": 1
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 1
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4113496,
+                "peak": 4113496,
+                "allocations": 2012
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "sample": 0,
+            "html_us": 2555,
+            "labels": 1000,
+            "checked": 1000,
+            "reused": 0,
+            "cache_payload_bytes": 4062072,
+            "cache_entries": 1000,
+            "diagnostics": 2,
+            "incomplete": false
+          },
+          {
+            "stage": "dot_and_capture",
+            "us": 2534,
+            "total_peak_bytes": 11613449,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 4999990,
+                "peak": 7500113,
+                "allocations": 2
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 2
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4113336,
+                "peak": 4113496,
+                "allocations": 2012
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "stage": "html_check_or_reuse",
+            "us": 827,
+            "total_peak_bytes": 11613449,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 4999990,
+                "peak": 7500113,
+                "allocations": 2
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 2
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4164760,
+                "peak": 4190224,
+                "allocations": 2023
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "sample": 1,
+            "html_us": 827,
+            "labels": 1000,
+            "checked": 0,
+            "reused": 1000,
+            "cache_payload_bytes": 4062072,
+            "cache_entries": 1000,
+            "diagnostics": 2,
+            "incomplete": false
+          },
+          {
+            "stage": "dot_and_capture",
+            "us": 2676,
+            "total_peak_bytes": 11613449,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 4999990,
+                "peak": 7500113,
+                "allocations": 3
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 3
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4113336,
+                "peak": 4190224,
+                "allocations": 2023
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "stage": "html_check_or_reuse",
+            "us": 851,
+            "total_peak_bytes": 11613449,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 4999990,
+                "peak": 7500113,
+                "allocations": 3
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 3
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4168822,
+                "peak": 4194286,
+                "allocations": 2036
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "sample": 2,
+            "html_us": 851,
+            "labels": 1000,
+            "checked": 1,
+            "reused": 999,
+            "cache_payload_bytes": 4062072,
+            "cache_entries": 1000,
+            "diagnostics": 2,
+            "incomplete": false
+          },
+          {
+            "stage": "dot_and_capture",
+            "us": 2515,
+            "total_peak_bytes": 11613450,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 4999991,
+                "peak": 7500114,
+                "allocations": 4
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 4
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4113336,
+                "peak": 4194286,
+                "allocations": 2036
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "stage": "html_check_or_reuse",
+            "us": 819,
+            "total_peak_bytes": 11613450,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 4999991,
+                "peak": 7500114,
+                "allocations": 4
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 4
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4164760,
+                "peak": 4194286,
+                "allocations": 2047
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "sample": 3,
+            "html_us": 819,
+            "labels": 1000,
+            "checked": 0,
+            "reused": 1000,
+            "cache_payload_bytes": 4062072,
+            "cache_entries": 1000,
+            "diagnostics": 2,
+            "incomplete": false
+          }
+        ],
+        [
+          {
+            "stage": "dot_and_capture",
+            "us": 2515,
+            "total_peak_bytes": 7500113,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 4999990,
+                "peak": 7500113,
+                "allocations": 1
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 1
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "stage": "html_check_or_reuse",
+            "us": 2479,
+            "total_peak_bytes": 9123798,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 4999990,
+                "peak": 7500113,
+                "allocations": 1
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 1
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4113496,
+                "peak": 4113496,
+                "allocations": 2012
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "sample": 0,
+            "html_us": 2479,
+            "labels": 1000,
+            "checked": 1000,
+            "reused": 0,
+            "cache_payload_bytes": 4062072,
+            "cache_entries": 1000,
+            "diagnostics": 2,
+            "incomplete": false
+          },
+          {
+            "stage": "dot_and_capture",
+            "us": 2697,
+            "total_peak_bytes": 11613449,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 4999990,
+                "peak": 7500113,
+                "allocations": 2
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 2
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4113336,
+                "peak": 4113496,
+                "allocations": 2012
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "stage": "html_check_or_reuse",
+            "us": 854,
+            "total_peak_bytes": 11613449,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 4999990,
+                "peak": 7500113,
+                "allocations": 2
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 2
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4164760,
+                "peak": 4190224,
+                "allocations": 2023
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "sample": 1,
+            "html_us": 854,
+            "labels": 1000,
+            "checked": 0,
+            "reused": 1000,
+            "cache_payload_bytes": 4062072,
+            "cache_entries": 1000,
+            "diagnostics": 2,
+            "incomplete": false
+          },
+          {
+            "stage": "dot_and_capture",
+            "us": 2495,
+            "total_peak_bytes": 11613449,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 4999990,
+                "peak": 7500113,
+                "allocations": 3
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 3
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4113336,
+                "peak": 4190224,
+                "allocations": 2023
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "stage": "html_check_or_reuse",
+            "us": 831,
+            "total_peak_bytes": 11613449,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 4999990,
+                "peak": 7500113,
+                "allocations": 3
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 3
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4168822,
+                "peak": 4194286,
+                "allocations": 2036
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "sample": 2,
+            "html_us": 831,
+            "labels": 1000,
+            "checked": 1,
+            "reused": 999,
+            "cache_payload_bytes": 4062072,
+            "cache_entries": 1000,
+            "diagnostics": 2,
+            "incomplete": false
+          },
+          {
+            "stage": "dot_and_capture",
+            "us": 2708,
+            "total_peak_bytes": 11613450,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 4999991,
+                "peak": 7500114,
+                "allocations": 4
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 4
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4113336,
+                "peak": 4194286,
+                "allocations": 2036
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "stage": "html_check_or_reuse",
+            "us": 833,
+            "total_peak_bytes": 11613450,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 4999991,
+                "peak": 7500114,
+                "allocations": 4
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 4
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4164760,
+                "peak": 4194286,
+                "allocations": 2047
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "sample": 3,
+            "html_us": 833,
+            "labels": 1000,
+            "checked": 0,
+            "reused": 1000,
+            "cache_payload_bytes": 4062072,
+            "cache_entries": 1000,
+            "diagnostics": 2,
+            "incomplete": false
+          }
+        ]
+      ]
+    },
+    {
+      "mb": 40,
+      "samples": [
+        [
+          {
+            "stage": "dot_and_capture",
+            "us": 78790,
+            "total_peak_bytes": 60000060,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 39999955,
+                "peak": 60000060,
+                "allocations": 1
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 1
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "stage": "html_check_or_reuse",
+            "us": 2578,
+            "total_peak_bytes": 60000060,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 39999955,
+                "peak": 60000060,
+                "allocations": 1
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 1
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4113496,
+                "peak": 4113496,
+                "allocations": 2012
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "sample": 0,
+            "html_us": 2578,
+            "labels": 1000,
+            "checked": 1000,
+            "reused": 0,
+            "cache_payload_bytes": 4062072,
+            "cache_entries": 1000,
+            "diagnostics": 2,
+            "incomplete": false
+          },
+          {
+            "stage": "dot_and_capture",
+            "us": 78308,
+            "total_peak_bytes": 64113396,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 39999955,
+                "peak": 60000060,
+                "allocations": 2
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 2
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4113336,
+                "peak": 4113496,
+                "allocations": 2012
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "stage": "html_check_or_reuse",
+            "us": 906,
+            "total_peak_bytes": 64113396,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 39999955,
+                "peak": 60000060,
+                "allocations": 2
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 2
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4164760,
+                "peak": 4190224,
+                "allocations": 2023
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "sample": 1,
+            "html_us": 906,
+            "labels": 1000,
+            "checked": 0,
+            "reused": 1000,
+            "cache_payload_bytes": 4062072,
+            "cache_entries": 1000,
+            "diagnostics": 2,
+            "incomplete": false
+          },
+          {
+            "stage": "dot_and_capture",
+            "us": 76826,
+            "total_peak_bytes": 64113396,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 39999955,
+                "peak": 60000060,
+                "allocations": 3
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 3
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4113336,
+                "peak": 4190224,
+                "allocations": 2023
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "stage": "html_check_or_reuse",
+            "us": 855,
+            "total_peak_bytes": 64113396,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 39999955,
+                "peak": 60000060,
+                "allocations": 3
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 3
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4168822,
+                "peak": 4194286,
+                "allocations": 2036
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "sample": 2,
+            "html_us": 855,
+            "labels": 1000,
+            "checked": 1,
+            "reused": 999,
+            "cache_payload_bytes": 4062072,
+            "cache_entries": 1000,
+            "diagnostics": 2,
+            "incomplete": false
+          },
+          {
+            "stage": "dot_and_capture",
+            "us": 77804,
+            "total_peak_bytes": 64113398,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 39999956,
+                "peak": 60000062,
+                "allocations": 4
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 4
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4113336,
+                "peak": 4194286,
+                "allocations": 2036
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "stage": "html_check_or_reuse",
+            "us": 847,
+            "total_peak_bytes": 64113398,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 39999956,
+                "peak": 60000062,
+                "allocations": 4
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 4
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4164760,
+                "peak": 4194286,
+                "allocations": 2047
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "sample": 3,
+            "html_us": 847,
+            "labels": 1000,
+            "checked": 0,
+            "reused": 1000,
+            "cache_payload_bytes": 4062072,
+            "cache_entries": 1000,
+            "diagnostics": 2,
+            "incomplete": false
+          }
+        ],
+        [
+          {
+            "stage": "dot_and_capture",
+            "us": 78574,
+            "total_peak_bytes": 60000060,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 39999955,
+                "peak": 60000060,
+                "allocations": 1
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 1
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "stage": "html_check_or_reuse",
+            "us": 2610,
+            "total_peak_bytes": 60000060,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 39999955,
+                "peak": 60000060,
+                "allocations": 1
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 1
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4113496,
+                "peak": 4113496,
+                "allocations": 2012
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "sample": 0,
+            "html_us": 2610,
+            "labels": 1000,
+            "checked": 1000,
+            "reused": 0,
+            "cache_payload_bytes": 4062072,
+            "cache_entries": 1000,
+            "diagnostics": 2,
+            "incomplete": false
+          },
+          {
+            "stage": "dot_and_capture",
+            "us": 78602,
+            "total_peak_bytes": 64113396,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 39999955,
+                "peak": 60000060,
+                "allocations": 2
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 2
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4113336,
+                "peak": 4113496,
+                "allocations": 2012
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "stage": "html_check_or_reuse",
+            "us": 906,
+            "total_peak_bytes": 64113396,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 39999955,
+                "peak": 60000060,
+                "allocations": 2
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 2
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4164760,
+                "peak": 4190224,
+                "allocations": 2023
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "sample": 1,
+            "html_us": 906,
+            "labels": 1000,
+            "checked": 0,
+            "reused": 1000,
+            "cache_payload_bytes": 4062072,
+            "cache_entries": 1000,
+            "diagnostics": 2,
+            "incomplete": false
+          },
+          {
+            "stage": "dot_and_capture",
+            "us": 78937,
+            "total_peak_bytes": 64113396,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 39999955,
+                "peak": 60000060,
+                "allocations": 3
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 3
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4113336,
+                "peak": 4190224,
+                "allocations": 2023
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "stage": "html_check_or_reuse",
+            "us": 892,
+            "total_peak_bytes": 64113396,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 39999955,
+                "peak": 60000060,
+                "allocations": 3
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 3
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4168822,
+                "peak": 4194286,
+                "allocations": 2036
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "sample": 2,
+            "html_us": 892,
+            "labels": 1000,
+            "checked": 1,
+            "reused": 999,
+            "cache_payload_bytes": 4062072,
+            "cache_entries": 1000,
+            "diagnostics": 2,
+            "incomplete": false
+          },
+          {
+            "stage": "dot_and_capture",
+            "us": 78807,
+            "total_peak_bytes": 64113398,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 39999956,
+                "peak": 60000062,
+                "allocations": 4
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 4
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4113336,
+                "peak": 4194286,
+                "allocations": 2036
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "stage": "html_check_or_reuse",
+            "us": 859,
+            "total_peak_bytes": 64113398,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 39999956,
+                "peak": 60000062,
+                "allocations": 4
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 4
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4164760,
+                "peak": 4194286,
+                "allocations": 2047
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "sample": 3,
+            "html_us": 859,
+            "labels": 1000,
+            "checked": 0,
+            "reused": 1000,
+            "cache_payload_bytes": 4062072,
+            "cache_entries": 1000,
+            "diagnostics": 2,
+            "incomplete": false
+          }
+        ],
+        [
+          {
+            "stage": "dot_and_capture",
+            "us": 78589,
+            "total_peak_bytes": 60000060,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 39999955,
+                "peak": 60000060,
+                "allocations": 1
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 1
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "stage": "html_check_or_reuse",
+            "us": 2538,
+            "total_peak_bytes": 60000060,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 39999955,
+                "peak": 60000060,
+                "allocations": 1
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 1
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4113496,
+                "peak": 4113496,
+                "allocations": 2012
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "sample": 0,
+            "html_us": 2538,
+            "labels": 1000,
+            "checked": 1000,
+            "reused": 0,
+            "cache_payload_bytes": 4062072,
+            "cache_entries": 1000,
+            "diagnostics": 2,
+            "incomplete": false
+          },
+          {
+            "stage": "dot_and_capture",
+            "us": 77706,
+            "total_peak_bytes": 64113396,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 39999955,
+                "peak": 60000060,
+                "allocations": 2
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 2
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4113336,
+                "peak": 4113496,
+                "allocations": 2012
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "stage": "html_check_or_reuse",
+            "us": 911,
+            "total_peak_bytes": 64113396,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 39999955,
+                "peak": 60000060,
+                "allocations": 2
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 2
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4164760,
+                "peak": 4190224,
+                "allocations": 2023
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "sample": 1,
+            "html_us": 911,
+            "labels": 1000,
+            "checked": 0,
+            "reused": 1000,
+            "cache_payload_bytes": 4062072,
+            "cache_entries": 1000,
+            "diagnostics": 2,
+            "incomplete": false
+          },
+          {
+            "stage": "dot_and_capture",
+            "us": 78375,
+            "total_peak_bytes": 64113396,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 39999955,
+                "peak": 60000060,
+                "allocations": 3
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 3
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4113336,
+                "peak": 4190224,
+                "allocations": 2023
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "stage": "html_check_or_reuse",
+            "us": 1048,
+            "total_peak_bytes": 64113396,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 39999955,
+                "peak": 60000060,
+                "allocations": 3
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 3
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4168822,
+                "peak": 4194286,
+                "allocations": 2036
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "sample": 2,
+            "html_us": 1048,
+            "labels": 1000,
+            "checked": 1,
+            "reused": 999,
+            "cache_payload_bytes": 4062072,
+            "cache_entries": 1000,
+            "diagnostics": 2,
+            "incomplete": false
+          },
+          {
+            "stage": "dot_and_capture",
+            "us": 79046,
+            "total_peak_bytes": 64113398,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 39999956,
+                "peak": 60000062,
+                "allocations": 4
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 4
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4113336,
+                "peak": 4194286,
+                "allocations": 2036
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "stage": "html_check_or_reuse",
+            "us": 954,
+            "total_peak_bytes": 64113398,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 39999956,
+                "peak": 60000062,
+                "allocations": 4
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 4
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4164760,
+                "peak": 4194286,
+                "allocations": 2047
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "sample": 3,
+            "html_us": 954,
+            "labels": 1000,
+            "checked": 0,
+            "reused": 1000,
+            "cache_payload_bytes": 4062072,
+            "cache_entries": 1000,
+            "diagnostics": 2,
+            "incomplete": false
+          }
+        ],
+        [
+          {
+            "stage": "dot_and_capture",
+            "us": 79511,
+            "total_peak_bytes": 60000060,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 39999955,
+                "peak": 60000060,
+                "allocations": 1
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 1
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "stage": "html_check_or_reuse",
+            "us": 2537,
+            "total_peak_bytes": 60000060,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 39999955,
+                "peak": 60000060,
+                "allocations": 1
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 1
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4113496,
+                "peak": 4113496,
+                "allocations": 2012
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "sample": 0,
+            "html_us": 2537,
+            "labels": 1000,
+            "checked": 1000,
+            "reused": 0,
+            "cache_payload_bytes": 4062072,
+            "cache_entries": 1000,
+            "diagnostics": 2,
+            "incomplete": false
+          },
+          {
+            "stage": "dot_and_capture",
+            "us": 77860,
+            "total_peak_bytes": 64113396,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 39999955,
+                "peak": 60000060,
+                "allocations": 2
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 2
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4113336,
+                "peak": 4113496,
+                "allocations": 2012
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "stage": "html_check_or_reuse",
+            "us": 1018,
+            "total_peak_bytes": 64113396,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 39999955,
+                "peak": 60000060,
+                "allocations": 2
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 2
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4164760,
+                "peak": 4190224,
+                "allocations": 2023
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "sample": 1,
+            "html_us": 1018,
+            "labels": 1000,
+            "checked": 0,
+            "reused": 1000,
+            "cache_payload_bytes": 4062072,
+            "cache_entries": 1000,
+            "diagnostics": 2,
+            "incomplete": false
+          },
+          {
+            "stage": "dot_and_capture",
+            "us": 78401,
+            "total_peak_bytes": 64113396,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 39999955,
+                "peak": 60000060,
+                "allocations": 3
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 3
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4113336,
+                "peak": 4190224,
+                "allocations": 2023
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "stage": "html_check_or_reuse",
+            "us": 856,
+            "total_peak_bytes": 64113396,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 39999955,
+                "peak": 60000060,
+                "allocations": 3
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 3
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4168822,
+                "peak": 4194286,
+                "allocations": 2036
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "sample": 2,
+            "html_us": 856,
+            "labels": 1000,
+            "checked": 1,
+            "reused": 999,
+            "cache_payload_bytes": 4062072,
+            "cache_entries": 1000,
+            "diagnostics": 2,
+            "incomplete": false
+          },
+          {
+            "stage": "dot_and_capture",
+            "us": 78892,
+            "total_peak_bytes": 64113398,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 39999956,
+                "peak": 60000062,
+                "allocations": 4
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 4
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4113336,
+                "peak": 4194286,
+                "allocations": 2036
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "stage": "html_check_or_reuse",
+            "us": 905,
+            "total_peak_bytes": 64113398,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 39999956,
+                "peak": 60000062,
+                "allocations": 4
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 4
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4164760,
+                "peak": 4194286,
+                "allocations": 2047
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "sample": 3,
+            "html_us": 905,
+            "labels": 1000,
+            "checked": 0,
+            "reused": 1000,
+            "cache_payload_bytes": 4062072,
+            "cache_entries": 1000,
+            "diagnostics": 2,
+            "incomplete": false
+          }
+        ],
+        [
+          {
+            "stage": "dot_and_capture",
+            "us": 81111,
+            "total_peak_bytes": 60000060,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 39999955,
+                "peak": 60000060,
+                "allocations": 1
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 1
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "stage": "html_check_or_reuse",
+            "us": 2437,
+            "total_peak_bytes": 60000060,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 39999955,
+                "peak": 60000060,
+                "allocations": 1
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 1
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4113496,
+                "peak": 4113496,
+                "allocations": 2012
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "sample": 0,
+            "html_us": 2437,
+            "labels": 1000,
+            "checked": 1000,
+            "reused": 0,
+            "cache_payload_bytes": 4062072,
+            "cache_entries": 1000,
+            "diagnostics": 2,
+            "incomplete": false
+          },
+          {
+            "stage": "dot_and_capture",
+            "us": 79365,
+            "total_peak_bytes": 64113396,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 39999955,
+                "peak": 60000060,
+                "allocations": 2
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 2
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4113336,
+                "peak": 4113496,
+                "allocations": 2012
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "stage": "html_check_or_reuse",
+            "us": 866,
+            "total_peak_bytes": 64113396,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 39999955,
+                "peak": 60000060,
+                "allocations": 2
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 2
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4164760,
+                "peak": 4190224,
+                "allocations": 2023
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "sample": 1,
+            "html_us": 866,
+            "labels": 1000,
+            "checked": 0,
+            "reused": 1000,
+            "cache_payload_bytes": 4062072,
+            "cache_entries": 1000,
+            "diagnostics": 2,
+            "incomplete": false
+          },
+          {
+            "stage": "dot_and_capture",
+            "us": 78859,
+            "total_peak_bytes": 64113396,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 39999955,
+                "peak": 60000060,
+                "allocations": 3
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 3
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4113336,
+                "peak": 4190224,
+                "allocations": 2023
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "stage": "html_check_or_reuse",
+            "us": 918,
+            "total_peak_bytes": 64113396,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 39999955,
+                "peak": 60000060,
+                "allocations": 3
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 3
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4168822,
+                "peak": 4194286,
+                "allocations": 2036
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "sample": 2,
+            "html_us": 918,
+            "labels": 1000,
+            "checked": 1,
+            "reused": 999,
+            "cache_payload_bytes": 4062072,
+            "cache_entries": 1000,
+            "diagnostics": 2,
+            "incomplete": false
+          },
+          {
+            "stage": "dot_and_capture",
+            "us": 78135,
+            "total_peak_bytes": 64113398,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 39999956,
+                "peak": 60000062,
+                "allocations": 4
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 4
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4113336,
+                "peak": 4194286,
+                "allocations": 2036
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "stage": "html_check_or_reuse",
+            "us": 914,
+            "total_peak_bytes": 64113398,
+            "categories": [
+              {
+                "name": "misc",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "input",
+                "live": 39999956,
+                "peak": 60000062,
+                "allocations": 4
+              },
+              {
+                "name": "json",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "snapshot",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "parser",
+                "live": 10312,
+                "peak": 10312,
+                "allocations": 4
+              },
+              {
+                "name": "response",
+                "live": 0,
+                "peak": 0,
+                "allocations": 0
+              },
+              {
+                "name": "positions",
+                "live": 4164760,
+                "peak": 4194286,
+                "allocations": 2047
+              }
+            ],
+            "json_used_bytes": 0
+          },
+          {
+            "sample": 3,
+            "html_us": 914,
+            "labels": 1000,
+            "checked": 0,
+            "reused": 1000,
+            "cache_payload_bytes": 4062072,
+            "cache_entries": 1000,
+            "diagnostics": 2,
+            "incomplete": false
+          }
+        ]
+      ]
+    }
+  ],
+  "notes": "Temporary ReleaseSafe core profiler, five fresh processes per size, four successive source versions. dot_and_capture excludes protocol and reference collection. positions category contains HTML cache/work allocations, including hash tables, with packed backing; parser category contains selected label spans. Counts prove which fragments were rechecked. Requested allocator bytes are not RSS."
+}

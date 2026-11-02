@@ -1,0 +1,49 @@
+{
+  "stage": "/private/tmp/dot-ls-parser-38442d2-djv8pkzv",
+  "baseline_parser": "01b0a8e1b1a69bcf4535091e1c8870e5063eb7f4",
+  "candidate_parser": "38442d29e92fd1bd9f79a6acc4edb8006922cdec",
+  "candidate_files": 137,
+  "compiler": "0.17.0",
+  "optimize": "safe",
+  "allocator": "page",
+  "json_storage": "buffer",
+  "credits": 4096,
+  "patches": [],
+  "IR_enabled": false,
+  "scope": "Full dot-ls executable. Experimental copies only; project vendor and active development binaries unchanged.",
+  "binaries": {
+    "before": {
+      "sha256": "d10e2720b450e0834ea03b5a001d45b8527098c7ecaf3d3d3e144c677dccc591",
+      "bytes": 985080,
+      "version": "dot-ls 0.0.1-dev; dot-parser 0.5.0 (01b0a8e)"
+    },
+    "after": {
+      "sha256": "4670b79a78eb5aff4493b7bf2499249c1261f4d0f0dec16c550c2ea21145acaa",
+      "bytes": 985064,
+      "version": "dot-ls 0.0.1-dev; dot-parser 0.5.0 (38442d2)"
+    }
+  },
+  "protocol_suite_count": 11,
+  "timing_note": "Suite timing output is a correctness check only; controlled performance is measured separately after all builds and tests finish.",
+  "unit_checks": {
+    "server": 69,
+    "vendored_parser": 213,
+    "optimize": "safe",
+    "passed": true,
+    "command": "zig build test test-parser -Doptimize=safe --summary all (isolated candidate copy)"
+  },
+  "relevant_changes": [
+    "Optional event-based IR is not enabled by dot-ls.",
+    "The selected block scanner keeps the same implementation; new scanner specialization targets scalar event consumers.",
+    "Bare-name hashing changes can reach duplicate-attribute checks. References already use direct hashing for bare names.",
+    "Upstream retained-document validation refactors do not replace the custom dot-ls validation collector."
+  ],
+  "project_source_unchanged": true,
+  "measurement_scope": "Pre-encoded full-text LSP messages through client receipt of diagnostics/completion/hover; full dot-ls process RSS and CPU. No parser-only benchmark.",
+  "final_verification": {
+    "production_sources_and_vendor_unchanged": true,
+    "active_development_binaries_unchanged": true,
+    "all_measured_diagnostic_counts_match": true,
+    "candidate_adopted": false
+  }
+}

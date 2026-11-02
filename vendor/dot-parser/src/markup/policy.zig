@@ -1,0 +1,192 @@
+//! Markup-owned behavioral settings. Resources are passed separately.
+const std = @import("std");
+pub const RuleSeverity = enum { err, warning, off };
+pub const ScannerBackend = enum { scalar, block };
+/// Graphviz adds label rules and ASCII-case-insensitive tag matching.
+/// Extended remains unimplemented.
+pub const Mode = enum { structural, graphviz };
+pub const Acceptance = enum { reject, warn, accept };
+pub const OnError = @import("parser_support").execution.OnError;
+/// Only guides continuation after a rejected closer, never syntax acceptance.
+/// Both names need at least 4 code units for one edit, or 8 for two edits.
+/// Two-edits selection retains one-edit behavior on shorter names.
+pub const ClosingTagRecovery = enum { exact, one_edit, two_edits };
+pub const Unsupported = @import("parser_support").reporting.Unsupported;
+pub const Fixes = @import("parser_support").reporting.Fixes;
+pub const SyntaxSettings = struct { malformed_reference: Acceptance = .reject };
+/// Optional validation rules, not parser dialects or namespace processing.
+pub const NameRule = enum { xml_1_0 };
+pub const ReferenceCatalog = enum { xml_predefined, graphviz };
+pub const NameSettings = struct { rule: NameRule = .xml_1_0, severity: RuleSeverity = .off };
+pub const ReferenceSettings = struct { catalog: ReferenceCatalog = .xml_predefined, severity: RuleSeverity = .off };
+pub const GraphvizSettings = struct {
+    unknown_element: RuleSeverity = .err,
+    invalid_attribute: RuleSeverity = .err,
+    invalid_content: RuleSeverity = .err,
+    invalid_value: RuleSeverity = .err,
+    unknown_reference: RuleSeverity = .err,
+};
+pub const ValidationSettings = struct {
+    on_error: OnError = .collect,
+    duplicate_attribute: RuleSeverity = .err,
+    /// Selected source reader; includes text, attributes, comments and CDATA.
+    invalid_encoding: RuleSeverity = .off,
+    names: NameSettings = .{},
+    references: ReferenceSettings = .{},
+    graphviz: GraphvizSettings = .{},
+};
+
+pub const Policy = struct {
+    mode: ?Mode = null,
+    scanner: ?ScannerBackend = null,
+    on_error: ?OnError = null,
+    closing_tag_recovery: ?ClosingTagRecovery = null,
+    retention: struct { partial: ?bool = null } = .{},
+    diagnostics: struct { fixes: ?Fixes = null, unsupported: ?Unsupported = null } = .{},
+    syntax: struct { malformed_reference: ?Acceptance = null } = .{},
+    limits: struct {
+        max_source_bytes: ?u32 = null,
+        max_nesting: ?u32 = null,
+        /// Elements, nonempty text runs, comments and CDATA sections.
+        max_nodes: ?u32 = null,
+        max_attributes: ?u32 = null,
+    } = .{},
+    validation: struct {
+        duplicate_attribute: ?RuleSeverity = null,
+        invalid_encoding: ?RuleSeverity = null,
+        names: struct { rule: ?NameRule = null, severity: ?RuleSeverity = null } = .{},
+        references: struct { catalog: ?ReferenceCatalog = null, severity: ?RuleSeverity = null } = .{},
+        graphviz: struct { unknown_element: ?RuleSeverity = null, invalid_attribute: ?RuleSeverity = null, invalid_content: ?RuleSeverity = null, invalid_value: ?RuleSeverity = null, unknown_reference: ?RuleSeverity = null } = .{},
+    } = .{},
+    execution: struct {
+        metering: ?bool = null,
+        cancellation: ?bool = null,
+        /// Positive maximum work steps between parse cancellation polls.
+        cancellation_interval: ?u32 = null,
+    } = .{},
+};
+pub const Limits = struct {
+    max_source_bytes: u32 = std.math.maxInt(u32),
+    max_nesting: u32 = std.math.maxInt(u32),
+    max_nodes: u32 = std.math.maxInt(u32),
+    max_attributes: u32 = std.math.maxInt(u32),
+};
+pub const Effective = struct {
+    retention: struct { partial: bool = false } = .{},
+    mode: Mode = .graphviz,
+    scanner: ScannerBackend = .scalar,
+    on_error: OnError = .collect,
+    closing_tag_recovery: ClosingTagRecovery = .one_edit,
+    diagnostics: struct { fixes: Fixes = .all, unsupported: Unsupported = .err } = .{},
+    limits: Limits = .{},
+    syntax: SyntaxSettings = .{},
+    validation: ValidationSettings = .{},
+    execution: struct { metering: bool = false, cancellation: bool = false, cancellation_interval: u32 = 1 } = .{},
+
+    pub fn parsing(self: Effective) ParseSettings {
+        return .{ .cancellation_interval = self.execution.cancellation_interval, .retain_partial = self.retention.partial, .limits = self.limits, .syntax = self.syntax, .fixes = self.diagnostics.fixes, .unsupported = self.diagnostics.unsupported, .on_error = self.on_error, .closing_tag_recovery = self.closing_tag_recovery };
+    }
+};
+pub const ParseSettings = struct { cancellation_interval: u32 = 1, retain_partial: bool = false, limits: Limits = .{}, syntax: SyntaxSettings = .{}, fixes: Fixes = .all, unsupported: Unsupported = .err, on_error: OnError = .collect, closing_tag_recovery: ClosingTagRecovery = .one_edit };
+pub const Config = struct {
+    policy: Policy = .{},
+    runtime_policy: bool = false,
+    /// Compile-time input readers, not a runtime policy patch.
+    source_encodings: ?[]const @import("parser_support").encoding.Encoding = null,
+};
+pub const defaults: Effective = .{};
+pub const Check = union(enum) { valid, invalid: Issue };
+pub const Error = error{InvalidCancellationInterval};
+pub const Issue = enum {
+    invalid_cancellation_interval,
+    pub fn asError(_: Issue) Error {
+        return error.InvalidCancellationInterval;
+    }
+};
+
+/// Zero resource limits remain meaningful; zero cancellation intervals do not.
+pub fn check(effective: Effective, _: Policy) Check {
+    if (effective.execution.cancellation_interval == 0)
+        return .{ .invalid = .invalid_cancellation_interval };
+    return .valid;
+}
+
+pub fn resolve(base: Effective, patch: Policy) Effective {
+    var result = base;
+    if (patch.retention.partial) |value| result.retention.partial = value;
+    if (patch.mode) |value| result.mode = value;
+    if (patch.scanner) |value| result.scanner = value;
+    if (patch.closing_tag_recovery) |value| result.closing_tag_recovery = value;
+    if (patch.on_error) |value| {
+        result.on_error = value;
+        result.validation.on_error = value;
+    }
+    if (patch.diagnostics.fixes) |value| result.diagnostics.fixes = value;
+    if (patch.diagnostics.unsupported) |value| result.diagnostics.unsupported = value;
+    if (patch.syntax.malformed_reference) |value| result.syntax.malformed_reference = value;
+    inline for (comptime @typeInfo(@TypeOf(patch.limits)).@"struct".field_names) |field| {
+        if (@field(patch.limits, field)) |value| @field(result.limits, field) = value;
+    }
+    inline for (comptime @typeInfo(@TypeOf(patch.execution)).@"struct".field_names) |field| {
+        if (@field(patch.execution, field)) |value| @field(result.execution, field) = value;
+    }
+    if (patch.validation.duplicate_attribute) |v| result.validation.duplicate_attribute = v;
+    if (patch.validation.invalid_encoding) |v| result.validation.invalid_encoding = v;
+    inline for (.{ "names", "references", "graphviz" }) |group| {
+        inline for (comptime @typeInfo(@TypeOf(@field(patch.validation, group))).@"struct".field_names) |field| {
+            if (@field(@field(patch.validation, group), field)) |value|
+                @field(@field(result.validation, group), field) = value;
+        }
+    }
+    return result;
+}
+
+pub const presets = struct {
+    pub const standard: Policy = .{
+        .retention = .{ .partial = false },
+        .mode = defaults.mode,
+        .scanner = .scalar,
+        .on_error = .collect,
+        .closing_tag_recovery = defaults.closing_tag_recovery,
+        .diagnostics = .{ .fixes = .all, .unsupported = .err },
+        .syntax = .{ .malformed_reference = .reject },
+        .limits = .{
+            .max_source_bytes = defaults.limits.max_source_bytes,
+            .max_nesting = defaults.limits.max_nesting,
+            .max_nodes = defaults.limits.max_nodes,
+            .max_attributes = defaults.limits.max_attributes,
+        },
+        .validation = .{
+            .duplicate_attribute = defaults.validation.duplicate_attribute,
+            .invalid_encoding = defaults.validation.invalid_encoding,
+            .names = .{ .rule = defaults.validation.names.rule, .severity = defaults.validation.names.severity },
+            .references = .{ .catalog = defaults.validation.references.catalog, .severity = defaults.validation.references.severity },
+            .graphviz = .{ .unknown_element = .err, .invalid_attribute = .err, .invalid_content = .err, .invalid_value = .err, .unknown_reference = .err },
+        },
+        .execution = .{ .metering = false, .cancellation = false, .cancellation_interval = 1 },
+    };
+
+    /// Starting budgets for untrusted fragments, not a total heap/time bound or
+    /// a new dialect. Pair with bounded diagnostics and caller resource budgets.
+    /// Like standard, this is a complete policy (including disabled UTF-8).
+    pub const untrusted: Policy = blk: {
+        var input = standard;
+        // An anonymous literal has no inherited/defaulted fields. Extending
+        // Policy.limits must require an explicit finite budget here as well.
+        const budgets = .{
+            .max_source_bytes = 8 * 1024 * 1024,
+            .max_nodes = 100_000,
+            .max_attributes = 200_000,
+            .max_nesting = 256,
+        };
+        for (@typeInfo(@TypeOf(input.limits)).@"struct".field_names) |field| {
+            if (!@hasField(@TypeOf(budgets), field))
+                @compileError("untrusted preset needs an explicit budget for " ++ field);
+            const value: u32 = @field(budgets, field);
+            if (value == std.math.maxInt(u32))
+                @compileError("untrusted preset needs a finite budget for " ++ field);
+            @field(input.limits, field) = value;
+        }
+        break :blk input;
+    };
+};

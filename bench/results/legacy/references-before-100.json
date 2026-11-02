@@ -1,0 +1,51 @@
+{
+  "label": "before",
+  "binary_bytes": 659592,
+  "binary_sha256": "d544cde94647e1169bdf173f0cf7ed2ddfa7f56bd3f12472062b1818040b323a",
+  "runs": [
+    {
+      "mb": 100,
+      "source_bytes": 99999947,
+      "startup_ms": 6.881208999999999,
+      "idle_rss_bytes": 2129920,
+      "peak_rss_bytes": 308527104,
+      "samples": [
+        {
+          "phase": "open",
+          "ms": 396.550042
+        },
+        {
+          "phase": "error",
+          "ms": 439.723459
+        },
+        {
+          "phase": "repair",
+          "ms": 390.56175
+        },
+        {
+          "phase": "error",
+          "ms": 435.867125
+        },
+        {
+          "phase": "repair",
+          "ms": 376.644333
+        },
+        {
+          "phase": "error",
+          "ms": 431.553542
+        },
+        {
+          "phase": "repair",
+          "ms": 373.302875
+        }
+      ],
+      "completion_ms": [],
+      "reference_ms": [],
+      "settled_rss_bytes": 2342912,
+      "closed_rss_bytes": 2326528,
+      "fixture_index_bytes": 0,
+      "time_output": "        2.87 real         2.60 user         0.20 sys\n           308527104  maximum resident set size\n                   0  average shared memory size\n                   0  average unshared data size\n                   0  average unshared stack size\n              136714  page reclaims\n                   0  page faults\n                   0  swaps\n                   0  block input operations\n                   0  block output operations\n                   0  messages sent\n                   0  messages received\n                   0  signals received\n               11340  voluntary context switches\n                 100  involuntary context switches\n         75295462153  instructions retired\n         12006609116  cycles elapsed\n           307921520  peak memory footprint\n"
+    }
+  ],
+  "notes": "Zig 0.16 ReleaseSafe. Pre-encoded full-sync request through diagnostics. Single fresh process per size, three error/repair pairs. Actual macOS time -l peak RSS; idle ps sample before requests. Completion includes small Python encoding. No editor, builds or background benchmarking during runs. References query a node with two occurrences; retained index uses 20 bytes per occurrence. Close RSS follows didClose acknowledgement."
+}

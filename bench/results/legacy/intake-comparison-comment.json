@@ -1,0 +1,72 @@
+{
+  "workload": "comment",
+  "source_bytes": 39999998,
+  "wire_bytes": 40000151,
+  "summary": [
+    {
+      "name": "before",
+      "median_ms": 58.694354000000004,
+      "min_ms": 55.140333,
+      "max_ms": 65.999042,
+      "samples": 10
+    },
+    {
+      "name": "inplace",
+      "median_ms": 50.458354,
+      "min_ms": 46.217625,
+      "max_ms": 53.8445,
+      "samples": 10
+    }
+  ],
+  "runs": [
+    {
+      "name": "before",
+      "repeat": 0,
+      "request_ms": [
+        65.999042,
+        57.009292,
+        58.358292,
+        55.140333,
+        59.030416
+      ],
+      "binary_bytes": 638488
+    },
+    {
+      "name": "inplace",
+      "repeat": 0,
+      "request_ms": [
+        53.8445,
+        50.484208,
+        51.37775,
+        49.762541,
+        49.645708
+      ],
+      "binary_bytes": 638104
+    },
+    {
+      "name": "inplace",
+      "repeat": 1,
+      "request_ms": [
+        50.898584,
+        51.117542,
+        50.4325,
+        46.217625,
+        48.159208
+      ],
+      "binary_bytes": 638104
+    },
+    {
+      "name": "before",
+      "repeat": 1,
+      "request_ms": [
+        65.42275,
+        57.251125,
+        59.743834,
+        61.635125,
+        58.272166
+      ],
+      "binary_bytes": 638488
+    }
+  ],
+  "notes": "ReleaseSafe. Sequential runs, reverse order on second pass. Pre-encoded full-sync request to diagnostic receipt. Excludes client encoding. No RSS sampling or profiling in timed servers."
+}

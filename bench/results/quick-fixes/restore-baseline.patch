@@ -1,0 +1,290 @@
+--- a/src/main.zig
++++ b/src/main.zig
+@@ -8,7 +8,6 @@
+ const references = @import("references.zig");
+ const labels = @import("labels.zig");
+ const analysis = @import("analysis.zig");
+-const actions = @import("code_actions.zig");
+ const max_file = 200 * 1024 * 1024;
+ const max_message = 256 * 1024 * 1024;
+ const max_sources = 512 * 1024 * 1024;
+@@ -27,8 +26,6 @@
+     previous_html: ?*labels.Cache = null,
+     wording: ?std.heap.ArenaAllocator = null,
+     diagnostics: std.ArrayList(Diagnostic) = .empty,
+-    fixes: std.ArrayList(actions.Fix) = .empty,
+-    fixes_failed: bool = false,
+     builder: ?references.Builder = null,
+     cancel: std.atomic.Value(bool) = .init(false),
+     fn poll(ctx: ?*anyopaque) bool {
+@@ -42,7 +39,6 @@
+         if (self.html) |*work| work.deinit();
+         if (self.previous_html) |cache| cache.release(allocator);
+         self.diagnostics.deinit(allocator);
+-        self.fixes.deinit(allocator);
+         if (self.wording) |*arena| arena.deinit();
+         allocator.free(self.allocation);
+         allocator.free(self.uri);
+@@ -50,10 +46,10 @@
+     }
+ };
+ const ReferenceRequest = struct { id: std.json.Value, point: pos.Position, include: bool = false, kind: enum { references, completion } = .references };
+-const Document = struct { fixes: ?[]actions.Fix = null, fixes_done: bool = false, requests: std.ArrayList(ReferenceRequest) = .empty, index_pending: ?*Job = null, uri: []u8, version: i64, generation: u64, pending: ?*Job = null, references: ?references.Index = null, completion: ?context.Index = null, completion_done: bool = false, html_cache: ?*labels.Cache = null };
+-const Range = actions.Range;
++const Document = struct { requests: std.ArrayList(ReferenceRequest) = .empty, index_pending: ?*Job = null, uri: []u8, version: i64, generation: u64, pending: ?*Job = null, references: ?references.Index = null, completion: ?context.Index = null, completion_done: bool = false, html_cache: ?*labels.Cache = null };
++const Range = struct { start: pos.Position, end: pos.Position };
+ const RelatedInformation = struct { location: struct { uri: []const u8, range: Range }, message: []const u8 };
+-const Diagnostic = struct { data: ?actions.Token = null, range: Range, severity: u8, code: []const u8, source: []const u8 = "dot-ls", relatedInformation: []const RelatedInformation = &.{}, message: []const u8 };
++const Diagnostic = struct { range: Range, severity: u8, code: []const u8, source: []const u8 = "dot-ls", relatedInformation: []const RelatedInformation = &.{}, message: []const u8 };
+ const Server = struct {
+     html_allocator: std.mem.Allocator,
+     allocator: std.mem.Allocator,
+@@ -74,7 +70,6 @@
+     stopping: bool = false,
+     initialized: bool = false,
+     related_information: bool = false,
+-    versioned_edits: bool = false,
+     shutdown: bool = false,
+     encoding: pos.Encoding = .utf16,
+     worker: ?std.Thread = null,
+@@ -105,17 +100,7 @@
+         const single = [_]Diagnostic{.{ .range = .{ .start = origin, .end = origin }, .severity = 3, .code = "dot-ls:limits", .message = message orelse "" }};
+         try self.send(.{ .jsonrpc = "2.0", .method = "textDocument/publishDiagnostics", .params = .{ .uri = uri, .version = version, .diagnostics = if (message != null) single[0..] else single[0..0] } });
+     }
+-    fn setFixes(self: *Server, doc: *Document, offers: []const actions.Fix, failed: bool) void {
+-        std.debug.assert(offers.len <= 1000);
+-        if (doc.fixes) |old| self.allocator.free(old);
+-        doc.fixes = null;
+-        doc.fixes_done = true;
+-        if (!failed) doc.fixes = self.allocator.dupe(actions.Fix, offers) catch null;
+-    }
+     fn invalidate(self: *Server, doc: *Document) void {
+-        if (doc.fixes) |old| self.allocator.free(old);
+-        doc.fixes = null;
+-        doc.fixes_done = false;
+         self.failReferences(doc, -32801, "Document changed before the request completed.") catch {};
+         if (doc.index_pending) |job| {
+             self.source_bytes -= job.allocation.len;
+@@ -331,12 +316,6 @@
+         var diagnostics: std.ArrayList(Diagnostic) = .empty;
+         defer diagnostics.deinit(self.allocator);
+         try diagnostics.appendSlice(self.allocator, job.diagnostics.items);
+-        var offers: std.ArrayList(actions.Fix) = .empty;
+-        defer offers.deinit(self.allocator);
+-        var fixes_failed = job.fixes_failed;
+-        if (!fixes_failed) offers.appendSlice(self.allocator, job.fixes.items) catch {
+-            fixes_failed = true;
+-        };
+         var index: ?pos.Index = if (html_work.diagnostics.items.len > 0) try pos.Index.initBackground(self.allocator, job.text, &job.cancel, &self.syntax_pending) else null;
+         defer if (index) |*owned| owned.deinit(self.allocator);
+         for (html_work.diagnostics.items) |item| {
+@@ -357,18 +336,8 @@
+                     .end = try index.?.positionBackground(job.text, at + span.len, encoding, &job.cancel, &self.syntax_pending),
+                 } }, .message = "Related HTML construct starts here." };
+             };
+-            const range: Range = .{ .start = try index.?.positionBackground(job.text, start, encoding, &job.cancel, &self.syntax_pending), .end = try index.?.positionBackground(job.text, start + d.span.len, encoding, &job.cancel, &self.syntax_pending) };
+-            var token: ?actions.Token = null;
+-            if (!fixes_failed) if (d.suggestedFix()) |fix| {
+-                const offer = try actions.Fix.capture(fix, range, d.span, job.text, item.origin, index.?, encoding, &job.cancel, &self.syntax_pending);
+-                offers.append(self.allocator, offer) catch {
+-                    fixes_failed = true;
+-                };
+-                if (!fixes_failed) token = .{ .dot_ls_generation = job.generation, .fix = offers.items.len - 1 };
+-            };
+             try diagnostics.append(self.allocator, .{
+-                .data = token,
+-                .range = range,
++                .range = .{ .start = try index.?.positionBackground(job.text, start, encoding, &job.cancel, &self.syntax_pending), .end = try index.?.positionBackground(job.text, start + d.span.len, encoding, &job.cancel, &self.syntax_pending) },
+                 .severity = if (d.code.info().severity == .warning) 2 else 1,
+                 .code = d.code.structured(),
+                 .relatedInformation = related,
+@@ -384,10 +353,7 @@
+         const i = self.find(job.uri) orelse return false;
+         const doc = &self.documents.items[i];
+         if (self.stopping or doc.generation != job.generation or job.cancel.load(.acquire)) return false;
+-        self.setFixes(doc, offers.items, fixes_failed);
+         try self.send(.{ .jsonrpc = "2.0", .method = "textDocument/publishDiagnostics", .params = .{ .uri = job.uri, .version = job.version, .diagnostics = diagnostics.items } });
+-        job.fixes.deinit(self.allocator);
+-        job.fixes = .empty;
+         const old_bytes = if (doc.html_cache) |cache| cache.payload_bytes else 0;
+         if (html_work.cache) |cache| if (cache.payload_bytes <= 32 * 1024 * 1024 - (self.html_cache_bytes - old_bytes)) {
+             self.dropHtmlCache(doc);
+@@ -482,18 +448,8 @@
+                         .end = try index.positionCancellable(job.text, @as(usize, note.span.start) + note.span.len, encoding, &job.cancel),
+                     } }, .message = note.message };
+                 }
+-                const range: Range = .{ .start = try index.positionCancellable(job.text, d.span.start, encoding, &job.cancel), .end = try index.positionCancellable(job.text, @as(usize, d.span.start) + d.span.len, encoding, &job.cancel) };
+-                var token: ?actions.Token = null;
+-                if (!job.fixes_failed) if (d.fix) |fix| {
+-                    const offer = try actions.Fix.capture(fix, range, d.span, job.text, 0, index, encoding, &job.cancel, null);
+-                    job.fixes.append(self.allocator, offer) catch {
+-                        job.fixes_failed = true;
+-                    };
+-                    if (!job.fixes_failed) token = .{ .dot_ls_generation = job.generation, .fix = job.fixes.items.len - 1 };
+-                };
+                 try diagnostics.append(self.allocator, .{
+-                    .data = token,
+-                    .range = range,
++                    .range = .{ .start = try index.positionCancellable(job.text, d.span.start, encoding, &job.cancel), .end = try index.positionCancellable(job.text, @as(usize, d.span.start) + d.span.len, encoding, &job.cancel) },
+                     .severity = if (d.code.info().severity == .warning) 2 else 1,
+                     .code = d.code.structured(),
+                     .message = owned_message,
+@@ -514,12 +470,7 @@
+         defer self.mutex.unlock(self.io);
+         const i = self.find(job.uri) orelse return false;
+         if (self.stopping or self.documents.items[i].generation != job.generation) return false;
+-        self.setFixes(&self.documents.items[i], job.fixes.items, job.fixes_failed);
+         try self.send(.{ .jsonrpc = "2.0", .method = "textDocument/publishDiagnostics", .params = .{ .uri = job.uri, .version = job.version, .diagnostics = diagnostics.items } });
+-        if (job.labels.?.spans.count == 0 and !job.labels.?.incomplete) {
+-            job.fixes.deinit(self.allocator);
+-            job.fixes = .empty;
+-        }
+         if (job.labels.?.spans.count == 0 and !job.labels.?.incomplete) self.dropHtmlCache(&self.documents.items[i]);
+         job.want_references = result.outcome == .success and result.completion == .complete and !builder.failed;
+         if (!job.want_references) {
+@@ -528,79 +479,6 @@
+         }
+         job.phase = if (job.labels.?.spans.count > 0 or job.labels.?.incomplete) .html else .context;
+         return true;
+-    }
+-    fn codeActions(self: *Server, request: std.json.Value, params: std.json.Value) !void {
+-        const uri = string(field(field(params, "textDocument") orelse .null, "uri") orelse .null);
+-        const range = actionRange(field(params, "range") orelse .null);
+-        const ctx = field(params, "context") orelse .null;
+-        const diagnostics = field(ctx, "diagnostics") orelse .null;
+-        if (uri == null or range == null or diagnostics != .array) {
+-            try self.failure(request, -32602, "Code actions require an open document, valid range and diagnostics array.");
+-            return;
+-        }
+-        if (diagnostics.array.items.len > 1024) {
+-            try self.failure(request, -32602, "Code action diagnostic context exceeds its limit.");
+-            return;
+-        }
+-        const i = self.find(uri.?) orelse {
+-            try self.failure(request, -32602, "Code actions require an open document.");
+-            return;
+-        };
+-        const doc = &self.documents.items[i];
+-        if (field(ctx, "only")) |only| {
+-            if (only != .array or only.array.items.len > 64) {
+-                try self.failure(request, -32602, "Code action kinds must be an array.");
+-                return;
+-            }
+-            var wanted = false;
+-            for (only.array.items) |item| {
+-                const kind = string(item) orelse {
+-                    try self.failure(request, -32602, "Code action kinds must be strings.");
+-                    return;
+-                };
+-                if (kind.len == 0 or std.mem.eql(u8, kind, "quickfix")) wanted = true;
+-            }
+-            if (!wanted) {
+-                try self.send(.{ .jsonrpc = "2.0", .id = request, .result = @as([]const std.json.Value, &.{}) });
+-                return;
+-            }
+-        }
+-        // Never fall back to unversioned edits on an older client.
+-        if (!self.versioned_edits) {
+-            try self.send(.{ .jsonrpc = "2.0", .id = request, .result = @as([]const std.json.Value, &.{}) });
+-            return;
+-        }
+-        const offers = doc.fixes orelse {
+-            if (doc.fixes_done) {
+-                try self.failure(request, -32803, "Quick fixes are unavailable within resource limits.");
+-                return;
+-            }
+-            try self.failure(request, -32801, "Current diagnostics are not ready. Request code actions again after diagnostics arrive.");
+-            return;
+-        };
+-        for (diagnostics.array.items) |diagnostic| {
+-            const data = field(diagnostic, "data") orelse .null;
+-            if (integer(field(data, "dot_ls_generation") orelse .null)) |generation| {
+-                if (generation < 0 or @as(u64, @intCast(generation)) != doc.generation) {
+-                    try self.failure(request, -32801, "Document changed since these diagnostics were produced.");
+-                    return;
+-                }
+-            }
+-        }
+-        const Change = struct { textDocument: struct { uri: []const u8, version: i64 }, edits: []const actions.TextEdit };
+-        const Action = struct { title: []const u8, kind: []const u8 = "quickfix", isPreferred: bool, edit: struct { documentChanges: []const Change } };
+-        var arena = std.heap.ArenaAllocator.init(self.allocator);
+-        defer arena.deinit();
+-        const allocator = arena.allocator();
+-        var result: std.ArrayList(Action) = .empty;
+-        for (offers) |offer| {
+-            if (!offer.touches(range.?)) continue;
+-            const storage = try allocator.create([2]actions.TextEdit);
+-            const changes = try allocator.alloc(Change, 1);
+-            changes[0] = .{ .textDocument = .{ .uri = doc.uri, .version = doc.version }, .edits = offer.edits(storage) };
+-            try result.append(allocator, .{ .title = try offer.title(allocator), .isPreferred = offer.preferred, .edit = .{ .documentChanges = changes } });
+-        }
+-        try self.send(.{ .jsonrpc = "2.0", .id = request, .result = result.items });
+     }
+     fn handle(self: *Server, message: *json_message.Message, packet: *?[]u8) !bool {
+         const value = message.value;
+@@ -630,9 +508,6 @@
+             }
+             if (id == null) return false;
+             const caps = field(params, "capabilities") orelse .null;
+-            const workspace_edit = field(field(caps, "workspace") orelse .null, "workspaceEdit") orelse .null;
+-            const document_changes = field(workspace_edit, "documentChanges") orelse .null;
+-            self.versioned_edits = document_changes == .bool and document_changes.bool;
+             const text_document = field(caps, "textDocument") orelse .null;
+             const publish = field(text_document, "publishDiagnostics") orelse .null;
+             const related_cap = field(publish, "relatedInformation") orelse .null;
+@@ -656,7 +531,7 @@
+                 .utf16 => "utf-16",
+                 .utf32 => "utf-32",
+             };
+-            try self.send(.{ .jsonrpc = "2.0", .id = id.?, .result = .{ .capabilities = .{ .positionEncoding = enc, .codeActionProvider = .{ .codeActionKinds = [_][]const u8{"quickfix"}, .resolveProvider = false }, .referencesProvider = true, .completionProvider = .{ .resolveProvider = false }, .textDocumentSync = .{ .openClose = true, .change = 1 } }, .serverInfo = .{ .name = "dot-ls", .version = "0.0.1-dev; dot-parser 0.5.0+count-session.1.node-occurrences.2.html-labels.1" } } });
++            try self.send(.{ .jsonrpc = "2.0", .id = id.?, .result = .{ .capabilities = .{ .positionEncoding = enc, .referencesProvider = true, .completionProvider = .{ .resolveProvider = false }, .textDocumentSync = .{ .openClose = true, .change = 1 } }, .serverInfo = .{ .name = "dot-ls", .version = "0.0.1-dev; dot-parser 0.5.0+count-session.1.node-occurrences.2.html-labels.1" } } });
+             return false;
+         }
+         if (self.shutdown) {
+@@ -671,8 +546,6 @@
+                 for (self.documents.items) |*doc| self.invalidate(doc);
+                 try self.send(.{ .jsonrpc = "2.0", .id = request, .result = @as(?u8, null) });
+             }
+-        } else if (std.mem.eql(u8, method, "textDocument/codeAction")) {
+-            try self.codeActions(id orelse return false, params);
+         } else if (std.mem.eql(u8, method, "textDocument/references")) {
+             const request = id orelse return false;
+             const uri = string(field(field(params, "textDocument") orelse .null, "uri") orelse .null);
+@@ -822,18 +695,6 @@
+     errdefer allocator.free(bytes);
+     try reader.readSliceAll(bytes);
+     return bytes;
+-}
+-fn actionPoint(value: std.json.Value) ?pos.Position {
+-    const line = integer(field(value, "line") orelse .null) orelse return null;
+-    const character = integer(field(value, "character") orelse .null) orelse return null;
+-    if (line < 0 or character < 0 or line > std.math.maxInt(u32) or character > std.math.maxInt(u32)) return null;
+-    return .{ .line = @intCast(line), .character = @intCast(character) };
+-}
+-fn actionRange(value: std.json.Value) ?Range {
+-    const start = actionPoint(field(value, "start") orelse .null) orelse return null;
+-    const end = actionPoint(field(value, "end") orelse .null) orelse return null;
+-    if (actions.before(end, start)) return null;
+-    return .{ .start = start, .end = end };
+ }
+ pub fn main(init: std.process.Init) !void {
+     var debug_allocator: std.heap.DebugAllocator(.{ .thread_safe = true }) = .init;
+@@ -891,18 +752,8 @@
+     _ = context;
+     _ = references;
+     _ = diagnostic_text;
+-    _ = actions;
+     _ = pos;
+     _ = analysis;
+     _ = json_message;
+     _ = @import("parser_session_tests.zig");
+ }
+-
+-test "fix snapshot allocation failure leaves diagnostics publication independent" {
+-    var server: Server = .{ .allocator = std.testing.failing_allocator, .html_allocator = std.testing.failing_allocator, .io = undefined, .writer = undefined };
+-    var document: Document = .{ .uri = @constCast("untitled:test"), .version = 1, .generation = 1 };
+-    const offers = [_]actions.Fix{.{ .diagnostic = .{ .start = .{ .line = 0, .character = 0 }, .end = .{ .line = 0, .character = 1 } }, .edit = .{ .start = .{ .line = 0, .character = 0 }, .end = .{ .line = 0, .character = 1 } }, .kind = .delete, .preferred = true }};
+-    server.setFixes(&document, &offers, false);
+-    try std.testing.expect(document.fixes_done);
+-    try std.testing.expect(document.fixes == null);
+-}

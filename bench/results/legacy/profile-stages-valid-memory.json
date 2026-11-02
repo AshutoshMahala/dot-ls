@@ -1,0 +1,1650 @@
+{
+  "mode": "memory",
+  "source_bytes": 39999996,
+  "idle_rss_bytes": 2129920,
+  "client_runs": [
+    {
+      "encode_ms": 61.723625,
+      "write_ms": 1468.377125,
+      "after_write_ms": 1593.501708,
+      "total_ms": 3123.602458
+    }
+  ],
+  "stage_ms": {
+    "body_read": {
+      "median": 15.079,
+      "samples": [
+        15.079
+      ]
+    },
+    "json_decode": {
+      "median": 104.877,
+      "samples": [
+        104.877
+      ]
+    },
+    "snapshot_copy": {
+      "median": 14.583,
+      "samples": [
+        14.583
+      ]
+    },
+    "worker_queue": {
+      "median": 0.069,
+      "samples": [
+        0.069
+      ]
+    },
+    "json_cleanup": {
+      "median": 3.664,
+      "samples": [
+        3.664
+      ]
+    },
+    "parser": {
+      "median": 252.42,
+      "samples": [
+        252.42
+      ]
+    },
+    "input_cleanup": {
+      "median": 0.872,
+      "samples": [
+        0.872
+      ]
+    },
+    "diagnostic_conversion": {
+      "median": 0.0,
+      "samples": [
+        0.0
+      ]
+    },
+    "response_encode": {
+      "median": 0.041,
+      "samples": [
+        0.041
+      ]
+    },
+    "response_write": {
+      "median": 0.01,
+      "samples": [
+        0.01
+      ]
+    }
+  },
+  "events": [
+    {
+      "stage": "body_read",
+      "us": 0,
+      "total_peak_bytes": 134,
+      "categories": [
+        {
+          "name": "misc",
+          "live": 32,
+          "peak": 32,
+          "allocations": 1
+        },
+        {
+          "name": "input",
+          "live": 102,
+          "peak": 102,
+          "allocations": 1
+        },
+        {
+          "name": "json",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "snapshot",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "parser",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "response",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "positions",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        }
+      ],
+      "json_used_bytes": 0,
+      "rss_bytes": 2080768
+    },
+    {
+      "stage": "json_decode",
+      "us": 84,
+      "total_peak_bytes": 16722,
+      "categories": [
+        {
+          "name": "misc",
+          "live": 32,
+          "peak": 32,
+          "allocations": 1
+        },
+        {
+          "name": "input",
+          "live": 102,
+          "peak": 102,
+          "allocations": 1
+        },
+        {
+          "name": "json",
+          "live": 16588,
+          "peak": 16588,
+          "allocations": 1
+        },
+        {
+          "name": "snapshot",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "parser",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "response",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "positions",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        }
+      ],
+      "json_used_bytes": 1392,
+      "rss_bytes": 2129920
+    },
+    {
+      "stage": "response_encode",
+      "us": 72,
+      "total_peak_bytes": 17075,
+      "categories": [
+        {
+          "name": "misc",
+          "live": 32,
+          "peak": 32,
+          "allocations": 1
+        },
+        {
+          "name": "input",
+          "live": 102,
+          "peak": 102,
+          "allocations": 1
+        },
+        {
+          "name": "json",
+          "live": 16588,
+          "peak": 16588,
+          "allocations": 1
+        },
+        {
+          "name": "snapshot",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "parser",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "response",
+          "live": 215,
+          "peak": 353,
+          "allocations": 1
+        },
+        {
+          "name": "positions",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        }
+      ],
+      "json_used_bytes": 1392
+    },
+    {
+      "stage": "response_write",
+      "us": 9,
+      "total_peak_bytes": 17075,
+      "categories": [
+        {
+          "name": "misc",
+          "live": 32,
+          "peak": 32,
+          "allocations": 1
+        },
+        {
+          "name": "input",
+          "live": 102,
+          "peak": 102,
+          "allocations": 1
+        },
+        {
+          "name": "json",
+          "live": 16588,
+          "peak": 16588,
+          "allocations": 1
+        },
+        {
+          "name": "snapshot",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "parser",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "response",
+          "live": 215,
+          "peak": 353,
+          "allocations": 1
+        },
+        {
+          "name": "positions",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        }
+      ],
+      "json_used_bytes": 1392
+    },
+    {
+      "stage": "json_cleanup",
+      "us": 5,
+      "total_peak_bytes": 17075,
+      "categories": [
+        {
+          "name": "misc",
+          "live": 32,
+          "peak": 32,
+          "allocations": 1
+        },
+        {
+          "name": "input",
+          "live": 102,
+          "peak": 102,
+          "allocations": 1
+        },
+        {
+          "name": "json",
+          "live": 0,
+          "peak": 16588,
+          "allocations": 1
+        },
+        {
+          "name": "snapshot",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "parser",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "response",
+          "live": 0,
+          "peak": 353,
+          "allocations": 1
+        },
+        {
+          "name": "positions",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        }
+      ],
+      "json_used_bytes": 1392,
+      "rss_bytes": 2146304
+    },
+    {
+      "stage": "input_cleanup",
+      "us": 3,
+      "total_peak_bytes": 17075,
+      "categories": [
+        {
+          "name": "misc",
+          "live": 32,
+          "peak": 32,
+          "allocations": 1
+        },
+        {
+          "name": "input",
+          "live": 0,
+          "peak": 102,
+          "allocations": 1
+        },
+        {
+          "name": "json",
+          "live": 0,
+          "peak": 16588,
+          "allocations": 1
+        },
+        {
+          "name": "snapshot",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "parser",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "response",
+          "live": 0,
+          "peak": 353,
+          "allocations": 1
+        },
+        {
+          "name": "positions",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        }
+      ],
+      "json_used_bytes": 1392,
+      "rss_bytes": 2129920
+    },
+    {
+      "stage": "body_read",
+      "us": 0,
+      "total_peak_bytes": 17075,
+      "categories": [
+        {
+          "name": "misc",
+          "live": 32,
+          "peak": 32,
+          "allocations": 1
+        },
+        {
+          "name": "input",
+          "live": 57,
+          "peak": 102,
+          "allocations": 2
+        },
+        {
+          "name": "json",
+          "live": 0,
+          "peak": 16588,
+          "allocations": 1
+        },
+        {
+          "name": "snapshot",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "parser",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "response",
+          "live": 0,
+          "peak": 353,
+          "allocations": 1
+        },
+        {
+          "name": "positions",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        }
+      ],
+      "json_used_bytes": 1392,
+      "rss_bytes": 2146304
+    },
+    {
+      "stage": "json_decode",
+      "us": 47,
+      "total_peak_bytes": 17075,
+      "categories": [
+        {
+          "name": "misc",
+          "live": 32,
+          "peak": 32,
+          "allocations": 1
+        },
+        {
+          "name": "input",
+          "live": 57,
+          "peak": 102,
+          "allocations": 2
+        },
+        {
+          "name": "json",
+          "live": 16498,
+          "peak": 16588,
+          "allocations": 2
+        },
+        {
+          "name": "snapshot",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "parser",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "response",
+          "live": 0,
+          "peak": 353,
+          "allocations": 1
+        },
+        {
+          "name": "positions",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        }
+      ],
+      "json_used_bytes": 611,
+      "rss_bytes": 2162688
+    },
+    {
+      "stage": "json_cleanup",
+      "us": 12,
+      "total_peak_bytes": 17075,
+      "categories": [
+        {
+          "name": "misc",
+          "live": 32,
+          "peak": 32,
+          "allocations": 1
+        },
+        {
+          "name": "input",
+          "live": 57,
+          "peak": 102,
+          "allocations": 2
+        },
+        {
+          "name": "json",
+          "live": 0,
+          "peak": 16588,
+          "allocations": 2
+        },
+        {
+          "name": "snapshot",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "parser",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "response",
+          "live": 0,
+          "peak": 353,
+          "allocations": 1
+        },
+        {
+          "name": "positions",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        }
+      ],
+      "json_used_bytes": 611,
+      "rss_bytes": 2146304
+    },
+    {
+      "stage": "input_cleanup",
+      "us": 17,
+      "total_peak_bytes": 17075,
+      "categories": [
+        {
+          "name": "misc",
+          "live": 32,
+          "peak": 32,
+          "allocations": 1
+        },
+        {
+          "name": "input",
+          "live": 0,
+          "peak": 102,
+          "allocations": 2
+        },
+        {
+          "name": "json",
+          "live": 0,
+          "peak": 16588,
+          "allocations": 2
+        },
+        {
+          "name": "snapshot",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "parser",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "response",
+          "live": 0,
+          "peak": 353,
+          "allocations": 1
+        },
+        {
+          "name": "positions",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        }
+      ],
+      "json_used_bytes": 611,
+      "rss_bytes": 2129920
+    },
+    {
+      "stage": "body_read",
+      "us": 15079,
+      "total_peak_bytes": 45000181,
+      "categories": [
+        {
+          "name": "misc",
+          "live": 32,
+          "peak": 32,
+          "allocations": 1
+        },
+        {
+          "name": "input",
+          "live": 45000149,
+          "peak": 45000149,
+          "allocations": 3
+        },
+        {
+          "name": "json",
+          "live": 0,
+          "peak": 16588,
+          "allocations": 2
+        },
+        {
+          "name": "snapshot",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "parser",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "response",
+          "live": 0,
+          "peak": 353,
+          "allocations": 1
+        },
+        {
+          "name": "positions",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        }
+      ],
+      "json_used_bytes": 611,
+      "rss_bytes": 47136768
+    },
+    {
+      "stage": "json_decode",
+      "us": 104877,
+      "total_peak_bytes": 135016863,
+      "categories": [
+        {
+          "name": "misc",
+          "live": 32,
+          "peak": 32,
+          "allocations": 1
+        },
+        {
+          "name": "input",
+          "live": 45000149,
+          "peak": 45000149,
+          "allocations": 3
+        },
+        {
+          "name": "json",
+          "live": 90016682,
+          "peak": 90016682,
+          "allocations": 3
+        },
+        {
+          "name": "snapshot",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "parser",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "response",
+          "live": 0,
+          "peak": 353,
+          "allocations": 1
+        },
+        {
+          "name": "positions",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        }
+      ],
+      "json_used_bytes": 40002164,
+      "rss_bytes": 87146496
+    },
+    {
+      "stage": "snapshot_copy",
+      "us": 14583,
+      "total_peak_bytes": 175017112,
+      "categories": [
+        {
+          "name": "misc",
+          "live": 285,
+          "peak": 285,
+          "allocations": 4
+        },
+        {
+          "name": "input",
+          "live": 45000149,
+          "peak": 45000149,
+          "allocations": 3
+        },
+        {
+          "name": "json",
+          "live": 90016682,
+          "peak": 90016682,
+          "allocations": 3
+        },
+        {
+          "name": "snapshot",
+          "live": 39999996,
+          "peak": 39999996,
+          "allocations": 1
+        },
+        {
+          "name": "parser",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "response",
+          "live": 0,
+          "peak": 353,
+          "allocations": 1
+        },
+        {
+          "name": "positions",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        }
+      ],
+      "json_used_bytes": 40002164,
+      "rss_bytes": 127205376
+    },
+    {
+      "stage": "worker_queue",
+      "us": 69,
+      "total_peak_bytes": 175017125,
+      "categories": [
+        {
+          "name": "misc",
+          "live": 298,
+          "peak": 298,
+          "allocations": 5
+        },
+        {
+          "name": "input",
+          "live": 45000149,
+          "peak": 45000149,
+          "allocations": 3
+        },
+        {
+          "name": "json",
+          "live": 90016682,
+          "peak": 90016682,
+          "allocations": 3
+        },
+        {
+          "name": "snapshot",
+          "live": 39999996,
+          "peak": 39999996,
+          "allocations": 1
+        },
+        {
+          "name": "parser",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "response",
+          "live": 0,
+          "peak": 353,
+          "allocations": 1
+        },
+        {
+          "name": "positions",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        }
+      ],
+      "json_used_bytes": 40002164
+    },
+    {
+      "stage": "json_cleanup",
+      "us": 3664,
+      "total_peak_bytes": 175017125,
+      "categories": [
+        {
+          "name": "misc",
+          "live": 298,
+          "peak": 298,
+          "allocations": 5
+        },
+        {
+          "name": "input",
+          "live": 45000149,
+          "peak": 45000149,
+          "allocations": 3
+        },
+        {
+          "name": "json",
+          "live": 0,
+          "peak": 90016682,
+          "allocations": 3
+        },
+        {
+          "name": "snapshot",
+          "live": 39999996,
+          "peak": 39999996,
+          "allocations": 1
+        },
+        {
+          "name": "parser",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "response",
+          "live": 0,
+          "peak": 353,
+          "allocations": 1
+        },
+        {
+          "name": "positions",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        }
+      ],
+      "json_used_bytes": 40002164,
+      "rss_bytes": 87408640
+    },
+    {
+      "stage": "parser",
+      "us": 252420,
+      "total_peak_bytes": 175017125,
+      "categories": [
+        {
+          "name": "misc",
+          "live": 298,
+          "peak": 298,
+          "allocations": 5
+        },
+        {
+          "name": "input",
+          "live": 45000149,
+          "peak": 45000149,
+          "allocations": 3
+        },
+        {
+          "name": "json",
+          "live": 0,
+          "peak": 90016682,
+          "allocations": 3
+        },
+        {
+          "name": "snapshot",
+          "live": 39999996,
+          "peak": 39999996,
+          "allocations": 1
+        },
+        {
+          "name": "parser",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "response",
+          "live": 0,
+          "peak": 353,
+          "allocations": 1
+        },
+        {
+          "name": "positions",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        }
+      ],
+      "json_used_bytes": 40002164,
+      "rss_bytes": 87408640
+    },
+    {
+      "stage": "input_cleanup",
+      "us": 872,
+      "total_peak_bytes": 175017125,
+      "categories": [
+        {
+          "name": "misc",
+          "live": 298,
+          "peak": 298,
+          "allocations": 5
+        },
+        {
+          "name": "input",
+          "live": 0,
+          "peak": 45000149,
+          "allocations": 3
+        },
+        {
+          "name": "json",
+          "live": 0,
+          "peak": 90016682,
+          "allocations": 3
+        },
+        {
+          "name": "snapshot",
+          "live": 39999996,
+          "peak": 39999996,
+          "allocations": 1
+        },
+        {
+          "name": "parser",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "response",
+          "live": 0,
+          "peak": 353,
+          "allocations": 1
+        },
+        {
+          "name": "positions",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        }
+      ],
+      "json_used_bytes": 40002164,
+      "rss_bytes": 42401792
+    },
+    {
+      "stage": "diagnostic_conversion",
+      "us": 0,
+      "total_peak_bytes": 175017125,
+      "categories": [
+        {
+          "name": "misc",
+          "live": 298,
+          "peak": 298,
+          "allocations": 5
+        },
+        {
+          "name": "input",
+          "live": 0,
+          "peak": 45000149,
+          "allocations": 3
+        },
+        {
+          "name": "json",
+          "live": 0,
+          "peak": 90016682,
+          "allocations": 3
+        },
+        {
+          "name": "snapshot",
+          "live": 39999996,
+          "peak": 39999996,
+          "allocations": 1
+        },
+        {
+          "name": "parser",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "response",
+          "live": 0,
+          "peak": 353,
+          "allocations": 1
+        },
+        {
+          "name": "positions",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        }
+      ],
+      "json_used_bytes": 40002164
+    },
+    {
+      "stage": "response_encode",
+      "us": 41,
+      "total_peak_bytes": 175017125,
+      "categories": [
+        {
+          "name": "misc",
+          "live": 298,
+          "peak": 298,
+          "allocations": 5
+        },
+        {
+          "name": "input",
+          "live": 0,
+          "peak": 45000149,
+          "allocations": 3
+        },
+        {
+          "name": "json",
+          "live": 0,
+          "peak": 90016682,
+          "allocations": 3
+        },
+        {
+          "name": "snapshot",
+          "live": 39999996,
+          "peak": 39999996,
+          "allocations": 1
+        },
+        {
+          "name": "parser",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "response",
+          "live": 122,
+          "peak": 353,
+          "allocations": 2
+        },
+        {
+          "name": "positions",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        }
+      ],
+      "json_used_bytes": 40002164
+    },
+    {
+      "stage": "response_write",
+      "us": 10,
+      "total_peak_bytes": 175017125,
+      "categories": [
+        {
+          "name": "misc",
+          "live": 298,
+          "peak": 298,
+          "allocations": 5
+        },
+        {
+          "name": "input",
+          "live": 0,
+          "peak": 45000149,
+          "allocations": 3
+        },
+        {
+          "name": "json",
+          "live": 0,
+          "peak": 90016682,
+          "allocations": 3
+        },
+        {
+          "name": "snapshot",
+          "live": 39999996,
+          "peak": 39999996,
+          "allocations": 1
+        },
+        {
+          "name": "parser",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "response",
+          "live": 122,
+          "peak": 353,
+          "allocations": 2
+        },
+        {
+          "name": "positions",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        }
+      ],
+      "json_used_bytes": 40002164
+    },
+    {
+      "stage": "job_cleanup",
+      "us": 4588,
+      "total_peak_bytes": 175017125,
+      "categories": [
+        {
+          "name": "misc",
+          "live": 205,
+          "peak": 298,
+          "allocations": 5
+        },
+        {
+          "name": "input",
+          "live": 0,
+          "peak": 45000149,
+          "allocations": 3
+        },
+        {
+          "name": "json",
+          "live": 0,
+          "peak": 90016682,
+          "allocations": 3
+        },
+        {
+          "name": "snapshot",
+          "live": 0,
+          "peak": 39999996,
+          "allocations": 1
+        },
+        {
+          "name": "parser",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "response",
+          "live": 0,
+          "peak": 353,
+          "allocations": 2
+        },
+        {
+          "name": "positions",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        }
+      ],
+      "json_used_bytes": 40002164,
+      "rss_bytes": 2359296
+    },
+    {
+      "stage": "body_read",
+      "us": 0,
+      "total_peak_bytes": 175017125,
+      "categories": [
+        {
+          "name": "misc",
+          "live": 205,
+          "peak": 298,
+          "allocations": 5
+        },
+        {
+          "name": "input",
+          "live": 50,
+          "peak": 45000149,
+          "allocations": 4
+        },
+        {
+          "name": "json",
+          "live": 0,
+          "peak": 90016682,
+          "allocations": 3
+        },
+        {
+          "name": "snapshot",
+          "live": 0,
+          "peak": 39999996,
+          "allocations": 1
+        },
+        {
+          "name": "parser",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "response",
+          "live": 0,
+          "peak": 353,
+          "allocations": 2
+        },
+        {
+          "name": "positions",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        }
+      ],
+      "json_used_bytes": 40002164,
+      "rss_bytes": 2375680
+    },
+    {
+      "stage": "json_decode",
+      "us": 27,
+      "total_peak_bytes": 175017125,
+      "categories": [
+        {
+          "name": "misc",
+          "live": 205,
+          "peak": 298,
+          "allocations": 5
+        },
+        {
+          "name": "input",
+          "live": 50,
+          "peak": 45000149,
+          "allocations": 4
+        },
+        {
+          "name": "json",
+          "live": 16484,
+          "peak": 90016682,
+          "allocations": 4
+        },
+        {
+          "name": "snapshot",
+          "live": 0,
+          "peak": 39999996,
+          "allocations": 1
+        },
+        {
+          "name": "parser",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "response",
+          "live": 0,
+          "peak": 353,
+          "allocations": 2
+        },
+        {
+          "name": "positions",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        }
+      ],
+      "json_used_bytes": 606,
+      "rss_bytes": 2392064
+    },
+    {
+      "stage": "response_encode",
+      "us": 44,
+      "total_peak_bytes": 175017125,
+      "categories": [
+        {
+          "name": "misc",
+          "live": 205,
+          "peak": 298,
+          "allocations": 5
+        },
+        {
+          "name": "input",
+          "live": 50,
+          "peak": 45000149,
+          "allocations": 4
+        },
+        {
+          "name": "json",
+          "live": 16484,
+          "peak": 90016682,
+          "allocations": 4
+        },
+        {
+          "name": "snapshot",
+          "live": 0,
+          "peak": 39999996,
+          "allocations": 1
+        },
+        {
+          "name": "parser",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "response",
+          "live": 39,
+          "peak": 353,
+          "allocations": 3
+        },
+        {
+          "name": "positions",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        }
+      ],
+      "json_used_bytes": 606
+    },
+    {
+      "stage": "response_write",
+      "us": 7,
+      "total_peak_bytes": 175017125,
+      "categories": [
+        {
+          "name": "misc",
+          "live": 205,
+          "peak": 298,
+          "allocations": 5
+        },
+        {
+          "name": "input",
+          "live": 50,
+          "peak": 45000149,
+          "allocations": 4
+        },
+        {
+          "name": "json",
+          "live": 16484,
+          "peak": 90016682,
+          "allocations": 4
+        },
+        {
+          "name": "snapshot",
+          "live": 0,
+          "peak": 39999996,
+          "allocations": 1
+        },
+        {
+          "name": "parser",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "response",
+          "live": 39,
+          "peak": 353,
+          "allocations": 3
+        },
+        {
+          "name": "positions",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        }
+      ],
+      "json_used_bytes": 606
+    },
+    {
+      "stage": "json_cleanup",
+      "us": 9,
+      "total_peak_bytes": 175017125,
+      "categories": [
+        {
+          "name": "misc",
+          "live": 205,
+          "peak": 298,
+          "allocations": 5
+        },
+        {
+          "name": "input",
+          "live": 50,
+          "peak": 45000149,
+          "allocations": 4
+        },
+        {
+          "name": "json",
+          "live": 0,
+          "peak": 90016682,
+          "allocations": 4
+        },
+        {
+          "name": "snapshot",
+          "live": 0,
+          "peak": 39999996,
+          "allocations": 1
+        },
+        {
+          "name": "parser",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "response",
+          "live": 0,
+          "peak": 353,
+          "allocations": 3
+        },
+        {
+          "name": "positions",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        }
+      ],
+      "json_used_bytes": 606,
+      "rss_bytes": 2375680
+    },
+    {
+      "stage": "input_cleanup",
+      "us": 53,
+      "total_peak_bytes": 175017125,
+      "categories": [
+        {
+          "name": "misc",
+          "live": 205,
+          "peak": 298,
+          "allocations": 5
+        },
+        {
+          "name": "input",
+          "live": 0,
+          "peak": 45000149,
+          "allocations": 4
+        },
+        {
+          "name": "json",
+          "live": 0,
+          "peak": 90016682,
+          "allocations": 4
+        },
+        {
+          "name": "snapshot",
+          "live": 0,
+          "peak": 39999996,
+          "allocations": 1
+        },
+        {
+          "name": "parser",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "response",
+          "live": 0,
+          "peak": 353,
+          "allocations": 3
+        },
+        {
+          "name": "positions",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        }
+      ],
+      "json_used_bytes": 606,
+      "rss_bytes": 2359296
+    },
+    {
+      "stage": "body_read",
+      "us": 0,
+      "total_peak_bytes": 175017125,
+      "categories": [
+        {
+          "name": "misc",
+          "live": 205,
+          "peak": 298,
+          "allocations": 5
+        },
+        {
+          "name": "input",
+          "live": 36,
+          "peak": 45000149,
+          "allocations": 5
+        },
+        {
+          "name": "json",
+          "live": 0,
+          "peak": 90016682,
+          "allocations": 4
+        },
+        {
+          "name": "snapshot",
+          "live": 0,
+          "peak": 39999996,
+          "allocations": 1
+        },
+        {
+          "name": "parser",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "response",
+          "live": 0,
+          "peak": 353,
+          "allocations": 3
+        },
+        {
+          "name": "positions",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        }
+      ],
+      "json_used_bytes": 606,
+      "rss_bytes": 2375680
+    },
+    {
+      "stage": "json_decode",
+      "us": 27,
+      "total_peak_bytes": 175017125,
+      "categories": [
+        {
+          "name": "misc",
+          "live": 205,
+          "peak": 298,
+          "allocations": 5
+        },
+        {
+          "name": "input",
+          "live": 36,
+          "peak": 45000149,
+          "allocations": 5
+        },
+        {
+          "name": "json",
+          "live": 16456,
+          "peak": 90016682,
+          "allocations": 5
+        },
+        {
+          "name": "snapshot",
+          "live": 0,
+          "peak": 39999996,
+          "allocations": 1
+        },
+        {
+          "name": "parser",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "response",
+          "live": 0,
+          "peak": 353,
+          "allocations": 3
+        },
+        {
+          "name": "positions",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        }
+      ],
+      "json_used_bytes": 598,
+      "rss_bytes": 2392064
+    },
+    {
+      "stage": "json_cleanup",
+      "us": 11,
+      "total_peak_bytes": 175017125,
+      "categories": [
+        {
+          "name": "misc",
+          "live": 205,
+          "peak": 298,
+          "allocations": 5
+        },
+        {
+          "name": "input",
+          "live": 36,
+          "peak": 45000149,
+          "allocations": 5
+        },
+        {
+          "name": "json",
+          "live": 0,
+          "peak": 90016682,
+          "allocations": 5
+        },
+        {
+          "name": "snapshot",
+          "live": 0,
+          "peak": 39999996,
+          "allocations": 1
+        },
+        {
+          "name": "parser",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "response",
+          "live": 0,
+          "peak": 353,
+          "allocations": 3
+        },
+        {
+          "name": "positions",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        }
+      ],
+      "json_used_bytes": 598,
+      "rss_bytes": 2375680
+    },
+    {
+      "stage": "input_cleanup",
+      "us": 19,
+      "total_peak_bytes": 175017125,
+      "categories": [
+        {
+          "name": "misc",
+          "live": 205,
+          "peak": 298,
+          "allocations": 5
+        },
+        {
+          "name": "input",
+          "live": 0,
+          "peak": 45000149,
+          "allocations": 5
+        },
+        {
+          "name": "json",
+          "live": 0,
+          "peak": 90016682,
+          "allocations": 5
+        },
+        {
+          "name": "snapshot",
+          "live": 0,
+          "peak": 39999996,
+          "allocations": 1
+        },
+        {
+          "name": "parser",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "response",
+          "live": 0,
+          "peak": 353,
+          "allocations": 3
+        },
+        {
+          "name": "positions",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        }
+      ],
+      "json_used_bytes": 598,
+      "rss_bytes": 2359296
+    }
+  ]
+}

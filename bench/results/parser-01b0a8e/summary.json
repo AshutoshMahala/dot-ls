@@ -1,0 +1,185 @@
+{
+  "platform": "macOS-27.0.1-arm64-arm-64bit",
+  "build": "Zig 0.17.0 safe; page allocator; buffered JSON; parser c936fd1+outline-hook to unmodified 01b0a8e",
+  "method": "Three fresh processes per size/layout/build, alternating order. Pre-encoded open/broken/repair. Readiness includes the completion reply after diagnostics. Settled RSS waits for all background work. Actual peak RSS uses wait4; editor and harness memory excluded. No concurrent builds/tests/UI actions during measurement. Check each run for feature support; unsupported-method error timing is not a hover baseline.",
+  "builds": {
+    "before": {
+      "binary": "/private/tmp/dot-ls-public-outline-n5v4eeh7/before/bin/dot-ls",
+      "sha256": "8b779352d138bae690428ba5ce7c629a83e09396d87f82c3caa0c4bd9e940de8"
+    },
+    "after": {
+      "binary": "/private/tmp/dot-ls-public-outline-n5v4eeh7/after/bin/dot-ls",
+      "sha256": "3af915a302b4dc549f00df652fde3e3c54b80b88d755c601b5129bef9e86bcad"
+    }
+  },
+  "rows": [
+    {
+      "mb": 5,
+      "kind": "plain",
+      "before": {
+        "open_diagnostics_ms": 38.48516699999999,
+        "edit_diagnostics_ms": 41.519645499999925,
+        "broken_diagnostics_ms": 44.192541999999335,
+        "repair_diagnostics_ms": 38.88620800000009,
+        "open_completion_ready_ms": 63.622000000000014,
+        "settled_rss_bytes": 7487488,
+        "peak_rss_bytes": 17989632,
+        "idle_rss_bytes": 2228224,
+        "startup_ms": 7.323375000000354,
+        "hover_ms": 0.07516600000001539
+      },
+      "after": {
+        "open_diagnostics_ms": 47.24762499999979,
+        "edit_diagnostics_ms": 47.0349790000002,
+        "broken_diagnostics_ms": 50.937666999999905,
+        "repair_diagnostics_ms": 45.56216599999985,
+        "open_completion_ready_ms": 69.46700000000038,
+        "settled_rss_bytes": 7487488,
+        "peak_rss_bytes": 17956864,
+        "idle_rss_bytes": 2228224,
+        "startup_ms": 8.477875000000079,
+        "hover_ms": 0.06658300000017547
+      }
+    },
+    {
+      "mb": 5,
+      "kind": "html",
+      "before": {
+        "open_diagnostics_ms": 38.6906249999992,
+        "edit_diagnostics_ms": 42.29160449999991,
+        "broken_diagnostics_ms": 46.07162499999973,
+        "repair_diagnostics_ms": 35.6583749999988,
+        "open_completion_ready_ms": 63.683292000000336,
+        "settled_rss_bytes": 7340032,
+        "peak_rss_bytes": 18104320,
+        "idle_rss_bytes": 2228224,
+        "startup_ms": 6.3563330000011575,
+        "hover_ms": 0.06579199999734442
+      },
+      "after": {
+        "open_diagnostics_ms": 44.79708399999893,
+        "edit_diagnostics_ms": 45.04437449999976,
+        "broken_diagnostics_ms": 45.80091599999925,
+        "repair_diagnostics_ms": 44.287833000000276,
+        "open_completion_ready_ms": 68.76137499999935,
+        "settled_rss_bytes": 7340032,
+        "peak_rss_bytes": 18104320,
+        "idle_rss_bytes": 2228224,
+        "startup_ms": 7.852334000000738,
+        "hover_ms": 0.0702080000003491
+      }
+    },
+    {
+      "mb": 20,
+      "kind": "plain",
+      "before": {
+        "open_diagnostics_ms": 108.5799999999999,
+        "edit_diagnostics_ms": 114.23681249999973,
+        "broken_diagnostics_ms": 120.16291700000181,
+        "repair_diagnostics_ms": 108.34445800000125,
+        "open_completion_ready_ms": 181.27199999999988,
+        "settled_rss_bytes": 21856256,
+        "peak_rss_bytes": 63946752,
+        "idle_rss_bytes": 2228224,
+        "startup_ms": 8.010666999997085,
+        "hover_ms": 0.08070799999870815
+      },
+      "after": {
+        "open_diagnostics_ms": 124.28662499999987,
+        "edit_diagnostics_ms": 131.18220850000029,
+        "broken_diagnostics_ms": 135.90199999999797,
+        "repair_diagnostics_ms": 124.82545800000011,
+        "open_completion_ready_ms": 196.36704199999855,
+        "settled_rss_bytes": 21856256,
+        "peak_rss_bytes": 63913984,
+        "idle_rss_bytes": 2228224,
+        "startup_ms": 7.465041999999755,
+        "hover_ms": 0.08045800000289205
+      }
+    },
+    {
+      "mb": 20,
+      "kind": "html",
+      "before": {
+        "open_diagnostics_ms": 105.27704200000088,
+        "edit_diagnostics_ms": 110.90474950000129,
+        "broken_diagnostics_ms": 117.71637500000054,
+        "repair_diagnostics_ms": 105.84741699999967,
+        "open_completion_ready_ms": 180.6257500000008,
+        "settled_rss_bytes": 20840448,
+        "peak_rss_bytes": 64110592,
+        "idle_rss_bytes": 2228224,
+        "startup_ms": 8.084582999998702,
+        "hover_ms": 0.09158400000330857
+      },
+      "after": {
+        "open_diagnostics_ms": 113.86004199999888,
+        "edit_diagnostics_ms": 119.95960399999817,
+        "broken_diagnostics_ms": 127.78770800000672,
+        "repair_diagnostics_ms": 115.2378329999948,
+        "open_completion_ready_ms": 189.55020899999653,
+        "settled_rss_bytes": 20840448,
+        "peak_rss_bytes": 64061440,
+        "idle_rss_bytes": 2228224,
+        "startup_ms": 7.466457999996123,
+        "hover_ms": 0.08183399999950325
+      }
+    },
+    {
+      "mb": 40,
+      "kind": "plain",
+      "before": {
+        "open_diagnostics_ms": 187.33037499999483,
+        "edit_diagnostics_ms": 197.39866649999982,
+        "broken_diagnostics_ms": 208.664167000002,
+        "repair_diagnostics_ms": 185.0193750000031,
+        "open_completion_ready_ms": 336.9351659999964,
+        "settled_rss_bytes": 40976384,
+        "peak_rss_bytes": 125272064,
+        "idle_rss_bytes": 2228224,
+        "startup_ms": 7.885457999996959,
+        "hover_ms": 0.08425000000045202
+      },
+      "after": {
+        "open_diagnostics_ms": 220.11624999999668,
+        "edit_diagnostics_ms": 237.79945849999606,
+        "broken_diagnostics_ms": 246.3039579999986,
+        "repair_diagnostics_ms": 229.09279099999935,
+        "open_completion_ready_ms": 373.89141699999584,
+        "settled_rss_bytes": 40976384,
+        "peak_rss_bytes": 125173760,
+        "idle_rss_bytes": 2228224,
+        "startup_ms": 4.791375000003484,
+        "hover_ms": 0.08925000000203909
+      }
+    },
+    {
+      "mb": 40,
+      "kind": "html",
+      "before": {
+        "open_diagnostics_ms": 177.99225000000263,
+        "edit_diagnostics_ms": 190.31016700000336,
+        "broken_diagnostics_ms": 204.9927500000024,
+        "repair_diagnostics_ms": 179.52354199999832,
+        "open_completion_ready_ms": 332.4844999999996,
+        "settled_rss_bytes": 38862848,
+        "peak_rss_bytes": 125419520,
+        "idle_rss_bytes": 2228224,
+        "startup_ms": 6.937875000005533,
+        "hover_ms": 0.08787499999129977
+      },
+      "after": {
+        "open_diagnostics_ms": 197.70733299999677,
+        "edit_diagnostics_ms": 213.94256199999262,
+        "broken_diagnostics_ms": 229.24291699999344,
+        "repair_diagnostics_ms": 202.9375420000008,
+        "open_completion_ready_ms": 354.5289169999961,
+        "settled_rss_bytes": 38862848,
+        "peak_rss_bytes": 125353984,
+        "idle_rss_bytes": 2228224,
+        "startup_ms": 7.240750000001128,
+        "hover_ms": 0.08012499999665579
+      }
+    }
+  ]
+}

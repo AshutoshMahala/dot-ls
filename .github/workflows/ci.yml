@@ -1,0 +1,59 @@
+# Checks every push to main and every pull request.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Test (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, macos-15]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: mlugg/setup-zig@v2
+        with:
+          version: 0.17.0
+
+      - name: Check layout and vendored parser
+        run: |
+          python3 tools/check_layout.py
+          python3 tools/check_vendor.py
+
+      - name: Unit tests
+        run: |
+          zig build test
+          zig build test -Doptimize=safe
+          zig build test-parser -Doptimize=safe
+
+      - name: Build server
+        run: |
+          zig build -Doptimize=safe
+          zig-out/bin/dot-ls --version
+
+      - name: Protocol tests
+        run: |
+          for suite in lsp protocol validation completion attributes references html code_actions outline output templates; do
+            echo "::group::$suite"
+            python3 "tests/$suite.py" zig-out/bin/dot-ls
+            echo "::endgroup::"
+          done
+
+      - name: Zed extension download cache tests
+        run: |
+          rustc --edition 2021 --test editors/zed/src/resolver.rs -o "$RUNNER_TEMP/resolver-tests"
+          "$RUNNER_TEMP/resolver-tests"

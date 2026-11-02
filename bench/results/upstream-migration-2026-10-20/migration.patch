@@ -1,0 +1,374 @@
+--- a/src/analysis.zig
++++ b/src/analysis.zig
+@@ -2,35 +2,31 @@
+ const std = @import("std");
+ const dot = @import("dot_parser");
+ const validation = @import("validation.zig");
+-const Parser = dot.Profile(.{ .policy = @import("parser_policy.zig").dot_ls });
++pub const Parser = dot.Profile(.{ .policy = @import("parser_policy.zig").dot_ls });
+ pub const Bag = validation.Bag;
+-pub const Scratch = dot.FixedParseScratch(.{ .nesting = 256 });
++pub const Events = Parser.Events(Consumer);
++pub const Scratch = Events.FixedParseScratch(.{ .nesting = 256 });
+ pub const work_budget = 4096;
+ // The caller owns source, fixed nesting scratch, sink storage and cancel context.
+ // No AST is retained. Capacities are ignored: only diagnostics are needed.
+-pub fn run(text: []const u8, scratch: dot.ParseScratch, bag: *Bag, cancellation: dot.Cancellation) dot.MeasureResult {
++pub fn run(text: []const u8, scratch: Events.ParseScratch, bag: *Bag, cancellation: dot.Cancellation) dot.events.Result {
+     return runIndexed(text, scratch, bag, cancellation, null);
+ }
+-pub fn runIndexed(text: []const u8, scratch: dot.ParseScratch, bag: *Bag, cancellation: dot.Cancellation, builder: ?*@import("references.zig").Builder) dot.MeasureResult {
++pub fn runIndexed(text: []const u8, scratch: Events.ParseScratch, bag: *Bag, cancellation: dot.Cancellation, builder: ?*@import("references.zig").Builder) dot.events.Result {
+     return runObserved(text, scratch, bag, cancellation, builder, null);
+ }
+-pub fn runObserved(text: []const u8, scratch: dot.ParseScratch, bag: *Bag, cancellation: dot.Cancellation, builder: ?*@import("references.zig").Builder, labels: ?*@import("labels.zig").Collector) dot.MeasureResult {
++pub fn runObserved(text: []const u8, scratch: Events.ParseScratch, bag: *Bag, cancellation: dot.Cancellation, builder: ?*@import("references.zig").Builder, labels: ?*@import("labels.zig").Collector) dot.events.Result {
+     return runOutline(text, scratch, bag, cancellation, builder, labels, null);
+ }
+-pub fn runOutline(text: []const u8, scratch: dot.ParseScratch, bag: *Bag, cancellation: dot.Cancellation, builder: ?*@import("references.zig").Builder, labels: ?*@import("labels.zig").Collector, outline: ?*@import("outline.zig").Builder) dot.MeasureResult {
+-    var checks: validation.State = .{ .source = text, .bag = bag };
+-    var session = Parser.MeasureSession.init(text, scratch, bag.sink(), .{ .cancellation = cancellation });
+-    if (outline) |b| session.observeOutline(b, @import("outline.zig").Builder.emit);
+-    session.observeValidation(&checks, validation.State.emit);
+-    if (builder) |b| session.observeNodes(b, @import("references.zig").Builder.emit);
+-    if (labels) |collector| session.observeAttributes(collector, @import("labels.zig").Collector.emit);
++pub fn runOutline(text: []const u8, scratch: Events.ParseScratch, bag: *Bag, cancellation: dot.Cancellation, builder: ?*@import("references.zig").Builder, labels: ?*@import("labels.zig").Collector, outline: ?*@import("outline.zig").Builder) dot.events.Result {
++    var consumer: Consumer = .{ .checks = .{ .source = text, .bag = bag }, .builder = builder, .labels = labels, .outline = outline };
++    var session = Events.Session.init(text, scratch, &consumer, bag.sink(), .{ .cancellation = cancellation });
+     defer session.deinit();
+-    while (session.advance(work_budget).outcome == null) {}
++    while (session.advance(work_budget).result == null) {}
+     var result = session.result().?;
+     if (result.outcome != .cancelled and !validation.encoding(text, bag, cancellation)) {
+         result.outcome = .cancelled;
+         result.completion = .incomplete;
+-        result.capacities = null;
+     }
+     return result;
+ }
+@@ -66,7 +62,6 @@
+     var scratch: Scratch = .{};
+     const result = run("digraph { a -> b; c -> d; e -> f; }", scratch.storage(), &bag, .{ .context = &cancel, .is_requested = Cancel.poll });
+     try std.testing.expect(result.outcome == .cancelled);
+-    try std.testing.expect(result.capacities == null);
+ }
+ 
+ test "reference allocation failure leaves syntax analysis intact" {
+@@ -163,16 +158,17 @@
+     var counter: Cancel = .{};
+     var scratch: Scratch = .{};
+     var parser_bag: dot.FixedDiagnosticBag(1000) = .{};
+-    var session = Parser.MeasureSession.init(source, scratch.storage(), parser_bag.sink(), .{ .cancellation = .{ .context = &counter, .is_requested = Cancel.poll } });
++    var check_bag: Bag = .{};
++    var consumer: Consumer = .{ .checks = .{ .source = source, .bag = &check_bag } };
++    var session = Events.Session.init(source, scratch.storage(), &consumer, parser_bag.sink(), .{ .cancellation = .{ .context = &counter, .is_requested = Cancel.poll } });
+     defer session.deinit();
+-    while (session.advance(work_budget).outcome == null) {}
++    while (session.advance(work_budget).result == null) {}
+     try std.testing.expect(session.result().?.outcome == .success);
+     var cancel: Cancel = .{ .stop_at = counter.checks + 1 };
+     var bag: Bag = .{};
+     const result = run(source, scratch.storage(), &bag, .{ .context = &cancel, .is_requested = Cancel.poll });
+     try std.testing.expect(result.outcome == .cancelled);
+     try std.testing.expect(result.completion == .incomplete);
+-    try std.testing.expect(result.capacities == null);
+ }
+ 
+ test "outline allocation failure does not change syntax diagnostics" {
+@@ -188,3 +184,33 @@
+     try std.testing.expectEqual(plain.outcome, outlined.outcome);
+     try std.testing.expectEqualDeep(expected.items(), actual.items());
+ }
++
++const Consumer = struct {
++    pub const wants_begin_statement = false;
++    checks: validation.State,
++    builder: ?*@import("references.zig").Builder = null,
++    labels: ?*@import("labels.zig").Collector = null,
++    outline: ?*@import("outline.zig").Builder = null,
++    pub fn onAbort(_: *@This(), _: dot.events.Abort) void {}
++    pub fn onEvent(self: *@This(), event: dot.events.Event) error{}!dot.events.Action {
++        validation.State.emit(&self.checks, event);
++        switch (event) {
++            .begin_document => |v| if (self.outline) |o| @import("outline.zig").Builder.emit(o, .{ .graph = .{ .start = v.keyword_span, .name = v.name_span } }),
++            .begin_scope => |v| if (self.outline) |o| @import("outline.zig").Builder.emit(o, .{ .scope = .{ .start = v.start, .name = v.name } }),
++            .end_scope => |v| if (self.outline) |o| @import("outline.zig").Builder.emit(o, .{ .close_scope = v.close }),
++            .commit_node => |v| {
++                if (self.builder) |b| @import("references.zig").Builder.emit(b, v.value.identifier);
++                if (self.outline) |o| @import("outline.zig").Builder.emit(o, .{ .node = .{ .name = v.value.identifier, .end = v.value.identifier.endOffset() } });
++            },
++            .commit_edge, .commit_edge_chain => |v| if (self.builder) |b| {
++                if (v.value.left_scope == null) @import("references.zig").Builder.emit(b, v.value.left);
++                if (v.value.right_scope == null) @import("references.zig").Builder.emit(b, v.value.right);
++            },
++            .edge_link => |v| if (self.builder) |b| @import("references.zig").Builder.emit(b, v.link.right),
++            .attribute => |v| if (self.labels) |l| @import("labels.zig").Collector.emit(l, v.pair.key, v.pair.value),
++            .commit_assignment => |v| if (self.labels) |l| @import("labels.zig").Collector.emit(l, v.value.key, v.value.value),
++            else => {},
++        }
++        return .proceed;
++    }
++};
+--- a/src/labels.zig
++++ b/src/labels.zig
+@@ -90,7 +90,7 @@
+         const raw = self.source[key.start..][0..key.len];
+         var selected = false;
+         inline for (.{ "label", "xlabel", "headlabel", "taillabel" }) |name| {
+-            if (dot.identifier.valueOrderAssumeValid(raw, name) == .eq) selected = true;
++            if ((if (raw[0] != '"' and raw[0] != '<') std.mem.eql(u8, raw, name) else (dot.identifier.eql(raw, name) catch unreachable))) selected = true;
+         }
+         if (!selected) return;
+         // DOT's wrapper is not part of the embedded markup fragment.
+--- a/src/main.zig
++++ b/src/main.zig
+@@ -709,7 +709,7 @@
+                 .utf16 => "utf-16",
+                 .utf32 => "utf-32",
+             };
+-            try self.send(.{ .jsonrpc = "2.0", .id = id.?, .result = .{ .capabilities = .{ .positionEncoding = enc, .codeActionProvider = .{ .codeActionKinds = [_][]const u8{"quickfix"}, .resolveProvider = false }, .documentSymbolProvider = true, .referencesProvider = true, .completionProvider = .{ .resolveProvider = false }, .textDocumentSync = .{ .openClose = true, .change = 1 } }, .serverInfo = .{ .name = "dot-ls", .version = "0.0.1-dev; dot-parser 0.5.0+count-session.1.node-occurrences.2.html-labels.1.outline-observer.1" } } });
++            try self.send(.{ .jsonrpc = "2.0", .id = id.?, .result = .{ .capabilities = .{ .positionEncoding = enc, .codeActionProvider = .{ .codeActionKinds = [_][]const u8{"quickfix"}, .resolveProvider = false }, .documentSymbolProvider = true, .referencesProvider = true, .completionProvider = .{ .resolveProvider = false }, .textDocumentSync = .{ .openClose = true, .change = 1 } }, .serverInfo = .{ .name = "dot-ls", .version = "0.0.1-dev; dot-parser 0.5.0 upstream b58db00 experiment" } } });
+             return false;
+         }
+         if (self.shutdown) {
+@@ -918,7 +918,7 @@
+     if (args.len > 1 and (std.mem.eql(u8, args[1], "--help") or std.mem.eql(u8, args[1], "--version"))) {
+         var buffer: [1024]u8 = undefined;
+         var out = std.Io.File.Writer.init(.stdout(), init.io, &buffer);
+-        try out.interface.writeAll(if (std.mem.eql(u8, args[1], "--version")) "dot-ls 0.0.1-dev; dot-parser 0.5.0+count-session.1.node-occurrences.2.html-labels.1 (9ea41c81)\n" else "Usage: dot-ls [lsp | --stdio | --version | --help]\nDevelopment checkpoint: DOT and HTML-label diagnostics, keyword completion and node references over stdio.\n");
++        try out.interface.writeAll(if (std.mem.eql(u8, args[1], "--version")) "dot-ls 0.0.1-dev; dot-parser 0.5.0 upstream b58db00 experiment\n" else "Usage: dot-ls [lsp | --stdio | --version | --help]\nDevelopment checkpoint: DOT and HTML-label diagnostics, keyword completion and node references over stdio.\n");
+         try out.interface.flush();
+         return;
+     }
+@@ -965,8 +965,8 @@
+     _ = actions;
+     _ = pos;
+     _ = analysis;
++    _ = @import("parser_session_tests.zig");
+     _ = json_message;
+-    _ = @import("parser_session_tests.zig");
+ }
+ 
+ test "fix snapshot allocation failure leaves diagnostics publication independent" {
+--- a/src/outline.zig
++++ b/src/outline.zig
+@@ -4,6 +4,13 @@
+ const context = @import("completion_context.zig");
+ const pos = @import("positions.zig");
+ const Span = dot.Span;
++pub const Event = union(enum) {
++    graph: struct { start: Span, name: ?Span },
++    scope: struct { start: Span, name: ?Span },
++    close_scope: Span,
++    close_graph: Span,
++    node: struct { name: Span, end: u64 },
++};
+ pub const max_entries = 250_000;
+ pub const max_bytes = 32 * 1024 * 1024;
+ pub const global_bytes = 64 * 1024 * 1024;
+@@ -67,7 +74,7 @@
+     pub fn deinit(self: *Builder) void {
+         self.raw.deinit(self.allocator);
+     }
+-    pub fn emit(ctx: *anyopaque, event: dot.OutlineEvent) void {
++    pub fn emit(ctx: *anyopaque, event: Event) void {
+         const self: *Builder = @ptrCast(@alignCast(ctx));
+         if (self.failed) return;
+         switch (event) {
+--- a/src/parser_session_tests.zig
++++ b/src/parser_session_tests.zig
+@@ -1,90 +1,58 @@
+ const std = @import("std");
+ const dot = @import("dot_parser");
++const Sink = struct {
++    events: usize = 0,
++    aborts: usize = 0,
++    hash: u64 = 0,
++    pub fn onEvent(self: *@This(), e: dot.events.Event) error{}!dot.events.Action {
++        self.events += 1;
++        self.hash = self.hash *% 31 +% @intFromEnum(std.meta.activeTag(e));
++        return .proceed;
++    }
++    pub fn onAbort(self: *@This(), _: dot.events.Abort) void {
++        self.aborts += 1;
++    }
++};
+ fn noCancel(_: ?*anyopaque) bool {
+     return false;
+ }
+-test "count sessions match one-shot parsing across scanners, budgets and truncations" {
+-    const fixture = "digraph G { node [shape=box] a:p -> { b; c -> d } -> e [label=<B>] subgraph S { x; } }";
++test "public event sessions preserve results and events across budgets and prefixes" {
++    const fixture = "digraph G { a:p -> { b; c -> d } -> e [label=<B>] broken -> ; later; }";
+     inline for (.{ .scalar, .block }) |scanner| {
+-        const P = dot.Profile(.{ .policy = .{ .scanner = scanner, .execution = .{ .metering = true, .cancellation = true } } });
++        const E = dot.Profile(.{ .policy = .{ .scanner = scanner, .execution = .{ .metering = true, .cancellation = true } } }).Events(Sink);
+         for (0..fixture.len + 1) |len| {
+-            const source = fixture[0..len];
++            var expected_sink: Sink = .{};
+             var expected_bag: dot.FixedDiagnosticBag(128) = .{};
+-            var expected_scratch: dot.FixedParseScratch(.{ .nesting = 8 }) = .{};
+-            const expected = P.measureIn(source, expected_scratch.storage(), expected_bag.sink(), .{ .cancellation = .{ .context = null, .is_requested = noCancel } });
++            var scratch: E.FixedParseScratch(.{ .nesting = 8 }) = .{};
++            const expected = E.parseIn(fixture[0..len], scratch.storage(), &expected_sink, expected_bag.sink(), .{ .cancellation = .{ .context = null, .is_requested = noCancel } });
+             for ([_]usize{ 1, 17, 4096 }) |budget| {
++                var sink: Sink = .{};
+                 var bag: dot.FixedDiagnosticBag(128) = .{};
+-                var scratch: dot.FixedParseScratch(.{ .nesting = 8 }) = .{};
+-                var session = P.MeasureSession.init(source, scratch.storage(), bag.sink(), .{ .cancellation = .{ .context = null, .is_requested = noCancel } });
++                var session = E.Session.init(fixture[0..len], scratch.storage(), &sink, bag.sink(), .{ .cancellation = .{ .context = null, .is_requested = noCancel } });
+                 defer session.deinit();
+-                try std.testing.expect(session.result() == null);
+                 try std.testing.expectEqual(@as(usize, 0), session.advance(0).work_used);
+                 while (true) {
+                     const step = session.advance(budget);
+                     try std.testing.expect(step.work_used <= budget);
+-                    if (step.outcome != null) break;
++                    if (step.result != null) break;
+                 }
+-                const actual = session.result().?;
+-                try std.testing.expectEqualDeep(expected, actual);
++                try std.testing.expectEqualDeep(expected, session.result().?);
++                try std.testing.expectEqualDeep(expected_sink, sink);
+                 try std.testing.expectEqualDeep(expected_bag.items(), bag.items());
+-                try std.testing.expectEqualDeep(actual, session.cancel());
+             }
+         }
+     }
+ }
+-test "count session cancellation and sink/scratch stops preserve outcomes" {
+-    const P = dot.Profile(.{ .policy = .{ .scanner = .block, .execution = .{ .metering = true, .cancellation = true } } });
+-    var bag: dot.FixedDiagnosticBag(1) = .{};
+-    var scratch: dot.FixedParseScratch(.{ .nesting = 1 }) = .{};
+-    var session = P.MeasureSession.init("digraph { a -> b; c -> d; }", scratch.storage(), bag.sink(), .{ .cancellation = .{ .context = null, .is_requested = noCancel } });
++test "public event session cancellation reset and exhausted scratch are explicit" {
++    const E = dot.Profile(.{ .policy = .{ .execution = .{ .metering = true, .cancellation = true } } }).Events(Sink);
++    var scratch: E.FixedParseScratch(.{ .nesting = 1 }) = .{};
++    var sink: Sink = .{};
++    var bag: dot.FixedDiagnosticBag(128) = .{};
++    var session = E.Session.init("digraph { a -> b; }", scratch.storage(), &sink, bag.sink(), .{ .cancellation = .{ .context = null, .is_requested = noCancel } });
+     defer session.deinit();
+     _ = session.advance(1);
+     try std.testing.expect(session.cancel().outcome == .cancelled);
+-    try std.testing.expect(session.result().?.capacities == null);
+-    session.reset("digraph { a -> ; b -> ; }", bag.sink(), .{ .cancellation = .{ .context = null, .is_requested = noCancel } });
+-    const stopped = session.run();
+-    try std.testing.expect(stopped.outcome == .diagnostic_stopped);
+-    bag = .{};
+-    session.reset("digraph { { { a } } }", bag.sink(), .{ .cancellation = .{ .context = null, .is_requested = noCancel } });
+-    const exhausted = session.run();
+-    try std.testing.expect(exhausted.outcome == .storage_failure);
+-    try std.testing.expect(exhausted.capacities == null);
++    sink = .{};
++    session.reset("digraph { { { a; } } }", &sink, bag.sink(), .{ .cancellation = .{ .context = null, .is_requested = noCancel } });
++    try std.testing.expect(session.run().outcome == .storage_failure);
+ }
+-test "runtime count session reset switches metering mode" {
+-    const P = dot.Profile(.{ .runtime_policy = true, .policy = .{ .scanner = .block, .execution = .{ .metering = true } } });
+-    var bag: dot.FixedDiagnosticBag(8) = .{};
+-    var scratch: dot.FixedParseScratch(.{ .nesting = 2 }) = .{};
+-    var session = try P.MeasureSession.init("graph { a -- b }", scratch.storage(), bag.sink(), .{});
+-    defer session.deinit();
+-    _ = try session.advance(1);
+-    // An incoherent hook-enabled policy without a hook is not used here; verify
+-    // a successful reset and the runtime metering-disabled result instead.
+-    try session.reset("graph {}", bag.sink(), .{ .policy = .{ .execution = .{ .metering = false } } });
+-    try std.testing.expectError(error.MeteringDisabled, session.advance(1));
+-    try std.testing.expect(session.run().outcome == .success);
+-}
+-
+-test "attribute observer reports accepted pairs and reset removes its callback" {
+-    const Observer = struct {
+-        count: usize = 0,
+-        fn emit(ctx: *anyopaque, _: dot.Span, _: dot.Span) void {
+-            const self: *@This() = @ptrCast(@alignCast(ctx));
+-            self.count += 1;
+-        }
+-    };
+-    const source = "digraph { label=<<B>x</B>>; a [label=<<I>x</I>>, shape=box]; }";
+-    inline for (.{ .scalar, .block }) |scanner| {
+-        const P = dot.Profile(.{ .runtime_policy = true, .policy = .{ .scanner = scanner, .execution = .{ .metering = true } } });
+-        var bag: dot.FixedDiagnosticBag(8) = .{};
+-        var scratch: dot.FixedParseScratch(.{ .nesting = 8 }) = .{};
+-        var session = try P.MeasureSession.init(source, scratch.storage(), bag.sink(), .{});
+-        defer session.deinit();
+-        var observer: Observer = .{};
+-        session.observeAttributes(&observer, Observer.emit);
+-        while ((try session.advance(17)).outcome == null) {}
+-        try std.testing.expectEqual(@as(usize, 3), observer.count);
+-        try session.reset(source, bag.sink(), .{});
+-        try std.testing.expect(session.run().outcome == .success);
+-        try std.testing.expectEqual(@as(usize, 3), observer.count);
+-    }
+-}
+--- a/src/references.zig
++++ b/src/references.zig
+@@ -44,13 +44,13 @@
+     pub fn hash(self: NameContext, span: dot.Span) u64 {
+         const raw = self.source[span.start..][0..span.len];
+         if (raw[0] != '"' and raw[0] != '<') return std.hash.Wyhash.hash(0, raw);
+-        return dot.identifier.valueHashAssumeValid(raw);
++        return (dot.identifier.hash(raw) catch unreachable);
+     }
+     pub fn eql(self: NameContext, a: dot.Span, b: dot.Span) bool {
+         const left = self.source[a.start..][0..a.len];
+         const right = self.source[b.start..][0..b.len];
+         if (left[0] != '"' and left[0] != '<' and right[0] != '"' and right[0] != '<') return std.mem.eql(u8, left, right);
+-        return dot.identifier.valueOrderAssumeValid(left, right) == .eq;
++        return (dot.identifier.eql(left, right) catch unreachable);
+     }
+ };
+ pub const Builder = struct {
+--- a/src/validation.zig
++++ b/src/validation.zig
+@@ -46,7 +46,7 @@
+             self.generation = 1;
+         }
+     }
+-    pub fn emit(context: *anyopaque, event: dot.SyntaxEvent) void {
++    pub fn emit(context: *anyopaque, event: dot.events.Event) void {
+         const self: *State = @ptrCast(@alignCast(context));
+         if (self.bag.full) return;
+         switch (event) {
+@@ -54,17 +54,18 @@
+                 self.header = v.keyword_span;
+                 self.directed = v.kind == .digraph;
+             },
+-            .attribute => |v| self.attribute(v.key),
+-            .edge_statement, .edge_chain_statement => |v| {
++            .attribute => |v| self.attribute(v.pair.key),
++            .commit_edge, .commit_edge_chain => |e| {
++                const v = e.value;
+                 self.operator(v.operator == .directed, v.operator_span);
+                 self.reset();
+             },
+-            .edge_link => |v| self.operator(v.operator == .directed, v.operator_span),
+-            .begin_subgraph => |v| {
++            .edge_link => |v| self.operator(v.link.operator == .directed, v.link.operator_span),
++            .begin_scope => |v| {
+                 if (v.link_operator) |op| self.operator(op == .directed, v.link_operator_span.?);
+                 self.reset();
+             },
+-            .node_statement, .attribute_statement, .assignment, .end_subgraph, .subgraph_statement => self.reset(),
++            .commit_node, .commit_attribute_statement, .commit_assignment, .end_scope, .commit_subgraph => self.reset(),
+             else => {},
+         }
+     }
+@@ -87,7 +88,7 @@
+             return;
+         }
+         const raw = span.slice(self.source);
+-        const hash = dot.identifier.valueHashAssumeValid(raw);
++        const hash = (if (raw[0] != '"' and raw[0] != '<') std.hash.Wyhash.hash(0, raw) else (dot.identifier.hash(raw) catch unreachable));
+         var slot: usize = @intCast(hash & 511);
+         for (0..rules.max_key_probes) |_| {
+             const entry = &self.entries[slot];
+@@ -100,7 +101,7 @@
+                 self.keys += 1;
+                 return;
+             }
+-            if (entry.hash == hash and dot.identifier.valueOrderAssumeValid(entry.span.slice(self.source), raw) == .eq) {
++            if (entry.hash == hash and (if (entry.span.slice(self.source)[0] != '"' and entry.span.slice(self.source)[0] != '<' and raw[0] != '"' and raw[0] != '<') std.mem.eql(u8, entry.span.slice(self.source), raw) else (dot.identifier.eql(entry.span.slice(self.source), raw) catch unreachable))) {
+                 self.bag.add(.{ .code = if (policy.validation.repeated_attribute.? == .err) .validation_repeated_attribute else .validation_repeated_attribute_tolerated, .span = span, .details = .{ .repeated_attribute = entry.span } });
+                 return;
+             }

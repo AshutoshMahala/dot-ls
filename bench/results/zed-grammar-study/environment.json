@@ -1,0 +1,44 @@
+{
+  "measured_date": "2026-10-15",
+  "zed_version": "1.24.2 (20261014.161923)",
+  "platform": "arm64 macOS 27.0.1 (26A434)",
+  "cpu": "Apple M4 Pro",
+  "logical_cpus": 14,
+  "physical_memory_gib": 48,
+  "tree_sitter_runtime": "0.27.1 native Homebrew",
+  "tree_sitter_generator": "0.27.1",
+  "grammar_abi": 14,
+  "upstream_dot_revision": "9ab85550c896d8b294d9b9ca1e30698736f08cea",
+  "html_revision": "bfa075d83c6b97cd48440b3829ab8d24a2319809",
+  "lsp_enabled": false,
+  "stack_logging_used_for_timing": false,
+  "editor_comparison_wasm_sha256": "6c48a503ff813e576a07613a183df633ab33520aca198653cde581c8d6820965",
+  "final_wasm_sha256": "181be83c11fd2a80dcf2979812fbc03fdaa224363ce363dc8e7c785659df8c15",
+  "final_wasm_bytes": 28977,
+  "final_cleanup": "Removed duplicate malformed <!-[CDATA[ scanner branch; valid-input paths unchanged.",
+  "source_sha256": {
+    "editors/zed/experiments/compact-dot/grammar.js": "e61986c72a0bea4626aad388a3cd00077810f96f099b0161782ff99c0848e008",
+    "editors/zed/experiments/compact-dot/src/parser.c": "26337559b92833760710c8d7f1e757829cac7161e8bad4e71605af5106e9447f",
+    "editors/zed/experiments/compact-dot/src/scanner.c": "298291daea453ba8e853a01e30f6ae49413dfa5dabc3843905be8f73cec52f04"
+  },
+  "excluded_intervals": [
+    "compact-full-20 single-undo: long measurement interruption"
+  ],
+  "fixtures": [
+    {
+      "mb": 5,
+      "bytes": 5000000,
+      "sha256": "b4c0041d477a43aa209979ec02a26daaef33b6d6b3b5cd94a2689c3aae94f08f"
+    },
+    {
+      "mb": 20,
+      "bytes": 20000000,
+      "sha256": "5e6716eb46c148c15ff2bf93024f4e7282b7db745c40741381d46a507a5851b4"
+    },
+    {
+      "mb": 40,
+      "bytes": 40000000,
+      "sha256": "3853f7bd60b2dd1f63fa4aea8255c33ea664fd2cbe348f960cfcba7d881a6dfc"
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+// Open completion after '['. Hover over shape, label, arrowhead or rankdir.
+digraph AttributeHelp {
+    graph [rankdir=LR];
+    node [shape=box, fontsize=14];
+    edge [arrowhead=normal, weight=1];
+
+    start [label="Start", color=blue];
+    finish [label="Finish"];
+    start -> finish [label="next"];
+
+    subgraph cluster_group {
+        graph [label="Group", bgcolor=lightgrey];
+        grouped [shape=ellipse];
+    }
+}

@@ -1,0 +1,39 @@
+{
+  "date": "2026-10-20",
+  "upstream_commit": "b58db00e982b2ab785b317c1557e9e110128462e",
+  "upstream_worktree_status": " M CHANGELOG.md\n M docs/PERFORMANCE.md\n M docs/STRINGS.md\n M docs/internal/STRING_INTEGRATION.md\n M src/common/logical.zig\n M src/dot/logical.zig\n M src/dot/string_profile.zig\n M src/markup/logical.zig\n M src/string/compare_logical.zig\n M src/string/profile.zig\n M tests/logical_validation.zig\n M tests/string_integration.zig\n M tools/perf_string.zig\n",
+  "unpatched_upstream_source_files_checked": 87,
+  "original_binary_unchanged_sha256": "3660bbc9df91fa4d428a5ffe18452d45bbea11d201ea5868408526422b91a68f",
+  "candidate_final_sha256": "de68cda6051859183cae28e6a8b7538c7073a7a2db9dd7ad0e07b66676536a84",
+  "experiment_path": "/private/tmp/dot-ls-upstream-24le4yx2",
+  "build": "Zig 0.16.0, ReleaseSafe, same compiler and allocator settings for before/after",
+  "application_changes": "Public event sessions replace patched hooks. Application retains bounded validation, compact indexes and delayed HTML. Simple unquoted keys compare as raw bytes; quoted identifiers use public checked helpers. Unused statement-start notifications disabled. No upstream source edits.",
+  "unit_tests": "40/40 passed, including public-session budget/prefix/cancellation/reset/scratch checks. Old patch-specific API tests replaced in trial only.",
+  "known_differences": [
+    "Six of seventeen named-outline comparisons lose a provisional node in an unfinished or broken statement; completed nodes after a recoverable error remain.",
+    "Three cases with matching names have shorter node statement ranges in this prototype. The node identifier selections remain correct.",
+    "Quoted repeated-name stress reference stage is slower. Plain reference stage is close but slightly slower at 20/40 MB.",
+    "Graphviz HTML policy has new upstream checks; existing HTML protocol tests pass, but this is not a complete audit of every new policy rule."
+  ],
+  "reproduction": [
+    "Copy the current application into a separate folder.",
+    "Replace vendor/dot-parser/src with the exact upstream commit source. Do not apply vendor/patches.",
+    "Apply migration.patch to the application sources. Build ReleaseSafe with Zig 0.16.0.",
+    "Run protocol checks. The original outline test intentionally still fails on the recorded unfinished node difference.",
+    "For timing builds only, add mach_absolute_time timing around the reference stage in main.zig, as described in compare.py. Both profiled binaries use the same timer. Raw results record the converted times."
+  ],
+  "promotion": "Not installed into the active project; no source or active binary changes. Trial evidence only.",
+  "protocol_tests": {
+    "passed": [
+      "LSP lifecycle",
+      "completion",
+      "references",
+      "bounded validation",
+      "delayed HTML",
+      "quick fixes"
+    ],
+    "original_outline": "fails, unfinished d omitted",
+    "remaining_outline_checks": "pass only after changing four recorded unfinished-node expectations in the isolated test copy; not claimed as full outline parity"
+  },
+  "benchmark_log_caveat": "The profiled candidate predates only version-text/test-import/fmt changes in the final quiet candidate. Both measured builds include identical reference-stage logging. Performance raw JSON contains stdout-independent native memory measurements."
+}

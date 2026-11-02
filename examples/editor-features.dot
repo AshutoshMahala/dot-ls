@@ -1,0 +1,9 @@
+// Try braces, Enter, and Ctrl-Space at different positions.
+digraph editing {
+    subgraph cluster_example {
+        a [
+            label="example"
+        ];
+        a -> b;
+    }
+}

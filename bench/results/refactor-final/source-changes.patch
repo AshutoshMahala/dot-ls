@@ -1,0 +1,1073 @@
+--- before/src/app.zig
++++ after/src/app.zig
+@@ -8,17 +8,11 @@
+ pub const server_version = lsp.server_version;
+ const json_message = @import("protocol/json_message.zig");
+ const pos = @import("text/types.zig");
+-const references = @import("features/references.zig");
+-const outline = @import("features/outline.zig");
+-const pipeline = @import("analysis/pipeline.zig");
+ const worker = @import("runtime/worker.zig");
+-const snapshot = @import("runtime/snapshot.zig");
+-const findings = @import("analysis/diagnostic_text.zig");
+-const State = @import("runtime/server.zig").Server;
++const runtime = @import("runtime/server.zig");
++const State = runtime.Server;
+ const Job = @import("runtime/job.zig").Job;
+-const Document = @import("runtime/document.zig").Document;
+ const request_store = @import("runtime/requests.zig");
+-const limits = @import("runtime/limits.zig");
+ fn runtimeId(id: lsp.Id) request_store.Id {
+     return switch (id) {
+         .null => .null,
+@@ -37,7 +31,6 @@
+     state: State,
+     output: *output.Queue,
+     initialized: bool = false,
+-    related_information: bool = false,
+     versioned_edits: bool = false,
+     hierarchical_symbols: bool = false,
+     shutdown: bool = false,
+@@ -51,209 +44,44 @@
+         try batch.add(.null, .{ .clear = .{ .uri = uri, .version = version, .message = message } });
+     }
+ 
+-    fn invalidate(self: *Server, batch: *Batch, doc: *Document) void {
+-        self.state.invalidate(doc, batch.observer());
+-    }
+-
+     fn update(self: *Server, batch: *Batch, uri: []const u8, text: []const u8, version: i64, opening: bool, message: *json_message.Message, packet: *?[]u8) !void {
+-        const result = try self.state.update(uri, .{ .text = text, .packet = if (message.inplace) packet.* else null }, version, opening, .{ .context = self, .start = startWorker }, batch.observer());
++        const result = try self.state.update(uri, .{ .text = text, .packet = if (message.inplace) packet.* else null }, version, opening, self.callbacks(), batch.observer());
+         switch (result) {
+             .transferred => packet.* = null,
+             .limited => try self.clear(batch, uri, version, "Analysis skipped: source memory limit exceeded."),
+             .copied, .ignored => {},
+         }
+     }
+-    fn startWorker(ctx: *anyopaque) !std.Thread {
+-        const self: *Server = @ptrCast(@alignCast(ctx));
+-        return worker.start(&self.state, .{ .context = self, .advance = advance, .failed = phaseFailed, .failures = retiredRequests });
+-    }
+-    fn environment(self: *Server) pipeline.Environment {
+-        return .{ .allocator = self.state.allocator, .html_allocator = self.state.html_allocator, .syntax_pending = &self.state.syntax_pending, .html_budget = &self.state.html_budget, .related_information = self.related_information, .finding_limit = limits.findings };
++
++    fn callbacks(self: *Server) worker.Callbacks {
++        return .{ .context = self, .advance = advance, .failed = phaseFailed, .failures = retiredRequests };
+     }
+     fn advance(ctx: *anyopaque, job: *Job, encoding: pos.Encoding) !bool {
+         const self: *Server = @ptrCast(@alignCast(ctx));
+-        return switch (job.phase) {
+-            .syntax => self.analyze(job, encoding),
+-            .html => self.buildHtml(job, encoding),
+-            .context => self.buildContext(job, encoding),
+-            .index => self.buildIndex(job, encoding),
+-        };
+-    }
++        defer self.state.releaseResult(job);
++        var batch: Batch = .{ .server = self, .role = .worker };
++        defer batch.deinit();
++        const result = self.state.advance(job, encoding, batch.events());
++        try batch.flush();
++        return result;
++    }
++
+     fn phaseFailed(ctx: *anyopaque, current: *Job) void {
+         const self: *Server = @ptrCast(@alignCast(ctx));
+         var batch: Batch = .{ .server = self, .role = .worker };
+         defer batch.deinit();
+-        _ = self.commit(&batch, publishFailure, .{current}) catch {};
+-    }
+-    fn publishFailure(self: *Server, batch: *Batch, current: *Job) !bool {
+-        if (self.state.find(current.uri)) |i| if (self.state.documents.items[i].generation == current.generation and !self.state.stopping) {
+-            if (current.phase == .syntax) try self.clear(batch, current.uri, current.version, "Analysis failed: resource or output failure.");
+-            try self.state.failRequests(&self.state.documents.items[i], .reference_failed, batch.observer());
+-        };
+-        return false;
+-    }
++        self.state.failedJob(current, batch.events()) catch {};
++        batch.flush() catch {};
++    }
++
+     fn retiredRequests(ctx: *anyopaque, queue: *request_store.Queue, reason: request_store.Failure) void {
+         const self: *Server = @ptrCast(@alignCast(ctx));
+         var batch: Batch = .{ .server = self, .role = .worker };
+         defer batch.deinit();
+-        self.state.mutex.lockUncancelable(self.state.io);
+-        for (queue.items()) |request| batch.observer().fail(request.id, reason) catch {};
+-        self.state.mutex.unlock(self.state.io);
++        self.state.reportRequests(queue, reason, batch.observer()) catch {};
+         batch.flush() catch {};
+     }
+ 
+-    fn completionReply(_: *Server, batch: *Batch, id: request_store.Id, index: *snapshot.Completion, point: pos.Position) !void {
+-        try batch.add(id, .{ .completion = .{ .index = index, .point = point } });
+-    }
+-
+-    fn hoverReply(_: *Server, batch: *Batch, id: request_store.Id, index: *snapshot.Completion, point: pos.Position) !void {
+-        try batch.add(id, .{ .hover = .{ .index = index, .point = point } });
+-    }
+-
+-    fn buildContext(self: *Server, job: *Job, encoding: pos.Encoding) !bool {
+-        var built = pipeline.buildContext(self.environment(), job, encoding) catch |err| {
+-            if (err == error.Yield) return true;
+-            if (err == error.Cancelled) return false;
+-            return err;
+-        };
+-        defer built.deinit(self.state.allocator);
+-        var batch: Batch = .{ .server = self, .role = .worker };
+-        defer batch.deinit();
+-        return self.commit(&batch, publishContext, .{ job, &built });
+-    }
+-    fn publishContext(self: *Server, batch: *Batch, job: *Job, built: *pipeline.Context) !bool {
+-        const i = self.state.find(job.uri) orelse return false;
+-        const doc = &self.state.documents.items[i];
+-        if (self.state.stopping or doc.generation != job.generation or job.cancel.load(.acquire)) return false;
+-        doc.outline_done = true;
+-        if (built.symbols) |owned| {
+-            doc.outline_index = snapshot.Outline.create(self.state.allocator, owned, doc.uri, doc.version, doc.generation, owned.bytes(), &self.state.outline_bytes, outline.global_bytes) catch null;
+-            if (doc.outline_index != null) built.symbols = null;
+-        }
+-        var symbol_n: usize = 0;
+-        while (symbol_n < doc.requests.items().len) {
+-            if (doc.requests.items()[symbol_n].kind != .symbols) {
+-                symbol_n += 1;
+-                continue;
+-            }
+-            const request = doc.requests.orderedRemove(symbol_n);
+-            defer request.id.deinit(self.state.allocator);
+-            try self.outlineReply(batch, request.id, doc.*);
+-        }
+-        doc.completion_done = true;
+-        if (built.index) |owned| {
+-            doc.completion = snapshot.Completion.create(self.state.allocator, owned, doc.uri, doc.version, doc.generation, owned.bytes(), &self.state.context_bytes, limits.completion_total) catch null;
+-            if (doc.completion != null) built.index = null;
+-        }
+-        var n: usize = 0;
+-        while (n < doc.requests.items().len) {
+-            if (doc.requests.items()[n].kind != .completion and doc.requests.items()[n].kind != .hover) {
+-                n += 1;
+-                continue;
+-            }
+-            const request = doc.requests.orderedRemove(n);
+-            defer request.id.deinit(self.state.allocator);
+-            if (doc.completion) |ready| {
+-                if (request.kind == .hover) try self.hoverReply(batch, request.id, ready, request.point) else try self.completionReply(batch, request.id, ready, request.point);
+-            } else try self.failure(batch, request.id, lsp.ErrorCode.request_failed, "Completion context exceeded resource limits.");
+-        }
+-        return pipeline.afterContext(job);
+-    }
+-    fn dropHtmlCache(self: *Server, doc: *Document) void {
+-        self.state.dropHtmlCache(doc);
+-    }
+-
+-    fn buildHtml(self: *Server, job: *Job, encoding: pos.Encoding) !bool {
+-        return self.analyzeHtml(job, encoding) catch |err| {
+-            if (err == error.Yield) return true;
+-            return err;
+-        };
+-    }
+-    fn analyzeHtml(self: *Server, job: *Job, encoding: pos.Encoding) !bool {
+-        const ready = pipeline.advanceHtml(self.environment(), job) catch |err| {
+-            if (err == error.Cancelled) return false;
+-            return err;
+-        };
+-        return if (ready) self.finishHtml(job, encoding) else true;
+-    }
+-
+-    fn finishHtml(self: *Server, job: *Job, encoding: pos.Encoding) !bool {
+-        var built = pipeline.finishHtml(self.environment(), job, encoding) catch |err| {
+-            if (err == error.Cancelled) return false;
+-            return err;
+-        };
+-        defer built.deinit(self.state.allocator);
+-        var batch: Batch = .{ .server = self, .role = .worker };
+-        defer batch.deinit();
+-        return self.commit(&batch, publishHtml, .{ job, &built });
+-    }
+-    fn publishHtml(self: *Server, batch: *Batch, job: *Job, built: *pipeline.Html) !bool {
+-        const i = self.state.find(job.uri) orelse return false;
+-        const doc = &self.state.documents.items[i];
+-        if (self.state.stopping or doc.generation != job.generation or job.cancel.load(.acquire)) return false;
+-        self.state.setFixes(doc, built.offers.items, built.fixes_failed);
+-        try batch.add(.null, .{ .diagnostics = .{ .uri = job.uri, .version = job.version, .generation = job.generation, .items = built.diagnostics.items } });
+-        const old_bytes = if (doc.html_cache) |cache| cache.payload_bytes else 0;
+-        if (job.html.?.cache) |cache| if (cache.payload_bytes <= limits.html_cache_total - (self.state.html_cache_bytes - old_bytes)) {
+-            self.dropHtmlCache(doc);
+-            doc.html_cache = job.html.?.cache;
+-            self.state.html_cache_bytes += job.html.?.cache.?.payload_bytes;
+-            job.html.?.cache = null;
+-        };
+-        pipeline.afterHtml(self.state.allocator, job);
+-        return true;
+-    }
+-    fn buildIndex(self: *Server, job: *Job, encoding: pos.Encoding) !bool {
+-        var index: ?references.Index = pipeline.buildReferences(self.environment(), job, encoding) catch |err| {
+-            if (err == error.Yield) return true;
+-            return false;
+-        };
+-        defer if (index) |*owned| owned.deinit(self.state.allocator);
+-        var batch: Batch = .{ .server = self, .role = .worker };
+-        defer batch.deinit();
+-        return self.commit(&batch, publishReferences, .{ job, &index });
+-    }
+-    fn publishReferences(self: *Server, batch: *Batch, job: *Job, index: *?references.Index) !bool {
+-        const i = self.state.find(job.uri) orelse return false;
+-        const doc = &self.state.documents.items[i];
+-        if (self.state.stopping or doc.generation != job.generation or job.cancel.load(.acquire)) return false;
+-        const owned = index.*.?;
+-        doc.references = snapshot.References.create(self.state.allocator, owned, doc.uri, doc.version, doc.generation, owned.bytes(), &self.state.index_bytes, limits.references_total) catch return false;
+-        index.* = null;
+-        defer doc.requests.clear(self.state.allocator);
+-        for (doc.requests.items()) |request| try self.referenceReply(batch, request.id, doc.uri, doc.references.?, request.point, request.include);
+-        return false;
+-    }
+-
+-    fn outlineReply(self: *Server, batch: *Batch, id: request_store.Id, doc: Document) !void {
+-        if (doc.outline_index) |index| {
+-            if (self.hierarchical_symbols) {
+-                try batch.add(id, .{ .outline = .{ .index = index, .hierarchical = true } });
+-            } else if (index.value.response_bound + index.value.entries.len * (6 * doc.uri.len + 914) <= 128 * 1024 * 1024) {
+-                try batch.add(id, .{ .outline = .{ .index = index, .hierarchical = false } });
+-            } else try self.failure(batch, id, lsp.ErrorCode.request_failed, "Flat outline response exceeded resource limits. Results were not truncated.");
+-        } else try self.failure(batch, id, lsp.ErrorCode.request_failed, "Document outline exceeded analysis or index resource limits. Results were not truncated.");
+-    }
+-    fn referenceReply(_: *Server, batch: *Batch, request: request_store.Id, uri: []const u8, index: *snapshot.References, point: pos.Position, include: bool) !void {
+-        _ = uri;
+-        try batch.add(request, .{ .references = .{ .index = index, .point = point, .include = include } });
+-    }
+-
+-    fn analyze(self: *Server, job: *Job, encoding: pos.Encoding) !bool {
+-        if (!try pipeline.syntax(self.environment(), job, encoding)) return false;
+-        var batch: Batch = .{ .server = self, .role = .worker };
+-        defer batch.deinit();
+-        return self.commit(&batch, publishSyntax, .{job});
+-    }
+-    fn publishSyntax(self: *Server, batch: *Batch, job: *Job) !bool {
+-        const i = self.state.find(job.uri) orelse return false;
+-        if (self.state.stopping or self.state.documents.items[i].generation != job.generation) return false;
+-        self.state.setFixes(&self.state.documents.items[i], job.fixes.items, job.fixes_failed);
+-        try batch.add(.null, .{ .diagnostics = .{ .uri = job.uri, .version = job.version, .generation = job.generation, .items = job.diagnostics.items } });
+-        if (job.labels.?.spans.count == 0 and !job.labels.?.incomplete) self.dropHtmlCache(&self.state.documents.items[i]);
+-        pipeline.afterSyntax(self.state.allocator, job);
+-        return true;
+-    }
+     fn codeActions(self: *Server, batch: *Batch, request: request_store.Id, decoded: ?requests.CodeActions) !void {
+         const params = decoded orelse {
+             try self.failure(batch, request, lsp.ErrorCode.invalid_params, "Code actions require an open document, valid range and diagnostics array.");
+@@ -263,11 +91,10 @@
+             try self.failure(batch, request, lsp.ErrorCode.invalid_params, "Code action diagnostic context exceeds its limit.");
+             return;
+         }
+-        const i = self.state.find(params.uri) orelse {
+-            try self.failure(batch, request, lsp.ErrorCode.invalid_params, "Code actions require an open document.");
++        if (!self.state.hasDocument(params.uri)) {
++            try batch.observer().fail(request, .actions_document);
+             return;
+-        };
+-        const doc = &self.state.documents.items[i];
++        }
+         switch (params.only) {
+             .invalid_array => {
+                 try self.failure(batch, request, lsp.ErrorCode.invalid_params, "Code action kinds must be an array.");
+@@ -287,19 +114,7 @@
+             try batch.add(request, .empty_result);
+             return;
+         }
+-        const offers = doc.fixes orelse {
+-            if (doc.fixes_done) {
+-                try self.failure(batch, request, lsp.ErrorCode.request_failed, "Quick fixes are unavailable within resource limits.");
+-                return;
+-            }
+-            try self.failure(batch, request, lsp.ErrorCode.content_modified, "Current diagnostics are not ready. Request code actions again after diagnostics arrive.");
+-            return;
+-        };
+-        if (params.mixed_generations or if (params.generation) |generation| generation < 0 or @as(u64, @intCast(generation)) != doc.generation else false) {
+-            try self.failure(batch, request, lsp.ErrorCode.content_modified, "Document changed since these diagnostics were produced.");
+-            return;
+-        }
+-        try batch.add(request, .{ .fixes = .{ .index = offers, .range = params.range } });
++        try self.state.requestFixes(params.uri, request, params.range, params.generation, params.mixed_generations, batch.events());
+     }
+ 
+     fn commit(self: *Server, batch: *Batch, comptime operation: anytype, args: anytype) !bool {
+@@ -335,10 +150,9 @@
+             const caps = command.body.initialize;
+             self.versioned_edits = caps.versioned_edits;
+             self.hierarchical_symbols = caps.hierarchical_symbols;
+-            self.related_information = caps.related_information;
+-            self.state.encoding = caps.encoding;
++            self.state.configure(caps.encoding, caps.related_information);
+             self.initialized = true;
+-            try batch.add(id.?, .{ .initialized = self.state.encoding });
++            try batch.add(id.?, .{ .initialized = caps.encoding });
+             return false;
+         }
+         if (self.shutdown) {
+@@ -350,50 +164,21 @@
+         } else if (method == .shutdown) {
+             if (id) |request| {
+                 self.shutdown = true;
+-                for (self.state.documents.items) |*doc| self.invalidate(batch, doc);
++                self.state.retireAll(batch.observer());
+                 try batch.add(request, .null_result);
+             }
+         } else if (method == .code_actions) {
+             try self.codeActions(batch, id orelse return false, command.body.code_actions);
+         } else if (method == .symbols) {
+             const request = id orelse return false;
+-            const uri = command.body.symbols;
+-            const doc = if (uri) |u| if (self.state.find(u)) |i| &self.state.documents.items[i] else null else null;
+-            if (doc == null) {
+-                try self.failure(batch, request, lsp.ErrorCode.invalid_params, "Document outline requires an open document.");
+-            } else if (doc.?.outline_done) {
+-                try self.outlineReply(batch, request, doc.?.*);
+-            } else if (!(doc.?.pending != null or doc.?.index_pending != null or if (self.state.active) |job| std.mem.eql(u8, job.uri, doc.?.uri) and job.generation == doc.?.generation else false)) {
+-                try self.failure(batch, request, lsp.ErrorCode.request_failed, "Document outline analysis did not complete within limits.");
+-            } else if (!doc.?.requests.canAppend(request)) {
+-                try self.failure(batch, request, lsp.ErrorCode.request_failed, "Pending outline request limit exceeded.");
+-            } else {
+-                try doc.?.requests.append(self.state.allocator, .{ .id = request, .point = .{ .line = 0, .character = 0 }, .kind = .symbols });
+-            }
++            try self.state.queryFeature(command.body.symbols, .{ .id = request, .point = .{ .line = 0, .character = 0 }, .kind = .symbols }, batch.events());
+         } else if (method == .references) {
+             const request = id orelse return false;
+             const params = command.body.references orelse {
+                 try self.failure(batch, request, lsp.ErrorCode.invalid_params, "References requires a document, position and includeDeclaration boolean.");
+                 return false;
+             };
+-            const document = self.state.find(params.uri) orelse {
+-                try self.failure(batch, request, lsp.ErrorCode.invalid_params, "References requires an open document.");
+-                return false;
+-            };
+-            const doc = &self.state.documents.items[document];
+-            const point_value = params.point;
+-            if (doc.references) |index| {
+-                try self.referenceReply(batch, request, doc.uri, index, point_value, params.include);
+-            } else {
+-                const pending = doc.pending != null or doc.index_pending != null or if (self.state.active) |job| std.mem.eql(u8, job.uri, doc.uri) and job.generation == doc.generation else false;
+-                if (!pending) {
+-                    try self.failure(batch, request, lsp.ErrorCode.request_failed, "Node references are unavailable: syntax analysis or index construction did not complete within limits.");
+-                } else if (!doc.requests.canAppend(request)) {
+-                    try self.failure(batch, request, lsp.ErrorCode.request_failed, "Pending reference request limit exceeded.");
+-                } else {
+-                    try doc.requests.append(self.state.allocator, .{ .id = request, .point = point_value, .include = params.include });
+-                }
+-            }
++            try self.state.queryFeature(params.uri, .{ .id = request, .point = params.point, .include = params.include }, batch.events());
+         } else if (method == .cancel) {
+             const cancelled = command.body.cancel orelse return false;
+             _ = try self.state.cancelRequest(runtimeId(cancelled), batch.observer());
+@@ -404,21 +189,7 @@
+                 try self.failure(batch, request_id, lsp.ErrorCode.invalid_params, "Completion requires an open document and a non-negative position.");
+                 return false;
+             };
+-            const i = self.state.find(params.uri) orelse {
+-                try self.failure(batch, request_id, lsp.ErrorCode.invalid_params, "Completion requires an open document and a non-negative position.");
+-                return false;
+-            };
+-            const doc = &self.state.documents.items[i];
+-            const point_value = params.point;
+-            if (doc.completion) |ready| {
+-                if (is_hover) try self.hoverReply(batch, request_id, ready, point_value) else try self.completionReply(batch, request_id, ready, point_value);
+-            } else if (doc.completion_done or (doc.pending == null and doc.index_pending == null and !(if (self.state.active) |job| std.mem.eql(u8, job.uri, doc.uri) and job.generation == doc.generation else false))) {
+-                try self.failure(batch, request_id, lsp.ErrorCode.request_failed, "Completion context is unavailable within resource limits.");
+-            } else if (!doc.requests.canAppend(request_id)) {
+-                try self.failure(batch, request_id, lsp.ErrorCode.request_failed, "Pending request limit exceeded.");
+-            } else {
+-                try doc.requests.append(self.state.allocator, .{ .id = request_id, .point = point_value, .kind = if (is_hover) .hover else .completion });
+-            }
++            try self.state.queryFeature(params.uri, .{ .id = request_id, .point = params.point, .kind = if (is_hover) .hover else .completion }, batch.events());
+         } else if (method == .open or method == .change) {
+             const params = command.body.update orelse return false;
+             try self.update(batch, params.uri, params.text, params.version, params.opening, message, packet);
+@@ -444,19 +215,14 @@
+ // A transaction prepares response views under the state mutex. Leases keep
+ // arrays alive through encoding. The queue then owns independent frame chunks.
+ const Batch = struct {
+-    const Positioned = struct { index: *snapshot.Completion, point: pos.Position };
+     const Body = union(enum) {
+         failure: struct { code: i32, message: []const u8 },
+-        clear: struct { uri: []const u8, version: ?i64, message: ?[]const u8 },
+-        diagnostics: struct { uri: []const u8, version: i64, generation: u64, items: []const findings.Finding },
++        clear: struct { uri: []const u8, version: ?i64, message: ?[]const u8, generation: ?u64 = null },
++        diagnostics: runtime.Notice,
+         initialized: pos.Encoding,
+         empty_result,
+         null_result,
+-        completion: Positioned,
+-        hover: Positioned,
+-        references: struct { index: *snapshot.References, point: pos.Position, include: bool },
+-        outline: struct { index: *snapshot.Outline, hierarchical: bool },
+-        fixes: struct { index: *snapshot.Fixes, range: pos.Range },
++        view: runtime.View,
+     };
+     const Reply = struct { id: request_store.Id, body: Body };
+     server: *Server,
+@@ -468,13 +234,22 @@
+         const owned = try id.clone(a);
+         errdefer owned.deinit(a);
+         try self.replies.append(a, .{ .id = owned, .body = body });
+-        switch (body) {
+-            .completion, .hover => |v| _ = v.index.retain(),
+-            .references => |v| _ = v.index.retain(),
+-            .outline => |v| _ = v.index.retain(),
+-            .fixes => |v| _ = v.index.retain(),
+-            else => {},
+-        }
++        if (body == .view) body.view.retain();
++    }
++    fn events(self: *Batch) runtime.Events {
++        return .{ .context = self, .failure = self.observer(), .reply = replyView, .diagnostics = notice, .analysis_failed = analysisFailed };
++    }
++    fn replyView(ctx: *anyopaque, id: request_store.Id, view: runtime.View) !void {
++        const self: *Batch = @ptrCast(@alignCast(ctx));
++        try self.add(id, .{ .view = view });
++    }
++    fn notice(ctx: *anyopaque, value: runtime.Notice) !void {
++        const self: *Batch = @ptrCast(@alignCast(ctx));
++        try self.add(.null, .{ .diagnostics = value });
++    }
++    fn analysisFailed(ctx: *anyopaque, uri: []const u8, version: i64, generation: u64) !void {
++        const self: *Batch = @ptrCast(@alignCast(ctx));
++        try self.add(.null, .{ .clear = .{ .uri = uri, .version = version, .message = "Analysis failed: resource or output failure.", .generation = generation } });
+     }
+     fn observer(self: *Batch) request_store.Observer {
+         return .{ .context = self, .failure = observe };
+@@ -482,7 +257,8 @@
+     fn observe(ctx: *anyopaque, id: request_store.Id, reason: request_store.Failure) !void {
+         const self: *Batch = @ptrCast(@alignCast(ctx));
+         const code: i32 = switch (reason) {
+-            .modified => lsp.ErrorCode.content_modified,
++            .modified, .diagnostics_not_ready, .stale_diagnostics => lsp.ErrorCode.content_modified,
++            .outline_document, .references_document, .completion_document, .actions_document => lsp.ErrorCode.invalid_params,
+             .cancelled => lsp.ErrorCode.request_cancelled,
+             else => lsp.ErrorCode.request_failed,
+         };
+@@ -491,13 +267,31 @@
+             .cancelled => "Request cancelled.",
+             .reference_failed => "Reference analysis failed.",
+             .reference_unavailable => "Node references are unavailable: analysis did not complete within limits.",
++            .outline_document => "Document outline requires an open document.",
++            .references_document => "References requires an open document.",
++            .completion_document => "Completion requires an open document and a non-negative position.",
++            .actions_document => "Code actions require an open document.",
++            .outline_unavailable => "Document outline exceeded analysis or index resource limits. Results were not truncated.",
++            .outline_incomplete => "Document outline analysis did not complete within limits.",
++            .references_incomplete => "Node references are unavailable: syntax analysis or index construction did not complete within limits.",
++            .completion_unavailable => "Completion context is unavailable within resource limits.",
++            .completion_exceeded => "Completion context exceeded resource limits.",
++            .outline_limit => "Pending outline request limit exceeded.",
++            .references_limit => "Pending reference request limit exceeded.",
++            .pending_limit => "Pending request limit exceeded.",
++            .fixes_unavailable => "Quick fixes are unavailable within resource limits.",
++            .diagnostics_not_ready => "Current diagnostics are not ready. Request code actions again after diagnostics arrive.",
++            .stale_diagnostics => "Document changed since these diagnostics were produced.",
+         };
+         try self.add(id, .{ .failure = .{ .code = code, .message = message } });
+     }
+     fn flush(self: *Batch) !void {
+         for (self.replies.items) |reply| self.encode(reply) catch |err| {
+             if (err == error.OutputBusy or err == error.FrameTooLarge) {
+-                try responses.failure(self.server.state.allocator, .{ .queue = self.server.output, .control = true }, wireId(reply.id), lsp.ErrorCode.request_failed, "Response exceeded output capacity. Try again after pending replies arrive.");
++                responses.failure(self.server.state.allocator, .{ .queue = self.server.output, .control = true }, wireId(reply.id), lsp.ErrorCode.request_failed, "Response exceeded output capacity. Try again after pending replies arrive.") catch |failure| {
++                    self.server.output.close();
++                    return failure;
++                };
+             } else {
+                 self.server.output.close();
+                 return err;
+@@ -512,7 +306,15 @@
+         const id = wireId(reply.id);
+         switch (reply.body) {
+             .failure => |v| try responses.failure(a, w, id, v.code, v.message),
+-            .clear => |v| try responses.clear(a, control, v.uri, v.version, v.message),
++            .clear => |v| {
++                var gate: DiagnosticGate = .{ .server = self.server, .uri = v.uri, .generation = v.generation orelse 0 };
++                var destination = control;
++                if (v.generation) |generation| {
++                    destination.tag = .{ .uri = v.uri, .generation = generation };
++                    destination.gate = .{ .context = &gate, .current = DiagnosticGate.current };
++                }
++                try responses.clear(a, destination, v.uri, v.version, v.message);
++            },
+             .diagnostics => |v| {
+                 var gate: DiagnosticGate = .{ .server = self.server, .uri = v.uri, .generation = v.generation };
+                 try responses.diagnostics(a, .{ .queue = self.server.output, .role = self.role, .tag = .{ .uri = v.uri, .generation = v.generation }, .gate = .{ .context = &gate, .current = DiagnosticGate.current } }, v.uri, v.version, v.items);
+@@ -520,15 +322,13 @@
+             .initialized => |v| try responses.initialized(a, control, id, v),
+             .empty_result => try responses.result(a, w, id, @as([]const bool, &.{})),
+             .null_result => try responses.result(a, control, id, @as(?u8, null)),
+-            .completion => |v| try responses.completion(a, w, id, v.index.value, v.point),
+-            .hover => |v| try responses.hover(a, w, id, v.index.value, v.point),
+-            .references => |v| try responses.referencesReply(a, w, id, v.index.uri, v.index.value, v.point, v.include),
+-            .outline => |v| if (v.hierarchical) {
+-                try responses.result(a, w, id, responses.Symbols{ .index = v.index.value });
+-            } else {
+-                try responses.result(a, w, id, responses.FlatSymbols{ .index = v.index.value, .uri = v.index.uri });
+-            },
+-            .fixes => |v| try responses.codeActions(a, w, id, v.index.uri, v.index.version, v.index.value, v.range),
++            .view => |view| switch (view) {
++                .completion => |v| try responses.completion(a, w, id, v.index.value, v.point),
++                .hover => |v| try responses.hover(a, w, id, v.index.value, v.point),
++                .references => |v| try responses.referencesReply(a, w, id, v.index.uri, v.index.value, v.point, v.include),
++                .outline => |v| try responses.outlineReply(a, w, id, v.value, v.uri, self.server.hierarchical_symbols),
++                .fixes => |v| try responses.codeActions(a, w, id, v.index.uri, v.index.version, v.index.value, v.range),
++            },
+         }
+     }
+     const DiagnosticGate = struct {
+@@ -537,11 +337,7 @@
+         generation: u64,
+         fn current(ctx: *anyopaque) bool {
+             const self: *DiagnosticGate = @ptrCast(@alignCast(ctx));
+-            const state = &self.server.state;
+-            state.mutex.lockUncancelable(state.io);
+-            defer state.mutex.unlock(state.io);
+-            const i = state.find(self.uri) orelse return false;
+-            return !state.stopping and state.documents.items[i].generation == self.generation;
++            return self.server.state.current(self.uri, self.generation);
+         }
+     };
+     fn deinit(self: *Batch) void {
+@@ -550,13 +346,7 @@
+         defer state.mutex.unlock(state.io);
+         for (self.replies.items) |reply| {
+             reply.id.deinit(state.allocator);
+-            switch (reply.body) {
+-                .completion, .hover => |v| v.index.release(state.allocator),
+-                .references => |v| v.index.release(state.allocator),
+-                .outline => |v| v.index.release(state.allocator),
+-                .fixes => |v| v.index.release(state.allocator),
+-                else => {},
+-            }
++            if (reply.body == .view) reply.body.view.release(state.allocator);
+         }
+         self.replies.deinit(state.allocator);
+         self.replies = .empty;
+@@ -633,3 +423,33 @@
+     }
+     return exit_requested and !server.shutdown;
+ }
++
++test "output pressure returns a resource error and releases its feature reader" {
++    const a = std.testing.allocator;
++    var queue: output.Queue = .{ .allocator = a, .io = std.testing.io, .config = .{ .frames = 0 } };
++    defer queue.deinit();
++    var server: Server = .{ .state = .{ .allocator = a, .html_allocator = a, .io = std.testing.io }, .output = &queue };
++    var batch: Batch = .{ .server = &server };
++    defer batch.deinit();
++    const owner = try @import("runtime/snapshot.zig").References.create(a, .{}, "uri", 1, 1, 0, &server.state.index_bytes, 1024);
++    try batch.add(.{ .integer = 7 }, .{ .view = .{ .references = .{ .index = owner, .point = .{ .line = 0, .character = 0 }, .include = true } } });
++    owner.release(a);
++    try batch.flush();
++    batch.deinit();
++    try std.testing.expectEqual(@as(usize, 0), server.state.index_bytes);
++    const frame = queue.peek().?;
++    try std.testing.expect(frame.control);
++    try std.testing.expect(std.mem.indexOf(u8, frame.chunks.items[0].bytes[0..frame.chunks.items[0].used], "-32803") != null);
++}
++
++test "retired analysis failure does not start an obsolete diagnostic frame" {
++    const a = std.testing.allocator;
++    var queue: output.Queue = .{ .allocator = a, .io = std.testing.io };
++    defer queue.deinit();
++    var server: Server = .{ .state = .{ .allocator = a, .html_allocator = a, .io = std.testing.io }, .output = &queue };
++    var batch: Batch = .{ .server = &server };
++    defer batch.deinit();
++    try Batch.analysisFailed(&batch, "closed:uri", 1, 1);
++    try batch.flush();
++    try std.testing.expect(queue.peek() == null);
++}
+--- before/src/protocol/output.zig
++++ after/src/protocol/output.zig
+@@ -1,4 +1,5 @@
+-//! Bounded owned frames. The protocol thread alone writes; producers never do I/O.
++//! Bounded owned frames. Only the protocol thread writes stdout; producers signal
++//! its nonblocking wake pipe.
+ const std = @import("std");
+ const posix = std.posix;
+ pub const Role = enum { dispatcher, worker };
+@@ -10,7 +11,7 @@
+     control_frames: usize = 64,
+ };
+ const bulk_metadata = 256 * 1024;
+-const control_metadata = 4096;
++const control_metadata = 16 * 1024;
+ pub const Tag = struct { uri: []const u8, generation: u64 };
+ const Chunk = struct { bytes: []u8, used: usize = 0 };
+ pub const Frame = struct {
+@@ -119,7 +120,7 @@
+         std.debug.assert(self.bytes[0] == 0 and self.bytes[1] == 0);
+         std.debug.assert(self.frames[0] == 0 and self.frames[1] == 0);
+     }
+-    /// One nonblocking write, at most 64 KiB. Caller checks a diagnostic's tag
++    /// Nonblocking write progress, at most 64 KiB total. Caller checks a diagnostic's tag
+     /// immediately before the first call. Once started, a frame cannot be skipped.
+     pub fn advance(self: *Queue, fd: posix.fd_t) !bool {
+         const frame = self.peek() orelse return false;
+--- before/src/protocol/responses.zig
++++ after/src/protocol/responses.zig
+@@ -1,5 +1,5 @@
+-//! Wire response encoding. Calls borrow stable data until synchronous send ends.
+-//! This remains blocking until the separate bounded-output migration step.
++//! Wire response encoding into bounded owned chunks. Views are borrowed only
++//! through encoding; the protocol event loop writes queued frames independently.
+ const std = @import("std");
+ const output = @import("output.zig");
+ const lsp = @import("lsp.zig");
+@@ -228,3 +228,10 @@
+     }
+     try send(gpa, writer, .{ .jsonrpc = "2.0", .id = request, .result = items.items });
+ }
++
++/// Select the client's wire outline shape without exposing runtime state.
++pub fn outlineReply(allocator: std.mem.Allocator, writer: Destination, id: lsp.Id, index: outline.Index, uri: []const u8, hierarchical: bool) !void {
++    if (hierarchical) return result(allocator, writer, id, Symbols{ .index = index });
++    if (index.response_bound + index.entries.len * (6 * uri.len + 914) <= 128 * 1024 * 1024) return result(allocator, writer, id, FlatSymbols{ .index = index, .uri = uri });
++    return failure(allocator, writer, id, lsp.ErrorCode.request_failed, "Flat outline response exceeded resource limits. Results were not truncated.");
++}
+--- before/src/runtime/job.zig
++++ after/src/runtime/job.zig
+@@ -1,5 +1,6 @@
+ //! Job owns its immutable source allocation after preparation commits.
+ const std = @import("std");
++const pipeline = @import("../analysis/pipeline.zig");
+ const labels = @import("../features/labels.zig");
+ const references = @import("../features/references.zig");
+ const outline = @import("../features/outline.zig");
+@@ -16,6 +17,8 @@
+     labels: ?labels.Collector = null,
+     html: ?labels.Work = null,
+     html_ready: bool = false,
++    // Completed HTML findings remain alive through the application encoder.
++    phase_result: ?pipeline.Html = null,
+     previous_html: ?*labels.Cache = null,
+     wording: ?std.heap.ArenaAllocator = null,
+     diagnostics: std.ArrayList(@import("../analysis/diagnostic_text.zig").Finding) = .empty,
+@@ -29,7 +32,12 @@
+         const self: *Job = @ptrCast(@alignCast(ctx.?));
+         return self.cancel.load(.acquire);
+     }
++    pub fn releaseResult(self: *Job, allocator: std.mem.Allocator) void {
++        if (self.phase_result) |*result| result.deinit(allocator);
++        self.phase_result = null;
++    }
+     pub fn destroy(self: *Job, allocator: std.mem.Allocator) void {
++        self.releaseResult(allocator);
+         if (self.outline_builder) |*builder| builder.deinit();
+         if (self.builder) |*builder| builder.deinit();
+         if (self.labels) |*collector| collector.deinit();
+--- before/src/runtime/requests.zig
++++ after/src/runtime/requests.zig
+@@ -16,7 +16,8 @@
+         return if (self == .string and other == .string) std.mem.eql(u8, self.string, other.string) else self == .integer and other == .integer and self.integer == other.integer;
+     }
+ };
+-pub const Request = struct { id: Id, point: text.Position, include: bool = false, kind: enum { references, completion, hover, symbols } = .references };
++pub const Kind = enum { references, completion, hover, symbols };
++pub const Request = struct { id: Id, point: text.Position, include: bool = false, kind: Kind = .references };
+ /// The containing document generation owns this whole queue. Invalidation clears
+ /// every request before that document can accept a new generation's work.
+ pub const Queue = struct {
+@@ -44,7 +45,27 @@
+         self.* = .{};
+     }
+ };
+-pub const Failure = enum { modified, cancelled, reference_failed, reference_unavailable };
++pub const Failure = enum {
++    modified,
++    cancelled,
++    reference_failed,
++    reference_unavailable,
++    outline_document,
++    references_document,
++    completion_document,
++    actions_document,
++    outline_unavailable,
++    outline_incomplete,
++    references_incomplete,
++    completion_unavailable,
++    completion_exceeded,
++    outline_limit,
++    references_limit,
++    pending_limit,
++    fixes_unavailable,
++    diagnostics_not_ready,
++    stale_diagnostics,
++};
+ /// A synchronous borrowed handoff. The callback must not re-enter state or keep ID views.
+ pub const Observer = struct {
+     context: *anyopaque,
+--- before/src/runtime/server.zig
++++ after/src/runtime/server.zig
+@@ -1,5 +1,6 @@
+ //! Owns document state, jobs, accounting and synchronization. No protocol imports.
+-//! Mutations require the caller's state lock, except begin/releaseIntake and stop.
++//! Dispatch/query operations require the caller's transaction lock. Worker
++//! publication, freshness checks and stop acquire their own state lock.
+ const std = @import("std");
+ const pos = @import("../text/types.zig");
+ const labels = @import("../features/labels.zig");
+@@ -9,7 +10,51 @@
+ const Job = jobs.Job;
+ const requests = @import("requests.zig");
+ const limits = @import("limits.zig");
+-pub const Starter = struct {
++const pipeline = @import("../analysis/pipeline.zig");
++const references = @import("../features/references.zig");
++const outline = @import("../features/outline.zig");
++const snapshot = @import("snapshot.zig");
++const worker = @import("worker.zig");
++pub const Finding = @import("../analysis/diagnostic_text.zig").Finding;
++pub const Notice = struct { uri: []const u8, version: i64, generation: u64, items: []const Finding };
++pub const Positioned = struct { index: *snapshot.Completion, point: pos.Position };
++pub const View = union(enum) {
++    completion: Positioned,
++    hover: Positioned,
++    references: struct { index: *snapshot.References, point: pos.Position, include: bool },
++    outline: *snapshot.Outline,
++    fixes: struct { index: *snapshot.Fixes, range: pos.Range },
++    /// Reader ownership changes require the state lock.
++    pub fn retain(self: View) void {
++        switch (self) {
++            .completion, .hover => |v| _ = v.index.retain(),
++            .references => |v| _ = v.index.retain(),
++            .outline => |v| _ = v.retain(),
++            .fixes => |v| _ = v.index.retain(),
++        }
++    }
++    pub fn release(self: View, allocator: std.mem.Allocator) void {
++        switch (self) {
++            .completion, .hover => |v| v.index.release(allocator),
++            .references => |v| v.index.release(allocator),
++            .outline => |v| v.release(allocator),
++            .fixes => |v| v.index.release(allocator),
++        }
++    }
++};
++/// Borrowed synchronous callbacks. Called under the state lock; retain a feature
++/// reader/copy request metadata here, then encode after the operation returns.
++pub const Events = struct {
++    context: *anyopaque,
++    failure: requests.Observer,
++    reply: *const fn (*anyopaque, requests.Id, View) anyerror!void,
++    diagnostics: *const fn (*anyopaque, Notice) anyerror!void,
++    analysis_failed: *const fn (*anyopaque, []const u8, i64, u64) anyerror!void,
++    fn respond(self: Events, id: requests.Id, view: View) !void {
++        try self.reply(self.context, id, view);
++    }
++};
++const Starter = struct {
+     context: *anyopaque,
+     start: *const fn (*anyopaque) anyerror!std.Thread,
+ };
+@@ -34,6 +79,7 @@
+     generation: u64 = 0,
+     stopping: bool = false,
+     encoding: pos.Encoding = .utf16,
++    related_information: bool = false,
+     worker: ?std.Thread = null,
+     pub fn releaseIntake(self: *Server, priority: *bool) void {
+         if (!priority.*) return;
+@@ -113,7 +159,19 @@
+         }
+         return false;
+     }
+-    pub fn update(self: *Server, uri: []const u8, input: jobs.Input, version: i64, opening: bool, starter: Starter, observer: requests.Observer) !Update {
++    pub fn update(self: *Server, uri: []const u8, input: jobs.Input, version: i64, opening: bool, callbacks: worker.Callbacks, observer: requests.Observer) !Update {
++        const Spawn = struct {
++            state: *Server,
++            callbacks: worker.Callbacks,
++            fn start(ctx: *anyopaque) !std.Thread {
++                const spawn_context: *@This() = @ptrCast(@alignCast(ctx));
++                return worker.start(spawn_context.state, spawn_context.callbacks);
++            }
++        };
++        var spawn: Spawn = .{ .state = self, .callbacks = callbacks };
++        return self.updateWithStarter(uri, input, version, opening, .{ .context = &spawn, .start = Spawn.start }, observer);
++    }
++    fn updateWithStarter(self: *Server, uri: []const u8, input: jobs.Input, version: i64, opening: bool, starter: Starter, observer: requests.Observer) !Update {
+         if (uri.len > limits.uri) return .ignored;
+         var index = self.find(uri);
+         if (index == null) {
+@@ -156,12 +214,222 @@
+         for (self.documents.items) |*doc| self.invalidate(doc, observer);
+         self.condition.signal(self.io);
+         self.mutex.unlock(self.io);
+-        if (self.worker) |worker| worker.join();
++        if (self.worker) |thread| thread.join();
+         for (self.documents.items) |*doc| {
+             self.dropHtmlCache(doc);
+             doc.deinit(self.allocator);
+         }
+         self.documents.deinit(self.allocator);
++    }
++    pub fn hasDocument(self: *Server, uri: []const u8) bool {
++        return self.find(uri) != null;
++    }
++    pub fn configure(self: *Server, encoding: pos.Encoding, related: bool) void {
++        self.encoding = encoding;
++        self.related_information = related;
++    }
++    pub fn retireAll(self: *Server, observer: requests.Observer) void {
++        for (self.documents.items) |*doc| self.invalidate(doc, observer);
++    }
++    pub fn current(self: *Server, uri: []const u8, generation: u64) bool {
++        self.mutex.lockUncancelable(self.io);
++        defer self.mutex.unlock(self.io);
++        const i = self.find(uri) orelse return false;
++        return !self.stopping and self.documents.items[i].generation == generation;
++    }
++    fn publish(self: *Server, events: Events, comptime operation: anytype, args: anytype) !bool {
++        self.mutex.lockUncancelable(self.io);
++        defer self.mutex.unlock(self.io);
++        return @call(.auto, operation, .{ self, events } ++ args);
++    }
++    pub fn advance(self: *Server, job: *Job, encoding: pos.Encoding, events: Events) !bool {
++        return switch (job.phase) {
++            .syntax => self.analyze(job, encoding, events),
++            .html => self.buildHtml(job, encoding, events),
++            .context => self.buildContext(job, encoding, events),
++            .index => self.buildIndex(job, encoding, events),
++        };
++    }
++    pub fn failedJob(self: *Server, job: *Job, events: Events) !void {
++        self.mutex.lockUncancelable(self.io);
++        defer self.mutex.unlock(self.io);
++        const i = self.find(job.uri) orelse return;
++        if (self.stopping or self.documents.items[i].generation != job.generation) return;
++        if (job.phase == .syntax) try events.analysis_failed(events.context, job.uri, job.version, job.generation);
++        try self.failRequests(&self.documents.items[i], .reference_failed, events.failure);
++    }
++    pub fn reportRequests(self: *Server, queue: *requests.Queue, reason: requests.Failure, observer: requests.Observer) !void {
++        self.mutex.lockUncancelable(self.io);
++        defer self.mutex.unlock(self.io);
++        for (queue.items()) |request| try observer.fail(request.id, reason);
++    }
++    fn pending(self: *Server, doc: Document) bool {
++        return doc.pending != null or doc.index_pending != null or if (self.active) |job| std.mem.eql(u8, job.uri, doc.uri) and job.generation == doc.generation else false;
++    }
++    /// Caller holds the state lock through the synchronous reply callback.
++    pub fn queryFeature(self: *Server, uri: ?[]const u8, query: requests.Request, events: Events) !void {
++        const i = if (uri) |u| self.find(u) else null;
++        if (i == null) return events.failure.fail(query.id, switch (query.kind) {
++            .symbols => .outline_document,
++            .references => .references_document,
++            .completion, .hover => .completion_document,
++        });
++        const doc = &self.documents.items[i.?];
++        switch (query.kind) {
++            .symbols => if (doc.outline_done) {
++                if (doc.outline_index) |index| return events.respond(query.id, .{ .outline = index });
++                return events.failure.fail(query.id, .outline_unavailable);
++            },
++            .references => if (doc.references) |index| {
++                return events.respond(query.id, .{ .references = .{ .index = index, .point = query.point, .include = query.include } });
++            },
++            .completion, .hover => if (doc.completion) |index| {
++                return events.respond(query.id, if (query.kind == .hover) .{ .hover = .{ .index = index, .point = query.point } } else .{ .completion = .{ .index = index, .point = query.point } });
++            } else if (doc.completion_done) return events.failure.fail(query.id, .completion_unavailable),
++        }
++        if (!self.pending(doc.*)) return events.failure.fail(query.id, switch (query.kind) {
++            .symbols => .outline_incomplete,
++            .references => .references_incomplete,
++            .completion, .hover => .completion_unavailable,
++        });
++        if (!doc.requests.canAppend(query.id)) return events.failure.fail(query.id, switch (query.kind) {
++            .symbols => .outline_limit,
++            .references => .references_limit,
++            .completion, .hover => .pending_limit,
++        });
++        try doc.requests.append(self.allocator, query);
++    }
++    pub fn requestFixes(self: *Server, uri: []const u8, id: requests.Id, range: pos.Range, generation: ?i64, mixed: bool, events: Events) !void {
++        const i = self.find(uri) orelse return events.failure.fail(id, .actions_document);
++        const doc = &self.documents.items[i];
++        const offers = doc.fixes orelse return events.failure.fail(id, if (doc.fixes_done) .fixes_unavailable else .diagnostics_not_ready);
++        if (mixed or if (generation) |g| g < 0 or @as(u64, @intCast(g)) != doc.generation else false) return events.failure.fail(id, .stale_diagnostics);
++        try events.respond(id, .{ .fixes = .{ .index = offers, .range = range } });
++    }
++
++    fn environment(self: *Server) pipeline.Environment {
++        return .{ .allocator = self.allocator, .html_allocator = self.html_allocator, .syntax_pending = &self.syntax_pending, .html_budget = &self.html_budget, .related_information = self.related_information, .finding_limit = limits.findings };
++    }
++    fn buildContext(self: *Server, job: *Job, encoding: pos.Encoding, events: Events) !bool {
++        var built = pipeline.buildContext(self.environment(), job, encoding) catch |err| {
++            if (err == error.Yield) return true;
++            if (err == error.Cancelled) return false;
++            return err;
++        };
++        defer built.deinit(self.allocator);
++        return self.publish(events, publishContext, .{ job, &built });
++    }
++    fn publishContext(self: *Server, events: Events, job: *Job, built: *pipeline.Context) !bool {
++        const i = self.find(job.uri) orelse return false;
++        const doc = &self.documents.items[i];
++        if (self.stopping or doc.generation != job.generation or job.cancel.load(.acquire)) return false;
++        doc.outline_done = true;
++        if (built.symbols) |owned| {
++            doc.outline_index = snapshot.Outline.create(self.allocator, owned, doc.uri, doc.version, doc.generation, owned.bytes(), &self.outline_bytes, outline.global_bytes) catch null;
++            if (doc.outline_index != null) built.symbols = null;
++        }
++        var symbol_n: usize = 0;
++        while (symbol_n < doc.requests.items().len) {
++            if (doc.requests.items()[symbol_n].kind != .symbols) {
++                symbol_n += 1;
++                continue;
++            }
++            const request = doc.requests.orderedRemove(symbol_n);
++            defer request.id.deinit(self.allocator);
++            if (doc.outline_index) |index| try events.respond(request.id, .{ .outline = index }) else try events.failure.fail(request.id, .outline_unavailable);
++        }
++        doc.completion_done = true;
++        if (built.index) |owned| {
++            doc.completion = snapshot.Completion.create(self.allocator, owned, doc.uri, doc.version, doc.generation, owned.bytes(), &self.context_bytes, limits.completion_total) catch null;
++            if (doc.completion != null) built.index = null;
++        }
++        var n: usize = 0;
++        while (n < doc.requests.items().len) {
++            if (doc.requests.items()[n].kind != .completion and doc.requests.items()[n].kind != .hover) {
++                n += 1;
++                continue;
++            }
++            const request = doc.requests.orderedRemove(n);
++            defer request.id.deinit(self.allocator);
++            if (doc.completion) |ready| {
++                try events.respond(request.id, if (request.kind == .hover) .{ .hover = .{ .index = ready, .point = request.point } } else .{ .completion = .{ .index = ready, .point = request.point } });
++            } else try events.failure.fail(request.id, .completion_exceeded);
++        }
++        return pipeline.afterContext(job);
++    }
++    fn buildHtml(self: *Server, job: *Job, encoding: pos.Encoding, events: Events) !bool {
++        return self.analyzeHtml(job, encoding, events) catch |err| {
++            if (err == error.Yield) return true;
++            return err;
++        };
++    }
++    fn analyzeHtml(self: *Server, job: *Job, encoding: pos.Encoding, events: Events) !bool {
++        const ready = pipeline.advanceHtml(self.environment(), job) catch |err| {
++            if (err == error.Cancelled) return false;
++            return err;
++        };
++        return if (ready) self.finishHtml(job, encoding, events) else true;
++    }
++
++    fn finishHtml(self: *Server, job: *Job, encoding: pos.Encoding, events: Events) !bool {
++        job.phase_result = pipeline.finishHtml(self.environment(), job, encoding) catch |err| {
++            if (err == error.Cancelled) return false;
++            return err;
++        };
++        return self.publish(events, publishHtml, .{ job, &job.phase_result.? });
++    }
++    /// The application calls this after encoding borrowed phase notices.
++    pub fn releaseResult(self: *Server, job: *Job) void {
++        job.releaseResult(self.allocator);
++    }
++    fn publishHtml(self: *Server, events: Events, job: *Job, built: *pipeline.Html) !bool {
++        const i = self.find(job.uri) orelse return false;
++        const doc = &self.documents.items[i];
++        if (self.stopping or doc.generation != job.generation or job.cancel.load(.acquire)) return false;
++        self.setFixes(doc, built.offers.items, built.fixes_failed);
++        try events.diagnostics(events.context, .{ .uri = job.uri, .version = job.version, .generation = job.generation, .items = built.diagnostics.items });
++        const old_bytes = if (doc.html_cache) |cache| cache.payload_bytes else 0;
++        if (job.html.?.cache) |cache| if (cache.payload_bytes <= limits.html_cache_total - (self.html_cache_bytes - old_bytes)) {
++            self.dropHtmlCache(doc);
++            doc.html_cache = job.html.?.cache;
++            self.html_cache_bytes += job.html.?.cache.?.payload_bytes;
++            job.html.?.cache = null;
++        };
++        pipeline.afterHtml(self.allocator, job);
++        return true;
++    }
++    fn buildIndex(self: *Server, job: *Job, encoding: pos.Encoding, events: Events) !bool {
++        var index: ?references.Index = pipeline.buildReferences(self.environment(), job, encoding) catch |err| {
++            if (err == error.Yield) return true;
++            return false;
++        };
++        defer if (index) |*owned| owned.deinit(self.allocator);
++        return self.publish(events, publishReferences, .{ job, &index });
++    }
++    fn publishReferences(self: *Server, events: Events, job: *Job, index: *?references.Index) !bool {
++        const i = self.find(job.uri) orelse return false;
++        const doc = &self.documents.items[i];
++        if (self.stopping or doc.generation != job.generation or job.cancel.load(.acquire)) return false;
++        const owned = index.*.?;
++        doc.references = snapshot.References.create(self.allocator, owned, doc.uri, doc.version, doc.generation, owned.bytes(), &self.index_bytes, limits.references_total) catch return false;
++        index.* = null;
++        defer doc.requests.clear(self.allocator);
++        for (doc.requests.items()) |request| try events.respond(request.id, .{ .references = .{ .index = doc.references.?, .point = request.point, .include = request.include } });
++        return false;
++    }
++
++    fn analyze(self: *Server, job: *Job, encoding: pos.Encoding, events: Events) !bool {
++        if (!try pipeline.syntax(self.environment(), job, encoding)) return false;
++        return self.publish(events, publishSyntax, .{job});
++    }
++    fn publishSyntax(self: *Server, events: Events, job: *Job) !bool {
++        const i = self.find(job.uri) orelse return false;
++        if (self.stopping or self.documents.items[i].generation != job.generation) return false;
++        self.setFixes(&self.documents.items[i], job.fixes.items, job.fixes_failed);
++        try events.diagnostics(events.context, .{ .uri = job.uri, .version = job.version, .generation = job.generation, .items = job.diagnostics.items });
++        if (job.labels.?.spans.count == 0 and !job.labels.?.incomplete) self.dropHtmlCache(&self.documents.items[i]);
++        pipeline.afterSyntax(self.allocator, job);
++        return true;
+     }
+ };
+ 
+@@ -225,7 +493,7 @@
+             defer state.stop(recorder.observer());
+             const packet = try std.testing.allocator.dupe(u8, "--graph {}--");
+             defer std.testing.allocator.free(packet);
+-            const result = state.update("untitled:failure", .{ .text = packet[2..10], .packet = packet }, 1, true, .{ .context = &recorder, .start = Recorder.failStart }, recorder.observer()) catch |err| {
++            const result = state.updateWithStarter("untitled:failure", .{ .text = packet[2..10], .packet = packet }, 1, true, .{ .context = &recorder, .start = Recorder.failStart }, recorder.observer()) catch |err| {
+                 if (err != error.TestWorkerFailure) return err;
+                 try std.testing.expectEqualStrings("--graph {}--", packet);
+                 try std.testing.expectEqual(@as(usize, 0), state.source_bytes);
+@@ -251,10 +519,45 @@
+     const packet = try allocator.dupe(u8, "graph {}");
+     defer allocator.free(packet);
+     state.source_bytes = limits.sources;
+-    const result = try state.update("untitled:test", .{ .text = packet, .packet = packet }, 2, true, .{ .context = &recorder, .start = Recorder.failStart }, recorder.observer());
++    const result = try state.updateWithStarter("untitled:test", .{ .text = packet, .packet = packet }, 2, true, .{ .context = &recorder, .start = Recorder.failStart }, recorder.observer());
+     state.source_bytes = 0;
+     try std.testing.expectEqual(Update.limited, result);
+     try std.testing.expectEqualStrings("graph {}", packet);
+     try std.testing.expect(state.documents.items[0].pending == null);
+     try std.testing.expectEqual(@as(i64, 2), state.documents.items[0].version);
+ }
++
++test "HTML publication keeps its owned findings alive through the encoder handoff" {
++    const a = std.testing.allocator;
++    var state: Server = .{ .allocator = a, .html_allocator = a, .io = std.testing.io };
++    var failures: Recorder = .{};
++    defer state.stop(failures.observer());
++    try state.documents.append(a, .{ .uri = try a.dupe(u8, "uri"), .version = 1, .generation = 1 });
++    var prepared = try jobs.Prepared.init(a, .{ .text = "digraph { a [label=<<B>x</I>>]; }" }, "uri", 1, 1);
++    defer prepared.deinit(a);
++    const job = prepared.commit();
++    defer job.destroy(a);
++    const Capture = struct {
++        notice: ?Notice = null,
++        fn receive(ctx: *anyopaque, value: Notice) !void {
++            const self: *@This() = @ptrCast(@alignCast(ctx));
++            self.notice = value;
++        }
++        fn unexpectedReply(_: *anyopaque, _: requests.Id, _: View) !void {
++            return error.UnexpectedReply;
++        }
++        fn unexpectedFailure(_: *anyopaque, _: []const u8, _: i64, _: u64) !void {
++            return error.UnexpectedFailure;
++        }
++    };
++    var capture: Capture = .{};
++    const events: Events = .{ .context = &capture, .failure = failures.observer(), .reply = Capture.unexpectedReply, .diagnostics = Capture.receive, .analysis_failed = Capture.unexpectedFailure };
++    try std.testing.expect(try state.advance(job, .utf16, events));
++    while (job.phase == .html) try std.testing.expect(try state.advance(job, .utf16, events));
++    // advance has returned. The application has not encoded the notice yet.
++    try std.testing.expect(job.phase_result != null);
++    try std.testing.expect(capture.notice.?.items.len > 0);
++    try std.testing.expect(capture.notice.?.items[0].message.len > 0);
++    state.releaseResult(job);
++    try std.testing.expect(job.phase_result == null);
++}

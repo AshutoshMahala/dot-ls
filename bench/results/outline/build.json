@@ -1,0 +1,24 @@
+{
+  "date": "2026-10-15",
+  "compiler": "Zig 0.16.0",
+  "optimize": "ReleaseSafe",
+  "allocator": "page, with existing packed HTML allocator",
+  "machine": "Apple M4 Pro, 14 logical CPUs, 48 GiB RAM, arm64 macOS 27.0.1",
+  "binary_bytes": 854920,
+  "binary_sha256": "3660bbc9df91fa4d428a5ffe18452d45bbea11d201ea5868408526422b91a68f",
+  "source_sha256": {
+    "src/main.zig": "3f191e6740db5a24cb5c1fa4f0318be9abad2c604809dedf572f77aaaf387a0e",
+    "src/outline.zig": "2274eb7501d2a1f0850c614575ccbd9a1e2302e7cee062fdc545b8de2d685472",
+    "src/analysis.zig": "8efd5a045f1c4f4c0c180f42ebff35ac0e76595f2419421ad1e95e2bf943e4da",
+    "src/completion_context.zig": "4bce52446e29a233170283e0f3443e57dfdb86047d60f595d272ddc228e5f455",
+    "tests/outline.py": "d7e8d54fb8f87ed742b40e7bdda7d1c8d06e8f25e28741f83c3d275144f41bb9",
+    "vendor/patches/outline-observer.patch": "3a31530fe0cb4d6cd512d3d430d4a8f7fd09d50cc52818e00652ffebedc46574"
+  },
+  "checks": [
+    "zig build test (Debug)",
+    "zig build test test-parser -Doptimize=ReleaseSafe",
+    "Python protocol suites: lsp, completion, references, html, validation, code_actions, outline",
+    "Native Zed: symbol picker, panel, navigation after error, incomplete attribute recovery, final build restart"
+  ],
+  "external_server_libraries_added": 0
+}

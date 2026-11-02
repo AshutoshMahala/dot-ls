@@ -1,0 +1,52 @@
+{
+  "inplace": {
+    "binary_sha256": "699eb9cf0653f046ed7455f171e33bbd6fbe7c88dd2fee4cc84e976303bf9d17",
+    "checks": {
+      "lsp": {
+        "exit": 0,
+        "stdout": "{\n  \"checks\": \"passed\",\n  \"binary_bytes\": 945144,\n  \"startup_ms_median\": 2.300042000000002,\n  \"startup_ms_max\": 2.7298339999999865,\n  \"edit_bytes\": 800012,\n  \"edit_ms_median\": 8.071312500000012,\n  \"edit_ms_max\": 8.283833000000019\n}\n",
+        "stderr": ""
+      },
+      "protocol": {
+        "exit": 0,
+        "stdout": "Protocol boundaries passed: framing, lifecycle/error order, IDs, source updates and 26 captured replies/findings.\n",
+        "stderr": ""
+      },
+      "attributes": {
+        "exit": 0,
+        "stdout": "Attributes: owner filtering, quoted names, UTF-8/16/32, hover exclusions and stale/cancelled requests passed\n",
+        "stderr": ""
+      },
+      "code_actions": {
+        "exit": 0,
+        "stdout": "Code actions: parser edits apply cleanly; UTF-8/16/32, HTML rebase, filters, stale generations and versioned edits passed.\n",
+        "stderr": ""
+      }
+    }
+  },
+  "arena": {
+    "binary_sha256": "c73c24f6ffdf33ba7467f9522b6e9df1beb5f5c4b2f420e24b6a388e00ce03f6",
+    "checks": {
+      "lsp": {
+        "exit": 0,
+        "stdout": "{\n  \"checks\": \"passed\",\n  \"binary_bytes\": 944968,\n  \"startup_ms_median\": 2.3117920000000347,\n  \"startup_ms_max\": 2.4240419999999596,\n  \"edit_bytes\": 800012,\n  \"edit_ms_median\": 8.559041500000003,\n  \"edit_ms_max\": 8.729708000000002\n}\n",
+        "stderr": ""
+      },
+      "protocol": {
+        "exit": 0,
+        "stdout": "Protocol boundaries passed: framing, lifecycle/error order, IDs, source updates and 26 captured replies/findings.\n",
+        "stderr": ""
+      },
+      "attributes": {
+        "exit": 0,
+        "stdout": "Attributes: owner filtering, quoted names, UTF-8/16/32, hover exclusions and stale/cancelled requests passed\n",
+        "stderr": ""
+      },
+      "code_actions": {
+        "exit": 0,
+        "stdout": "Code actions: parser edits apply cleanly; UTF-8/16/32, HTML rebase, filters, stale generations and versioned edits passed.\n",
+        "stderr": ""
+      }
+    }
+  }
+}

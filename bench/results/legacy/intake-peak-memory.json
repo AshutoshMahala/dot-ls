@@ -1,0 +1,33 @@
+{
+  "runs": [
+    {
+      "variant": "before",
+      "errors": false,
+      "source_bytes": 39999996,
+      "peak_rss_bytes": 127336448,
+      "time_output": "        0.32 real         0.30 user         0.01 sys\n           127336448  maximum resident set size\n                   0  average shared memory size\n                   0  average unshared data size\n                   0  average unshared stack size\n                7975  page reclaims\n                   0  page faults\n                   0  swaps\n                   0  block input operations\n                   0  block output operations\n                   0  messages sent\n                   0  messages received\n                   0  signals received\n                 689  voluntary context switches\n                 112  involuntary context switches\n          8969072576  instructions retired\n          1324158054  cycles elapsed\n           126648752  peak memory footprint\n"
+    },
+    {
+      "variant": "inplace",
+      "errors": false,
+      "source_bytes": 39999996,
+      "peak_rss_bytes": 47415296,
+      "time_output": "        0.29 real         0.28 user         0.00 sys\n            47415296  maximum resident set size\n                   0  average shared memory size\n                   0  average unshared data size\n                   0  average unshared stack size\n                3098  page reclaims\n                   0  page faults\n                   0  swaps\n                   0  block input operations\n                   0  block output operations\n                   0  messages sent\n                   0  messages received\n                   0  signals received\n                 688  voluntary context switches\n                  64  involuntary context switches\n          8744532851  instructions retired\n          1229629954  cycles elapsed\n            46678376  peak memory footprint\n"
+    },
+    {
+      "variant": "before",
+      "errors": true,
+      "source_bytes": 39999997,
+      "peak_rss_bytes": 127336448,
+      "time_output": "        0.34 real         0.32 user         0.01 sys\n           127336448  maximum resident set size\n                   0  average shared memory size\n                   0  average unshared data size\n                   0  average unshared stack size\n               12125  page reclaims\n                   0  page faults\n                   0  swaps\n                   0  block input operations\n                   0  block output operations\n                   0  messages sent\n                   0  messages received\n                   0  signals received\n                 690  voluntary context switches\n                  45  involuntary context switches\n          9640939523  instructions retired\n          1411411066  cycles elapsed\n           126681568  peak memory footprint\n"
+    },
+    {
+      "variant": "inplace",
+      "errors": true,
+      "source_bytes": 39999997,
+      "peak_rss_bytes": 85098496,
+      "time_output": "        0.34 real         0.32 user         0.01 sys\n            85098496  maximum resident set size\n                   0  average shared memory size\n                   0  average unshared data size\n                   0  average unshared stack size\n                7247  page reclaims\n                   0  page faults\n                   0  swaps\n                   0  block input operations\n                   0  block output operations\n                   0  messages sent\n                   0  messages received\n                   0  signals received\n                 689  voluntary context switches\n                  74  involuntary context switches\n          9423461021  instructions retired\n          1364735465  cycles elapsed\n            84394392  peak memory footprint\n"
+    }
+  ],
+  "notes": "macOS /usr/bin/time -l maximum resident set size in bytes, one process per fixture/variant, uninstrumented ReleaseSafe binaries. Includes startup, request, analysis/diagnostics and shutdown. Latency measured separately."
+}

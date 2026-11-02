@@ -1,0 +1,45 @@
+{
+  "replies": 26,
+  "only_presentation_strings_changed": true,
+  "changes": [
+    {
+      "path": [
+        11,
+        0,
+        "message"
+      ],
+      "before": "Expected an identifier or ';' or ']' or ','; found '}'.\ncheck this statement against the DOT grammar: a body holds node, edge, attribute, assignment and subgraph statements",
+      "after": "Missing closing ']' before '}'.\nClose the attribute list with ']'."
+    },
+    {
+      "path": [
+        16,
+        "result",
+        0,
+        "title"
+      ],
+      "before": "Insert ']'",
+      "after": "Insert closing ']'"
+    },
+    {
+      "path": [
+        18,
+        "result",
+        0,
+        "title"
+      ],
+      "before": "Insert ']'",
+      "after": "Insert closing ']'"
+    },
+    {
+      "path": [
+        22,
+        "result",
+        "contents",
+        "value"
+      ],
+      "before": "Text or an HTML-like label displayed on the object.\n\nType: lblString\n\nDefault: \"\\N\" (nodes) \"\" (otherwise)\n\nApplies to: graph node edge cluster ",
+      "after": "label\n\nText or an HTML-like label displayed on the object.\n\nType: lblString\nDefault: \"\\N\" (nodes) \"\" (otherwise)\nApplies to: graph, node, edge, cluster\n\nExample:\nstart [label=\"Start here\"];\n\nReference: https://graphviz.org/docs/attrs/label/"
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "binary": "/Users/ash/dev/dotls/dotls/zig-out/bin/dot-ls",
+  "sha256": "620fa7b71146dc263f5a8061eb19e62918f5a707cc49204634001e88115c2631",
+  "debug_allocator": false,
+  "runs": [],
+  "passed": true,
+  "multi_document": {
+    "documents": 8,
+    "source_bytes_each": 5000000,
+    "cycles": [
+      {
+        "live_rss_bytes": 24854528,
+        "post_close_rss_bytes": 2539520
+      },
+      {
+        "live_rss_bytes": 24854528,
+        "post_close_rss_bytes": 2539520
+      },
+      {
+        "live_rss_bytes": 24854528,
+        "post_close_rss_bytes": 2539520
+      }
+    ],
+    "idle": {
+      "t": 0.383866,
+      "rss_bytes": 2179072,
+      "footprint_bytes": 1425744,
+      "cpu_seconds": 0.002149,
+      "start_ticks": 9029087771670
+    },
+    "resources": {
+      "exit_code": 0,
+      "actual_peak_rss_bytes": 64274432,
+      "sampled_peak_rss_bytes": 60030976,
+      "sampled_peak_footprint_bytes": 59212280,
+      "cpu_user_seconds": 0.767281,
+      "cpu_system_seconds": 0.059702,
+      "safety_stop": null,
+      "stderr": ""
+    }
+  }
+}

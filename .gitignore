@@ -1,0 +1,25 @@
+# Zig build output and caches
+.zig-cache/
+zig-out/
+
+# Release archives. GitHub Actions builds them; see docs/DEVELOPMENT.md.
+/dist/
+
+# Local scratch files
+/temp/
+
+# Large editor test files. Recreate them with tools/make_large_examples.py.
+/examples/editor-*mb.dot
+
+# Zed adapter build output and machine-specific Cargo settings
+/editors/zed/target/
+/editors/zed/extension.wasm
+/editors/zed/grammars/
+/editors/zed/.cargo/config.toml
+
+# Python caches
+__pycache__/
+
+# Machine metadata and local runtime logs
+.DS_Store
+/nvim.log

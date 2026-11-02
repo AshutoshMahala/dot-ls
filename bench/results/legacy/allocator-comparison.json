@@ -1,0 +1,273 @@
+{
+  "source_bytes": 39999996,
+  "wire_bytes": 45000149,
+  "summary": [
+    {
+      "allocator": "page",
+      "json_storage": "arena",
+      "median_request_ms": 305.29420849999997,
+      "min_request_ms": 301.221375,
+      "max_request_ms": 334.841208,
+      "binary_bytes": 637848,
+      "idle_rss_bytes": 2080768,
+      "sampled_peak_rss_bytes": 159891456,
+      "after_close_rss_bytes": 2293760
+    },
+    {
+      "allocator": "page",
+      "json_storage": "buffer",
+      "median_request_ms": 305.32500000000005,
+      "min_request_ms": 295.780417,
+      "max_request_ms": 407.3675,
+      "binary_bytes": 638360,
+      "idle_rss_bytes": 2097152,
+      "sampled_peak_rss_bytes": 127172608,
+      "after_close_rss_bytes": 2277376
+    },
+    {
+      "allocator": "smp",
+      "json_storage": "arena",
+      "median_request_ms": 305.00031249999995,
+      "min_request_ms": 298.203667,
+      "max_request_ms": 315.86825,
+      "binary_bytes": 639096,
+      "idle_rss_bytes": 2293760,
+      "sampled_peak_rss_bytes": 129810432,
+      "after_close_rss_bytes": 2670592
+    },
+    {
+      "allocator": "smp",
+      "json_storage": "buffer",
+      "median_request_ms": 301.77116650000005,
+      "min_request_ms": 300.29825,
+      "max_request_ms": 307.669125,
+      "binary_bytes": 639608,
+      "idle_rss_bytes": 2244608,
+      "sampled_peak_rss_bytes": 123486208,
+      "after_close_rss_bytes": 2572288
+    },
+    {
+      "allocator": "debug",
+      "json_storage": "arena",
+      "median_request_ms": 303.493917,
+      "min_request_ms": 300.215708,
+      "max_request_ms": 308.184625,
+      "binary_bytes": 662776,
+      "idle_rss_bytes": 2129920,
+      "sampled_peak_rss_bytes": 119619584,
+      "after_close_rss_bytes": 2359296
+    },
+    {
+      "allocator": "debug",
+      "json_storage": "buffer",
+      "median_request_ms": 299.7935205,
+      "min_request_ms": 295.137792,
+      "max_request_ms": 314.510292,
+      "binary_bytes": 663288,
+      "idle_rss_bytes": 2129920,
+      "sampled_peak_rss_bytes": 87425024,
+      "after_close_rss_bytes": 2342912
+    }
+  ],
+  "runs": [
+    {
+      "repeat": 0,
+      "allocator": "page",
+      "json_storage": "arena",
+      "startup_ms": 268.090583,
+      "request_ms": [
+        334.841208,
+        304.909958,
+        309.231209,
+        301.75925
+      ],
+      "binary_bytes": 637848
+    },
+    {
+      "repeat": 0,
+      "allocator": "page",
+      "json_storage": "buffer",
+      "startup_ms": 151.115667,
+      "request_ms": [
+        318.454917,
+        295.780417,
+        407.3675,
+        296.356209
+      ],
+      "binary_bytes": 638360
+    },
+    {
+      "repeat": 0,
+      "allocator": "smp",
+      "json_storage": "arena",
+      "startup_ms": 128.3415,
+      "request_ms": [
+        315.86825,
+        298.203667,
+        298.973208,
+        300.270875
+      ],
+      "binary_bytes": 639096
+    },
+    {
+      "repeat": 0,
+      "allocator": "smp",
+      "json_storage": "buffer",
+      "startup_ms": 165.426625,
+      "request_ms": [
+        307.669125,
+        306.564875,
+        301.35,
+        301.018584
+      ],
+      "binary_bytes": 639608
+    },
+    {
+      "repeat": 0,
+      "allocator": "debug",
+      "json_storage": "arena",
+      "startup_ms": 149.993333,
+      "request_ms": [
+        306.983833,
+        308.184625,
+        302.861417,
+        303.392667
+      ],
+      "binary_bytes": 662776
+    },
+    {
+      "repeat": 0,
+      "allocator": "debug",
+      "json_storage": "buffer",
+      "startup_ms": 133.5665,
+      "request_ms": [
+        314.510292,
+        295.137792,
+        299.896833,
+        298.301959
+      ],
+      "binary_bytes": 663288
+    },
+    {
+      "repeat": 1,
+      "allocator": "debug",
+      "json_storage": "buffer",
+      "startup_ms": 3.087917,
+      "request_ms": [
+        305.790458,
+        299.690208,
+        301.678958,
+        298.990167
+      ],
+      "binary_bytes": 663288
+    },
+    {
+      "repeat": 1,
+      "allocator": "debug",
+      "json_storage": "arena",
+      "startup_ms": 3.30525,
+      "request_ms": [
+        305.941625,
+        300.215708,
+        303.595167,
+        300.983584
+      ],
+      "binary_bytes": 662776
+    },
+    {
+      "repeat": 1,
+      "allocator": "smp",
+      "json_storage": "buffer",
+      "startup_ms": 3.131083,
+      "request_ms": [
+        307.276333,
+        302.192333,
+        301.124584,
+        300.29825
+      ],
+      "binary_bytes": 639608
+    },
+    {
+      "repeat": 1,
+      "allocator": "smp",
+      "json_storage": "arena",
+      "startup_ms": 3.137,
+      "request_ms": [
+        307.693,
+        311.143625,
+        302.307625,
+        313.587791
+      ],
+      "binary_bytes": 639096
+    },
+    {
+      "repeat": 1,
+      "allocator": "page",
+      "json_storage": "buffer",
+      "startup_ms": 3.106917,
+      "request_ms": [
+        308.702625,
+        304.752625,
+        305.897375,
+        300.239083
+      ],
+      "binary_bytes": 638360
+    },
+    {
+      "repeat": 1,
+      "allocator": "page",
+      "json_storage": "arena",
+      "startup_ms": 3.066208,
+      "request_ms": [
+        311.985791,
+        304.800291,
+        305.678459,
+        301.221375
+      ],
+      "binary_bytes": 637848
+    },
+    {
+      "allocator": "page",
+      "json_storage": "arena",
+      "idle_rss_bytes": 2080768,
+      "sampled_peak_rss_bytes": 159891456,
+      "after_close_rss_bytes": 2293760
+    },
+    {
+      "allocator": "page",
+      "json_storage": "buffer",
+      "idle_rss_bytes": 2097152,
+      "sampled_peak_rss_bytes": 127172608,
+      "after_close_rss_bytes": 2277376
+    },
+    {
+      "allocator": "smp",
+      "json_storage": "arena",
+      "idle_rss_bytes": 2293760,
+      "sampled_peak_rss_bytes": 129810432,
+      "after_close_rss_bytes": 2670592
+    },
+    {
+      "allocator": "smp",
+      "json_storage": "buffer",
+      "idle_rss_bytes": 2244608,
+      "sampled_peak_rss_bytes": 123486208,
+      "after_close_rss_bytes": 2572288
+    },
+    {
+      "allocator": "debug",
+      "json_storage": "arena",
+      "idle_rss_bytes": 2129920,
+      "sampled_peak_rss_bytes": 119619584,
+      "after_close_rss_bytes": 2359296
+    },
+    {
+      "allocator": "debug",
+      "json_storage": "buffer",
+      "idle_rss_bytes": 2129920,
+      "sampled_peak_rss_bytes": 87425024,
+      "after_close_rss_bytes": 2342912
+    }
+  ],
+  "notes": "Latency starts before writing pre-encoded payload. Includes transport, server JSON, copying, metered block syntax analysis and response. RSS sampling is separate and may miss transient peaks."
+}

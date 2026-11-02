@@ -1,0 +1,9 @@
+.{
+    .name = .dot_ls,
+    .version = "0.0.1",
+    .fingerprint = 0xba3c56185e650443,
+    // dot-parser: vendored at 01b0a8e1b1a69bcf4535091e1c8870e5063eb7f4 with no local patches. See vendor/README.md.
+    .minimum_zig_version = "0.17.0",
+    .dependencies = .{},
+    .paths = .{ "build.zig", "build.zig.zon", "src", "tests", "tools", "docs", "vendor", "editors", "README.md", "VERSION", "LICENSE-MIT", "LICENSE-APACHE", ".gitignore" },
+}

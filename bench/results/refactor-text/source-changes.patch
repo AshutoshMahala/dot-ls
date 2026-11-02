@@ -1,0 +1,708 @@
+--- a/src/code_actions.zig
++++ b/src/code_actions.zig
+@@ -1,8 +1,8 @@
+ //! Compact parser fix offers. No source, syntax tree, or diagnostic text retained.
+ const std = @import("std");
+ const dot = @import("dot_parser");
+-const pos = @import("positions.zig");
+-pub const Range = struct { start: pos.Position, end: pos.Position };
++const pos = @import("text/positions.zig");
++pub const Range = @import("text/types.zig").Range;
+ const Point = struct {
+     line: u32,
+     character: u32,
+--- a/src/completion_context.zig
++++ b/src/completion_context.zig
+@@ -1,70 +1,30 @@
+ //! Compressed lexical completion regions. No retained source or AST.
+ const std = @import("std");
+ const dot = @import("dot_parser");
+-const pos = @import("positions.zig");
++const pos = @import("text/positions.zig");
+ const attributes = @import("attributes.zig");
+ pub const Kind = enum(u4) { none, header, graph_kind, body, endpoint, attr_graph, attr_node, attr_edge, attr_subgraph, attr_cluster };
+ const Anchor = struct { byte: u32, cursor: u32, kind: Kind };
+-const Unicode = struct { units: u32, bytes: u32 };
++const text_coordinates = @import("text/coordinates.zig");
+ pub const max_bytes = 64 * 1024 * 1024;
+-const crlf: u32 = 0x80000000;
+ pub const Index = struct {
+     events: []u8 = &.{},
+     anchors: []Anchor = &.{},
+-    lines: []u32 = &.{},
+-    unicode: []Unicode = &.{},
+-    source_len: u32 = 0,
++    coordinates: text_coordinates.Index = .{},
+     attributes: attributes.Index = .{},
+     pub fn deinit(self: *Index, gpa: std.mem.Allocator) void {
+         self.attributes.deinit(gpa);
+         gpa.free(self.events);
+         gpa.free(self.anchors);
+-        gpa.free(self.lines);
+-        gpa.free(self.unicode);
++        self.coordinates.deinit(gpa);
+         self.* = .{};
+     }
+     pub fn bytes(self: Index) usize {
+-        return self.attributes.bytes() + self.events.len + self.anchors.len * @sizeOf(Anchor) + self.lines.len * 4 + self.unicode.len * 8;
+-    }
+-    /// Source byte to the encoding selected when this index was built.
+-    /// Binary searches avoid rescanning long lines for each outline entry.
+-    pub fn positionAt(self: Index, raw: u32) pos.Position {
+-        const byte = @min(raw, self.source_len);
+-        var lo: usize = 0;
+-        var hi = self.lines.len;
+-        while (lo + 1 < hi) {
+-            const mid = lo + (hi - lo) / 2;
+-            if ((self.lines[mid] & ~crlf) <= byte) lo = mid else hi = mid;
+-        }
+-        return .{ .line = lo, .character = self.unitsAt(byte) - self.unitsAt(self.lines[lo] & ~crlf) };
+-    }
+-    fn unitsAt(self: Index, byte: u32) u32 {
+-        var lo: usize = 0;
+-        var hi = self.unicode.len;
+-        while (lo < hi) {
+-            const mid = lo + (hi - lo) / 2;
+-            if (self.unicode[mid].bytes <= byte) lo = mid + 1 else hi = mid;
+-        }
+-        return if (lo == 0) byte else byte - (self.unicode[lo - 1].bytes - self.unicode[lo - 1].units);
+-    }
+-    pub fn byteAt(self: Index, point: pos.Position) ?u32 {
+-        if (point.line >= self.lines.len) return null;
+-        const start = self.unitsAt(self.lines[point.line] & ~crlf);
+-        const end = if (point.line + 1 == self.lines.len) self.unitsAt(self.source_len) else self.unitsAt(self.lines[point.line + 1] & ~crlf) - @as(u32, if (self.lines[point.line + 1] & crlf != 0) 2 else 1);
+-        if (point.character > end - start) return null;
+-        const target: u32 = start + @as(u32, @intCast(point.character));
+-        var lo: usize = 0;
+-        var hi = self.unicode.len;
+-        while (lo < hi) {
+-            const mid = lo + (hi - lo) / 2;
+-            if (self.unicode[mid].units <= target) lo = mid + 1 else hi = mid;
+-        }
+-        const byte = target + if (lo == 0) @as(u32, 0) else self.unicode[lo - 1].bytes - self.unicode[lo - 1].units;
+-        return byte;
++        return self.attributes.bytes() + self.events.len + self.anchors.len * @sizeOf(Anchor) + self.coordinates.bytes();
+     }
+     pub fn at(self: Index, point: pos.Position) Kind {
+         if (self.anchors.len == 0) return .none;
+-        const byte = self.byteAt(point) orelse return .none;
++        const byte = self.coordinates.byteAt(point) orelse return .none;
+         var lo: usize = 0;
+         var hi: usize = 0;
+         lo = 0;
+@@ -248,8 +208,6 @@
+     waiting: ?*const std.atomic.Value(usize),
+     events: std.ArrayList(u8) = .empty,
+     anchors: std.ArrayList(Anchor) = .empty,
+-    lines: std.ArrayList(u32) = .empty,
+-    unicode: std.ArrayList(Unicode) = .empty,
+     attribute_keys: attributes.Builder = .{},
+     last: u32 = 0,
+     kind: Kind = .header,
+@@ -258,15 +216,13 @@
+         self.attribute_keys.deinit(self.gpa);
+         self.events.deinit(self.gpa);
+         self.anchors.deinit(self.gpa);
+-        self.lines.deinit(self.gpa);
+-        self.unicode.deinit(self.gpa);
+     }
+     fn poll(self: *Builder) !void {
+         if (self.cancel.load(.acquire)) return error.Cancelled;
+         if (self.waiting) |flag| if (flag.load(.acquire) > 0) return error.Yield;
+     }
+     fn budget(self: *Builder) !void {
+-        if (self.attribute_keys.bytes() + self.events.items.len + self.anchors.items.len * @sizeOf(Anchor) + self.lines.items.len * 4 + self.unicode.items.len * 8 > max_bytes) return error.ContextLimit;
++        if (self.attribute_keys.bytes() + self.events.items.len + self.anchors.items.len * @sizeOf(Anchor) > max_bytes) return error.ContextLimit;
+     }
+     fn emit(self: *Builder, byte: usize, kind: Kind) !void {
+         if (kind == self.kind or byte < self.last) return;
+@@ -358,66 +314,21 @@
+             if (!word) try self.emit(end, state.kind());
+         }
+     }
+-    fn coordinates(self: *Builder, encoding: pos.Encoding) !void {
+-        try self.lines.append(self.gpa, 0);
+-        var i: usize = 0;
+-        var units: u32 = 0;
+-        var next: usize = 0;
+-        while (i < self.source.len) {
+-            if (i >= next) {
+-                try self.poll();
+-                try self.budget();
+-                next = i + 4096;
+-            }
+-            if (self.source.len - i >= 8) {
+-                const V = @Vector(8, u8);
+-                const v: V = self.source[i..][0..8].*;
+-                const special = (v >= @as(V, @splat(128))) | (v == @as(V, @splat('\r'))) | (v == @as(V, @splat('\n')));
+-                const n: usize = if (std.simd.firstTrue(special)) |n| n else 8;
+-                if (n > 0) {
+-                    i += n;
+-                    units += @intCast(n);
+-                    continue;
+-                }
+-            }
+-            const byte = self.source[i];
+-            if (byte == '\r' or byte == '\n') {
+-                i += 1;
+-                units += 1;
+-                const pair = byte == '\r' and i < self.source.len and self.source[i] == '\n';
+-                if (pair) {
+-                    i += 1;
+-                    units += 1;
+-                }
+-                try self.lines.append(self.gpa, @as(u32, @intCast(i)) | if (pair) crlf else 0);
+-            } else {
+-                const width = @min(std.unicode.utf8ByteSequenceLength(byte) catch 1, self.source.len - i);
+-                const scalar = std.unicode.utf8Decode(self.source[i..][0..width]) catch 0xfffd;
+-                const count: u32 = switch (encoding) {
+-                    .utf8 => @intCast(width),
+-                    .utf16 => if (scalar > 0xffff) 2 else 1,
+-                    .utf32 => 1,
+-                };
+-                i += width;
+-                units += count;
+-                if (count != width) try self.unicode.append(self.gpa, .{ .units = units, .bytes = @intCast(i) });
+-            }
+-        }
+-        try self.budget();
+-    }
+ };
+ pub fn build(gpa: std.mem.Allocator, source: []const u8, encoding: pos.Encoding, cancel: *const std.atomic.Value(bool), waiting: ?*const std.atomic.Value(usize)) !Index {
+     var builder: Builder = .{ .gpa = gpa, .source = source, .cancel = cancel, .waiting = waiting };
+     defer builder.deinit();
+     try builder.scan();
+-    try builder.coordinates(encoding);
++    var coordinate_builder: text_coordinates.Builder = .{ .gpa = gpa, .source = source, .cancel = cancel, .waiting = waiting };
++    defer coordinate_builder.deinit();
++    const other_bytes = builder.attribute_keys.bytes() + builder.events.items.len + builder.anchors.items.len * @sizeOf(Anchor);
++    try coordinate_builder.scan(encoding, other_bytes, max_bytes);
+     try builder.poll();
+-    var index: Index = .{ .source_len = @intCast(source.len) };
++    var index: Index = .{};
+     errdefer index.deinit(gpa);
+     index.events = try builder.events.toOwnedSlice(gpa);
+     index.anchors = try builder.anchors.toOwnedSlice(gpa);
+-    index.lines = try builder.lines.toOwnedSlice(gpa);
+-    index.unicode = try builder.unicode.toOwnedSlice(gpa);
++    index.coordinates = try coordinate_builder.finish();
+     index.attributes = builder.attribute_keys.finish(gpa) catch .{ .available = false };
+     return index;
+ }
+--- a/src/main.zig
++++ b/src/main.zig
+@@ -1,7 +1,7 @@
+ const std = @import("std");
+ const build_options = @import("build_options");
+ const json_message = @import("json_message.zig");
+-const pos = @import("positions.zig");
++const pos = @import("text/positions.zig");
+ const diagnostic_text = @import("diagnostic_text.zig");
+ const completion = @import("completion.zig");
+ const attributes = @import("attributes.zig");
+@@ -55,7 +55,7 @@
+ };
+ const ReferenceRequest = struct { id: std.json.Value, point: pos.Position, include: bool = false, kind: enum { references, completion, hover, symbols } = .references };
+ const Document = struct { outline_index: ?outline.Index = null, outline_done: bool = false, fixes: ?[]actions.Fix = null, fixes_done: bool = false, requests: std.ArrayList(ReferenceRequest) = .empty, index_pending: ?*Job = null, uri: []u8, version: i64, generation: u64, pending: ?*Job = null, references: ?references.Index = null, completion: ?context.Index = null, completion_done: bool = false, html_cache: ?*labels.Cache = null };
+-const Range = actions.Range;
++const Range = @import("text/types.zig").Range;
+ const RelatedInformation = struct { location: struct { uri: []const u8, range: Range }, message: []const u8 };
+ const Diagnostic = struct { data: ?actions.Token = null, range: Range, severity: u8, code: []const u8, source: []const u8 = "dot-ls", relatedInformation: []const RelatedInformation = &.{}, message: []const u8 };
+ const Server = struct {
+@@ -269,13 +269,13 @@
+     }
+     fn hoverReply(self: *Server, id: std.json.Value, index: context.Index, point: pos.Position) !void {
+         if (!index.attributes.available) return self.failure(id, -32803, "Attribute hover exceeded its memory limit.");
+-        const byte = index.byteAt(point);
++        const byte = index.coordinates.byteAt(point);
+         const match = if (byte) |b| index.attributes.at(b) else null;
+         if (match) |key| {
+             const entry = attributes.catalog.entries[key.id];
+             var buffer: [2048]u8 = undefined;
+             const text = try attributes.help(&buffer, entry);
+-            try self.send(.{ .jsonrpc = "2.0", .id = id, .result = .{ .contents = .{ .kind = "plaintext", .value = text }, .range = .{ .start = index.positionAt(key.span.start), .end = index.positionAt(@intCast(key.span.endOffset())) } } });
++            try self.send(.{ .jsonrpc = "2.0", .id = id, .result = .{ .contents = .{ .kind = "plaintext", .value = text }, .range = .{ .start = index.coordinates.positionAt(key.span.start), .end = index.coordinates.positionAt(@intCast(key.span.endOffset())) } } });
+         } else try self.send(.{ .jsonrpc = "2.0", .id = id, .result = @as(?u8, null) });
+     }
+     fn buildContext(self: *Server, job: *Job, encoding: pos.Encoding) !bool {
+@@ -288,7 +288,7 @@
+         var symbols: ?outline.Index = null;
+         defer if (symbols) |*owned| owned.deinit(self.allocator);
+         if (index) |coordinates| if (job.outline_builder) |*builder| {
+-            symbols = builder.finish(coordinates, &job.cancel, &self.syntax_pending) catch |err| blk: {
++            symbols = builder.finish(coordinates.coordinates, &job.cancel, &self.syntax_pending) catch |err| blk: {
+                 if (err == error.Yield) return true;
+                 if (err == error.Cancelled) return false;
+                 break :blk null;
+--- a/src/outline.zig
++++ b/src/outline.zig
+@@ -1,8 +1,8 @@
+ //! Compact declaration outline. No retained source, attributes, edges or AST.
+ const std = @import("std");
+ const dot = @import("dot_parser");
+-const context = @import("completion_context.zig");
+-const pos = @import("positions.zig");
++const text_coordinates = @import("text/coordinates.zig");
++const pos = @import("text/positions.zig");
+ const Span = dot.Span;
+ pub const max_entries = 250_000;
+ pub const max_bytes = 32 * 1024 * 1024;
+@@ -110,7 +110,7 @@
+         self.depth += 1;
+         self.append(.{ .name = name orelse start, .start = start.start, .end = @intCast(self.source.len), .next = none, .kind = kind, .anonymous = name == null and kind == .subgraph });
+     }
+-    pub fn finish(self: *Builder, coordinates: context.Index, cancel: *const std.atomic.Value(bool), waiting: *const std.atomic.Value(usize)) !Index {
++    pub fn finish(self: *Builder, coordinates: text_coordinates.Index, cancel: *const std.atomic.Value(bool), waiting: *const std.atomic.Value(usize)) !Index {
+         if (self.failed) return error.ResourceLimit;
+         const entries = try self.allocator.alloc(Entry, self.raw.items.len);
+         errdefer self.allocator.free(entries);
+@@ -185,7 +185,10 @@
+     var cancel: std.atomic.Value(bool) = .init(false);
+     var waiting: std.atomic.Value(usize) = .init(0);
+     const source = "digraph G {}";
+-    var coordinates = try context.build(std.testing.allocator, source, .utf16, &cancel, &waiting);
++    var coordinate_builder: text_coordinates.Builder = .{ .gpa = std.testing.allocator, .source = source, .cancel = &cancel, .waiting = &waiting };
++    defer coordinate_builder.deinit();
++    try coordinate_builder.scan(.utf16, 0, 64 * 1024 * 1024);
++    var coordinates = try coordinate_builder.finish();
+     defer coordinates.deinit(std.testing.allocator);
+     var builder: Builder = .{ .allocator = std.testing.allocator, .source = source };
+     defer builder.deinit();
+--- a/src/positions.zig
++++ /dev/null
+@@ -1,100 +0,0 @@
+-const std = @import("std");
+-pub const Encoding = enum { utf8, utf16, utf32 };
+-pub const Position = struct { line: usize, character: usize };
+-pub const Index = struct {
+-    starts: std.ArrayList(u32) = .empty,
+-    pub fn init(gpa: std.mem.Allocator, text: []const u8) !Index {
+-        return initCancellable(gpa, text, null);
+-    }
+-    pub fn initCancellable(gpa: std.mem.Allocator, text: []const u8, cancel: ?*const std.atomic.Value(bool)) !Index {
+-        return initImpl(false, gpa, text, cancel, null);
+-    }
+-    pub fn initBackground(gpa: std.mem.Allocator, text: []const u8, cancel: ?*const std.atomic.Value(bool), waiting: ?*const std.atomic.Value(usize)) !Index {
+-        return initImpl(true, gpa, text, cancel, waiting);
+-    }
+-    fn initImpl(comptime background: bool, gpa: std.mem.Allocator, text: []const u8, cancel: ?*const std.atomic.Value(bool), waiting: ?*const std.atomic.Value(usize)) !Index {
+-        var self: Index = .{};
+-        errdefer self.deinit(gpa);
+-        try self.starts.append(gpa, 0);
+-        var i: usize = 0;
+-        var next_poll: usize = 0;
+-        while (i < text.len) : (i += 1) {
+-            if (i >= next_poll) {
+-                next_poll = i +| 4096;
+-                if (cancel) |flag| if (flag.load(.acquire)) return error.Cancelled;
+-                if (background) if (waiting) |flag| if (flag.load(.acquire) != 0) return error.Yield;
+-            }
+-            if (text[i] == '\r') {
+-                if (i + 1 < text.len and text[i + 1] == '\n') i += 1;
+-                try self.starts.append(gpa, std.math.cast(u32, i + 1) orelse return error.SourceTooLarge);
+-            } else if (text[i] == '\n') try self.starts.append(gpa, std.math.cast(u32, i + 1) orelse return error.SourceTooLarge);
+-        }
+-        return self;
+-    }
+-    pub fn deinit(self: *Index, gpa: std.mem.Allocator) void {
+-        self.starts.deinit(gpa);
+-    }
+-    pub fn position(self: Index, text: []const u8, raw: usize, encoding: Encoding) Position {
+-        return self.positionCancellable(text, raw, encoding, null) catch unreachable;
+-    }
+-    pub fn positionCancellable(self: Index, text: []const u8, raw: usize, encoding: Encoding, cancel: ?*const std.atomic.Value(bool)) !Position {
+-        return self.positionImpl(false, text, raw, encoding, cancel, null);
+-    }
+-    pub fn positionBackground(self: Index, text: []const u8, raw: usize, encoding: Encoding, cancel: ?*const std.atomic.Value(bool), waiting: ?*const std.atomic.Value(usize)) !Position {
+-        return self.positionImpl(true, text, raw, encoding, cancel, waiting);
+-    }
+-    fn positionImpl(self: Index, comptime background: bool, text: []const u8, raw: usize, encoding: Encoding, cancel: ?*const std.atomic.Value(bool), waiting: ?*const std.atomic.Value(usize)) !Position {
+-        const offset = @min(raw, text.len);
+-        var lo: usize = 0;
+-        var hi = self.starts.items.len;
+-        while (lo + 1 < hi) {
+-            const mid = lo + (hi - lo) / 2;
+-            if (self.starts.items[mid] <= offset) lo = mid else hi = mid;
+-        }
+-        var i: usize = self.starts.items[lo];
+-        var count: usize = 0;
+-        var next_poll: usize = i;
+-        while (i < offset and text[i] != '\r' and text[i] != '\n') {
+-            if (i >= next_poll) {
+-                next_poll = i +| 4096;
+-                if (cancel) |flag| if (flag.load(.acquire)) return error.Cancelled;
+-                if (background) if (waiting) |flag| if (flag.load(.acquire) != 0) return error.Yield;
+-            }
+-            const n = std.unicode.utf8ByteSequenceLength(text[i]) catch 1;
+-            const end = @min(i + n, offset);
+-            const scalar = std.unicode.utf8Decode(text[i..end]) catch 0xfffd;
+-            count += switch (encoding) {
+-                .utf8 => end - i,
+-                .utf16 => if (scalar > 0xffff) @as(usize, 2) else 1,
+-                .utf32 => 1,
+-            };
+-            i = end;
+-        }
+-        return .{ .line = lo, .character = count };
+-    }
+-};
+-test "astral, BOM, CRLF, CR, LF and clamping" {
+-    const text = "\xef\xbb\xbf😀x\r\na\rb\nc";
+-    var index = try Index.init(std.testing.allocator, text);
+-    defer index.deinit(std.testing.allocator);
+-    try std.testing.expectEqual(Position{ .line = 0, .character = 3 }, index.position(text, 7, .utf16));
+-    try std.testing.expectEqual(Position{ .line = 0, .character = 7 }, index.position(text, 7, .utf8));
+-    try std.testing.expectEqual(Position{ .line = 0, .character = 2 }, index.position(text, 7, .utf32));
+-    try std.testing.expectEqual(Position{ .line = 3, .character = 1 }, index.position(text, 999, .utf16));
+-}
+-
+-test "column conversion notices cancellation at unaligned Unicode line starts" {
+-    const text = "x\r\n😀😀😀";
+-    var index = try Index.init(std.testing.allocator, text);
+-    defer index.deinit(std.testing.allocator);
+-    var cancel: std.atomic.Value(bool) = .init(true);
+-    try std.testing.expectError(error.Cancelled, index.positionCancellable(text, text.len, .utf16, &cancel));
+-}
+-
+-test "background position work yields to syntax without retaining temporary storage" {
+-    const waiting: std.atomic.Value(usize) = .init(1);
+-    try std.testing.expectError(error.Yield, Index.initBackground(std.testing.allocator, "abc", null, &waiting));
+-    var index = try Index.init(std.testing.allocator, "abc");
+-    defer index.deinit(std.testing.allocator);
+-    try std.testing.expectError(error.Yield, index.positionBackground("abc", 3, .utf16, null, &waiting));
+-}
+--- a/src/references.zig
++++ b/src/references.zig
+@@ -1,7 +1,7 @@
+ //! Source spans are captured during parsing; identity and ranges are built later.
+ const std = @import("std");
+ const dot = @import("dot_parser");
+-const pos = @import("positions.zig");
++const pos = @import("text/positions.zig");
+ pub const Range = struct { start: pos.Position, end: pos.Position };
+ const End = struct { line: u32, character: u32 };
+ const extended: u32 = 0x80000000;
+@@ -192,7 +192,7 @@
+                 self.position.character += 1;
+             } else {
+                 const width = @min(std.unicode.utf8ByteSequenceLength(byte) catch 1, end - self.offset);
+-                const scalar = std.unicode.utf8Decode(self.source[self.offset..][0..width]) catch 0xfffd;
++                const scalar = pos.decodeScalar(self.source[self.offset..][0..width]);
+                 self.position.character += switch (self.encoding) {
+                     .utf8 => width,
+                     .utf16 => if (scalar > 0xffff) @as(usize, 2) else 1,
+--- /dev/null
++++ b/src/text/coordinates.zig
+@@ -0,0 +1,183 @@
++//! Compact source-independent coordinates. Construction borrows source only.
++const std = @import("std");
++const pos = @import("types.zig");
++const Unicode = struct { units: u32, bytes: u32 };
++const crlf: u32 = 0x80000000;
++pub const Index = struct {
++    lines: []u32 = &.{},
++    unicode: []Unicode = &.{},
++    source_len: u32 = 0,
++    pub fn deinit(self: *Index, gpa: std.mem.Allocator) void {
++        gpa.free(self.lines);
++        gpa.free(self.unicode);
++        self.* = .{};
++    }
++    pub fn bytes(self: Index) usize {
++        return self.lines.len * 4 + self.unicode.len * 8;
++    }
++    /// Source byte to the encoding selected when this index was built.
++    /// Binary searches avoid rescanning long lines for each outline entry.
++    pub fn positionAt(self: Index, raw: u32) pos.Position {
++        const byte = @min(raw, self.source_len);
++        var lo: usize = 0;
++        var hi = self.lines.len;
++        while (lo + 1 < hi) {
++            const mid = lo + (hi - lo) / 2;
++            if ((self.lines[mid] & ~crlf) <= byte) lo = mid else hi = mid;
++        }
++        return .{ .line = lo, .character = self.unitsAt(byte) - self.unitsAt(self.lines[lo] & ~crlf) };
++    }
++    fn unitsAt(self: Index, byte: u32) u32 {
++        var lo: usize = 0;
++        var hi = self.unicode.len;
++        while (lo < hi) {
++            const mid = lo + (hi - lo) / 2;
++            if (self.unicode[mid].bytes <= byte) lo = mid + 1 else hi = mid;
++        }
++        return if (lo == 0) byte else byte - (self.unicode[lo - 1].bytes - self.unicode[lo - 1].units);
++    }
++    pub fn byteAt(self: Index, point: pos.Position) ?u32 {
++        if (point.line >= self.lines.len) return null;
++        const start = self.unitsAt(self.lines[point.line] & ~crlf);
++        const end = if (point.line + 1 == self.lines.len) self.unitsAt(self.source_len) else self.unitsAt(self.lines[point.line + 1] & ~crlf) - @as(u32, if (self.lines[point.line + 1] & crlf != 0) 2 else 1);
++        if (point.character > end - start) return null;
++        const target: u32 = start + @as(u32, @intCast(point.character));
++        var lo: usize = 0;
++        var hi = self.unicode.len;
++        while (lo < hi) {
++            const mid = lo + (hi - lo) / 2;
++            if (self.unicode[mid].units <= target) lo = mid + 1 else hi = mid;
++        }
++        const byte = target + if (lo == 0) @as(u32, 0) else self.unicode[lo - 1].bytes - self.unicode[lo - 1].units;
++        return byte;
++    }
++};
++pub const Builder = struct {
++    gpa: std.mem.Allocator,
++    source: []const u8,
++    cancel: *const std.atomic.Value(bool),
++    waiting: ?*const std.atomic.Value(usize),
++    lines: std.ArrayList(u32) = .empty,
++    unicode: std.ArrayList(Unicode) = .empty,
++    pub fn deinit(self: *Builder) void {
++        self.lines.deinit(self.gpa);
++        self.unicode.deinit(self.gpa);
++    }
++    fn poll(self: *Builder) !void {
++        if (self.cancel.load(.acquire)) return error.Cancelled;
++        if (self.waiting) |flag| if (flag.load(.acquire) > 0) return error.Yield;
++    }
++    fn budget(self: *Builder, other_bytes: usize, max_bytes: usize) !void {
++        if (other_bytes + self.lines.items.len * 4 + self.unicode.items.len * 8 > max_bytes) return error.ContextLimit;
++    }
++    pub fn finish(self: *Builder) !Index {
++        var index: Index = .{ .source_len = @intCast(self.source.len) };
++        errdefer index.deinit(self.gpa);
++        index.lines = try self.lines.toOwnedSlice(self.gpa);
++        index.unicode = try self.unicode.toOwnedSlice(self.gpa);
++        return index;
++    }
++    pub fn scan(self: *Builder, encoding: pos.Encoding, other_bytes: usize, max_bytes: usize) !void {
++        try self.lines.append(self.gpa, 0);
++        var i: usize = 0;
++        var units: u32 = 0;
++        var next: usize = 0;
++        while (i < self.source.len) {
++            if (i >= next) {
++                try self.poll();
++                try self.budget(other_bytes, max_bytes);
++                next = i + 4096;
++            }
++            if (self.source.len - i >= 8) {
++                const V = @Vector(8, u8);
++                const v: V = self.source[i..][0..8].*;
++                const special = (v >= @as(V, @splat(128))) | (v == @as(V, @splat('\r'))) | (v == @as(V, @splat('\n')));
++                const n: usize = if (std.simd.firstTrue(special)) |n| n else 8;
++                if (n > 0) {
++                    i += n;
++                    units += @intCast(n);
++                    continue;
++                }
++            }
++            const byte = self.source[i];
++            if (byte == '\r' or byte == '\n') {
++                i += 1;
++                units += 1;
++                const pair = byte == '\r' and i < self.source.len and self.source[i] == '\n';
++                if (pair) {
++                    i += 1;
++                    units += 1;
++                }
++                try self.lines.append(self.gpa, @as(u32, @intCast(i)) | if (pair) crlf else 0);
++            } else {
++                const width = @min(std.unicode.utf8ByteSequenceLength(byte) catch 1, self.source.len - i);
++                const scalar = @import("positions.zig").decodeScalar(self.source[i..][0..width]);
++                const count: u32 = switch (encoding) {
++                    .utf8 => @intCast(width),
++                    .utf16 => if (scalar > 0xffff) 2 else 1,
++                    .utf32 => 1,
++                };
++                i += width;
++                units += count;
++                if (count != width) try self.unicode.append(self.gpa, .{ .units = units, .bytes = @intCast(i) });
++            }
++        }
++        try self.budget(other_bytes, max_bytes);
++    }
++};
++
++test "compact coordinates agree with source-backed positions at scalar and line boundaries" {
++    const source = "\xef\xbb\xbfA😀é\r\nβ\rc\n\xffZ\xe2\x82";
++    const cancel: std.atomic.Value(bool) = .init(false);
++    const Positions = @import("positions.zig").Index;
++    var positions = try Positions.init(std.testing.allocator, source);
++    defer positions.deinit(std.testing.allocator);
++    inline for (.{ pos.Encoding.utf8, .utf16, .utf32 }) |encoding| {
++        var builder: Builder = .{ .gpa = std.testing.allocator, .source = source, .cancel = &cancel, .waiting = null };
++        defer builder.deinit();
++        try builder.scan(encoding, 0, 1024);
++        var index = try builder.finish();
++        defer index.deinit(std.testing.allocator);
++        var at: usize = 0;
++        while (true) {
++            const expected = positions.position(source, at, encoding);
++            try std.testing.expectEqualDeep(expected, index.positionAt(@intCast(at)));
++            try std.testing.expectEqual(@as(?u32, @intCast(at)), index.byteAt(expected));
++            if (at == source.len) break;
++            if (source[at] == '\r' and at + 1 < source.len and source[at + 1] == '\n') {
++                at += 2;
++            } else {
++                at += @min(std.unicode.utf8ByteSequenceLength(source[at]) catch 1, source.len - at);
++            }
++        }
++        try std.testing.expectEqualDeep(index.positionAt(source.len), index.positionAt(source.len + 100));
++        try std.testing.expectEqual(@as(?u32, null), index.byteAt(.{ .line = 99, .character = 0 }));
++        try std.testing.expectEqual(@as(?u32, null), index.byteAt(.{ .line = 0, .character = 99 }));
++    }
++}
++
++test "coordinate construction preserves cancellation yield budget and allocation cleanup" {
++    const Harness = struct {
++        fn run(gpa: std.mem.Allocator) !void {
++            const cancel: std.atomic.Value(bool) = .init(false);
++            var builder: Builder = .{ .gpa = gpa, .source = "a😀\r\nbé\rc\n", .cancel = &cancel, .waiting = null };
++            defer builder.deinit();
++            try builder.scan(.utf16, 12, 1024);
++            var index = try builder.finish();
++            defer index.deinit(gpa);
++        }
++    };
++    try std.testing.checkAllAllocationFailures(std.testing.allocator, Harness.run, .{});
++    var cancel: std.atomic.Value(bool) = .init(true);
++    const waiting: std.atomic.Value(usize) = .init(1);
++    var cancelled: Builder = .{ .gpa = std.testing.allocator, .source = "abc", .cancel = &cancel, .waiting = null };
++    defer cancelled.deinit();
++    try std.testing.expectError(error.Cancelled, cancelled.scan(.utf16, 0, 1024));
++    cancel.store(false, .release);
++    var yielded: Builder = .{ .gpa = std.testing.allocator, .source = "abc", .cancel = &cancel, .waiting = &waiting };
++    defer yielded.deinit();
++    try std.testing.expectError(error.Yield, yielded.scan(.utf16, 0, 1024));
++    var limited: Builder = .{ .gpa = std.testing.allocator, .source = "abc", .cancel = &cancel, .waiting = null };
++    defer limited.deinit();
++    try std.testing.expectError(error.ContextLimit, limited.scan(.utf16, 1024, 1024));
++}
+--- /dev/null
++++ b/src/text/positions.zig
+@@ -0,0 +1,119 @@
++const std = @import("std");
++pub const Encoding = @import("types.zig").Encoding;
++pub const Position = @import("types.zig").Position;
++/// Preserve replacement decoding without calling the standard decoder on a
++/// truncated sequence. Its length-specific routines require a matching lead byte.
++pub fn decodeScalar(bytes: []const u8) u21 {
++    if (bytes.len == 0) return 0xfffd;
++    const width = std.unicode.utf8ByteSequenceLength(bytes[0]) catch return 0xfffd;
++    if (width != bytes.len) return 0xfffd;
++    return std.unicode.utf8Decode(bytes) catch 0xfffd;
++}
++pub const Index = struct {
++    starts: std.ArrayList(u32) = .empty,
++    pub fn init(gpa: std.mem.Allocator, text: []const u8) !Index {
++        return initCancellable(gpa, text, null);
++    }
++    pub fn initCancellable(gpa: std.mem.Allocator, text: []const u8, cancel: ?*const std.atomic.Value(bool)) !Index {
++        return initImpl(false, gpa, text, cancel, null);
++    }
++    pub fn initBackground(gpa: std.mem.Allocator, text: []const u8, cancel: ?*const std.atomic.Value(bool), waiting: ?*const std.atomic.Value(usize)) !Index {
++        return initImpl(true, gpa, text, cancel, waiting);
++    }
++    fn initImpl(comptime background: bool, gpa: std.mem.Allocator, text: []const u8, cancel: ?*const std.atomic.Value(bool), waiting: ?*const std.atomic.Value(usize)) !Index {
++        var self: Index = .{};
++        errdefer self.deinit(gpa);
++        try self.starts.append(gpa, 0);
++        var i: usize = 0;
++        var next_poll: usize = 0;
++        while (i < text.len) : (i += 1) {
++            if (i >= next_poll) {
++                next_poll = i +| 4096;
++                if (cancel) |flag| if (flag.load(.acquire)) return error.Cancelled;
++                if (background) if (waiting) |flag| if (flag.load(.acquire) != 0) return error.Yield;
++            }
++            if (text[i] == '\r') {
++                if (i + 1 < text.len and text[i + 1] == '\n') i += 1;
++                try self.starts.append(gpa, std.math.cast(u32, i + 1) orelse return error.SourceTooLarge);
++            } else if (text[i] == '\n') try self.starts.append(gpa, std.math.cast(u32, i + 1) orelse return error.SourceTooLarge);
++        }
++        return self;
++    }
++    pub fn deinit(self: *Index, gpa: std.mem.Allocator) void {
++        self.starts.deinit(gpa);
++    }
++    pub fn position(self: Index, text: []const u8, raw: usize, encoding: Encoding) Position {
++        return self.positionCancellable(text, raw, encoding, null) catch unreachable;
++    }
++    pub fn positionCancellable(self: Index, text: []const u8, raw: usize, encoding: Encoding, cancel: ?*const std.atomic.Value(bool)) !Position {
++        return self.positionImpl(false, text, raw, encoding, cancel, null);
++    }
++    pub fn positionBackground(self: Index, text: []const u8, raw: usize, encoding: Encoding, cancel: ?*const std.atomic.Value(bool), waiting: ?*const std.atomic.Value(usize)) !Position {
++        return self.positionImpl(true, text, raw, encoding, cancel, waiting);
++    }
++    fn positionImpl(self: Index, comptime background: bool, text: []const u8, raw: usize, encoding: Encoding, cancel: ?*const std.atomic.Value(bool), waiting: ?*const std.atomic.Value(usize)) !Position {
++        const offset = @min(raw, text.len);
++        var lo: usize = 0;
++        var hi = self.starts.items.len;
++        while (lo + 1 < hi) {
++            const mid = lo + (hi - lo) / 2;
++            if (self.starts.items[mid] <= offset) lo = mid else hi = mid;
++        }
++        var i: usize = self.starts.items[lo];
++        var count: usize = 0;
++        var next_poll: usize = i;
++        while (i < offset and text[i] != '\r' and text[i] != '\n') {
++            if (i >= next_poll) {
++                next_poll = i +| 4096;
++                if (cancel) |flag| if (flag.load(.acquire)) return error.Cancelled;
++                if (background) if (waiting) |flag| if (flag.load(.acquire) != 0) return error.Yield;
++            }
++            const n = std.unicode.utf8ByteSequenceLength(text[i]) catch 1;
++            const end = @min(i + n, offset);
++            const scalar = decodeScalar(text[i..end]);
++            count += switch (encoding) {
++                .utf8 => end - i,
++                .utf16 => if (scalar > 0xffff) @as(usize, 2) else 1,
++                .utf32 => 1,
++            };
++            i = end;
++        }
++        return .{ .line = lo, .character = count };
++    }
++};
++test "astral, BOM, CRLF, CR, LF and clamping" {
++    const text = "\xef\xbb\xbf😀x\r\na\rb\nc";
++    var index = try Index.init(std.testing.allocator, text);
++    defer index.deinit(std.testing.allocator);
++    try std.testing.expectEqual(Position{ .line = 0, .character = 3 }, index.position(text, 7, .utf16));
++    try std.testing.expectEqual(Position{ .line = 0, .character = 7 }, index.position(text, 7, .utf8));
++    try std.testing.expectEqual(Position{ .line = 0, .character = 2 }, index.position(text, 7, .utf32));
++    try std.testing.expectEqual(Position{ .line = 3, .character = 1 }, index.position(text, 999, .utf16));
++}
++
++test "column conversion notices cancellation at unaligned Unicode line starts" {
++    const text = "x\r\n😀😀😀";
++    var index = try Index.init(std.testing.allocator, text);
++    defer index.deinit(std.testing.allocator);
++    var cancel: std.atomic.Value(bool) = .init(true);
++    try std.testing.expectError(error.Cancelled, index.positionCancellable(text, text.len, .utf16, &cancel));
++}
++
++test "background position work yields to syntax without retaining temporary storage" {
++    const waiting: std.atomic.Value(usize) = .init(1);
++    try std.testing.expectError(error.Yield, Index.initBackground(std.testing.allocator, "abc", null, &waiting));
++    var index = try Index.init(std.testing.allocator, "abc");
++    defer index.deinit(std.testing.allocator);
++    try std.testing.expectError(error.Yield, index.positionBackground("abc", 3, .utf16, null, &waiting));
++}
++
++test "truncated UTF-8 and positions inside a scalar do not trap" {
++    inline for (.{ "\xe2\x82", "\xf0\x9f\x98", "\xff", "\xe2X\x82" }) |source| {
++        var index = try Index.init(std.testing.allocator, source);
++        defer index.deinit(std.testing.allocator);
++        try std.testing.expectEqual(Position{ .line = 0, .character = 1 }, index.position(source, source.len, .utf16));
++    }
++    var index = try Index.init(std.testing.allocator, "😀");
++    defer index.deinit(std.testing.allocator);
++    for (1..4) |end| try std.testing.expectEqual(Position{ .line = 0, .character = 1 }, index.position("😀", end, .utf16));
++}
+--- /dev/null
++++ b/src/text/types.zig
+@@ -0,0 +1,4 @@
++//! Shared editor coordinates. No feature or protocol dependencies.
++pub const Encoding = enum { utf8, utf16, utf32 };
++pub const Position = struct { line: usize, character: usize };
++pub const Range = struct { start: Position, end: Position };

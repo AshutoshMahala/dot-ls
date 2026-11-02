@@ -1,0 +1,782 @@
+//! Private event-level grammar, shared by fixed/growing/count-only consumers.
+//! No AST dependency. Bounded variants have no source-sized step, including tag-name
+//! comparison. Consumer pointers are supplied when driving, never self-stored.
+const std = @import("std");
+const support = @import("parser_support");
+const lexer = @import("lexer.zig");
+const diagnostic = @import("diagnostic.zig");
+const policy = @import("policy.zig");
+const scratch = @import("scratch.zig");
+const result = @import("result.zig");
+const Kind = @import("kind.zig").Kind;
+const typo = @import("typo.zig");
+
+pub fn Machine(comptime backend: policy.ScannerBackend, comptime fixed: ?policy.ParseSettings, comptime metered: bool, comptime cancellable: bool, comptime mode: policy.Mode) type {
+    return MachineWithEncoding(.utf8, backend, fixed, metered, cancellable, mode);
+}
+
+pub fn MachineWithEncoding(comptime actual: support.encoding.Actual, comptime backend: policy.ScannerBackend, comptime fixed: ?policy.ParseSettings, comptime metered: bool, comptime cancellable: bool, comptime mode: policy.Mode) type {
+    return MachineWithInputEncoding(actual, backend, fixed, metered, cancellable, mode, .detect);
+}
+
+pub fn MachineWithInputEncoding(comptime actual: support.encoding.Actual, comptime backend: policy.ScannerBackend, comptime fixed: ?policy.ParseSettings, comptime metered: bool, comptime cancellable: bool, comptime mode: policy.Mode, comptime framing: lexer.Framing) type {
+    const enc = support.encoding.Reader(actual);
+    const Scanner = lexer.ScannerWithFraming(actual, backend, metered, metered or cancellable, framing);
+    const Unit = if (enc.width == 1) u8 else u32;
+    const recovery_enabled = fixed == null or fixed.?.on_error == .collect;
+    const one_edit_enabled = recovery_enabled and (fixed == null or fixed.?.closing_tag_recovery != .exact);
+    const two_edits_enabled = recovery_enabled and (fixed == null or fixed.?.closing_tag_recovery == .two_edits);
+    const partial_enabled = fixed == null or fixed.?.retain_partial;
+    const deviations_enabled = fixed == null or fixed.?.syntax.malformed_reference != .reject;
+    const warnings_enabled = fixed == null or fixed.?.syntax.malformed_reference == .warn or fixed.?.unsupported == .warning;
+    return struct {
+        const Self = @This();
+        pub const Settings = if (fixed == null) policy.ParseSettings else void;
+        pub const Hook = if (cancellable) ?support.execution.Cancellation else void;
+        scanner: Scanner,
+        diagnostics: diagnostic.Sink,
+        settings: Settings,
+        hook: Hook,
+        phase: enum { preflight, begin, scan, grammar, compare_open, compare_close, open, leaf, close, open_head, attribute, empty_close, commit, recover_find, recover_compare, recover_one, recover_two, recover_header, recover_open } = .preflight,
+        token: lexer.Token = undefined,
+        /// Only live while reading an attribute-bearing opening header. Not a
+        /// nesting frame: self-closing tags still need no persistent scratch.
+        head: scratch.Frame = undefined,
+        compare_index: u32 = 0,
+        compare_byte: Unit = 0,
+        began: bool = false,
+        counts: result.Counts = .{},
+        deviations: if (deviations_enabled) u32 else void = if (deviations_enabled) 0 else {},
+        warnings: if (warnings_enabled) u32 else void = if (warnings_enabled) 0 else {},
+        recovery_state: if (recovery_enabled) struct {
+            errors: u32 = 0,
+            // phase is the discriminator: ancestor/typo search and header sync never
+            // overlap. Explicit layout avoids a second safety tag in Debug/Safe.
+            cursor: extern union {
+                candidate: u32,
+                header: lexer.HeaderRecovery,
+                one: if (one_edit_enabled) typo.One(actual, mode == .graphviz) else u8,
+                two: if (two_edits_enabled) typo.Two(actual, mode == .graphviz) else u8,
+            } = .{ .candidate = 0 },
+            remaining: u32 = 0,
+        } else void = if (recovery_enabled) .{} else {},
+        terminal: ?result.Report = null,
+
+        pub fn init(source: []const u8, diagnostics: diagnostic.Sink, settings: Settings, hook: Hook) Self {
+            var self: Self = .{ .scanner = if (framing == .content) Scanner.initContent(source) else Scanner.init(source), .diagnostics = diagnostics, .settings = settings, .hook = hook };
+            // One credit per source code unit, shared across ALL ancestor
+            // searches, including fuzzy comparisons and bounded DP rows. Each
+            // length probe, unit comparison or <=5-cell row costs one;
+            // wider encodings must not grant extra search work for the same
+            // ASCII input. Even unmetered recovery is O(n).
+            if (recovery_enabled) self.recovery_state.remaining = searchAllowance(source);
+            return self;
+        }
+        fn searchAllowance(source: []const u8) u32 {
+            return @intCast(@min(enc.units(source), support.location.max_source_len));
+        }
+        fn limits(self: *const Self) policy.Limits {
+            return if (fixed) |v| v.limits else self.settings.limits;
+        }
+        fn acceptance(self: *const Self) policy.Acceptance {
+            return if (fixed) |v| v.syntax.malformed_reference else self.settings.syntax.malformed_reference;
+        }
+        fn fixes(self: *const Self) policy.Fixes {
+            return if (fixed) |v| v.fixes else self.settings.fixes;
+        }
+        inline fn nameByteEqual(a: Unit, b: Unit) bool {
+            if (enc.width == 1) return if (mode == .graphviz) std.ascii.toLower(a) == std.ascii.toLower(b) else a == b;
+            const l = if (mode == .graphviz and a < 128) @as(u32, std.ascii.toLower(@intCast(a))) else a;
+            const r = if (mode == .graphviz and b < 128) @as(u32, std.ascii.toLower(@intCast(b))) else b;
+            return l == r;
+        }
+        fn unsupported(self: *const Self) policy.Unsupported {
+            return if (fixed) |v| v.unsupported else self.settings.unsupported;
+        }
+        fn closingTagRecovery(self: *const Self) policy.ClosingTagRecovery {
+            return if (fixed) |v| v.closing_tag_recovery else self.settings.closing_tag_recovery;
+        }
+        fn beginTypoRecovery(self: *Self, stack: *scratch.Stack) void {
+            if (!one_edit_enabled and !two_edits_enabled) {
+                self.phase = .scan;
+                return;
+            }
+            const a_len = stack.top().name.len / enc.width;
+            const b_len = self.token.name.len / enc.width;
+            const minimum = @min(a_len, b_len);
+            const difference = @max(a_len, b_len) - minimum;
+            switch (self.closingTagRecovery()) {
+                .one_edit, .two_edits => |strategy| {
+                    if (two_edits_enabled and strategy == .two_edits and minimum >= 8 and difference <= 2) {
+                        self.recovery_state.cursor = .{ .two = .{} };
+                        self.phase = .recover_two;
+                        return;
+                    }
+                    // Two-edit selection includes the one-edit behavior on
+                    // shorter names; it never loses one-edit eligibility.
+                    if (one_edit_enabled and minimum >= 4 and difference <= 1) {
+                        self.recovery_state.cursor = .{ .one = .{} };
+                        self.phase = .recover_one;
+                        return;
+                    }
+                },
+                .exact => {},
+            }
+            self.phase = .scan;
+        }
+        fn recoverTypo(self: *Self, stack: *scratch.Stack, sink: anytype, comptime two: bool) void {
+            if (comptime if (two) !two_edits_enabled else !one_edit_enabled) unreachable;
+            if (!self.searchCredit(stack, sink)) return;
+            const status = if (two)
+                self.recovery_state.cursor.two.step(self.scanner.source, stack.top().name, self.token.name)
+            else
+                self.recovery_state.cursor.one.step(self.scanner.source, stack.top().name, self.token.name);
+            switch (status) {
+                .pending => {},
+                .matched, .different => {
+                    // Only traversal changes. The original mismatch is retained;
+                    // frozen output receives no fabricated closing tag or fix.
+                    if (status == .matched) stack.len -= 1;
+                    self.phase = .scan;
+                },
+            }
+        }
+        fn writing(self: *const Self) bool {
+            return !recovery_enabled or self.recovery_state.errors == 0;
+        }
+        fn retainingPartial(self: *const Self) bool {
+            return if (fixed) |v| v.retain_partial else self.settings.retain_partial;
+        }
+        inline fn retaining(self: *const Self) bool {
+            return partial_enabled and self.retainingPartial() and self.writing();
+        }
+        fn retainThrough(self: *const Self, sink: anytype, end: u64) void {
+            if (self.retaining()) sink.retainThrough(@intCast(end));
+        }
+        fn abortOutput(self: *Self, sink: anytype) void {
+            if (!self.began) return;
+            // Recovery has already stopped writing: freeze the previous prefix
+            // based on the policy, not the still-writing predicate above.
+            if (partial_enabled and self.retainingPartial()) sink.freezePrefix() else sink.abort();
+            self.began = false;
+        }
+        fn syntaxErrors(self: *const Self) u32 {
+            if (self.terminal) |report| return report.syntax_errors;
+            return if (recovery_enabled) self.recovery_state.errors else 0;
+        }
+        /// Freeze an opted-in prefix or abort output once; continue grammar and
+        /// scratch for diagnostics without publishing later recovered nodes.
+        /// Ordinary findings continue, but sink stop/failure terminates immediately.
+        fn recoverSyntax(self: *Self, stack: *scratch.Stack, sink: anytype, finding: diagnostic.Diagnostic) bool {
+            if (!recovery_enabled or (if (fixed) |v| v.on_error else self.settings.on_error) == .fail_fast) {
+                self.finish(stack, sink, .invalid_syntax, finding);
+                return false;
+            }
+            self.recovery_state.errors += 1;
+            self.abortOutput(sink);
+            const action = self.diagnostics.emit(finding.withFixes(self.fixes())) catch |err| {
+                self.finish(stack, sink, .{ .diagnostic_stopped = .fromError(err) }, null);
+                self.terminal.?.diagnostic_delivery = .failed;
+                return false;
+            };
+            if (action == .stop) {
+                self.finish(stack, sink, .{ .diagnostic_stopped = .requested }, null);
+                return false;
+            }
+            return true;
+        }
+        fn searchCredit(self: *Self, stack: *scratch.Stack, sink: anytype) bool {
+            if (!recovery_enabled) unreachable;
+            if (self.recovery_state.remaining == 0) {
+                self.capacity(stack, sink, .recovery_work, searchAllowance(self.scanner.source), false);
+                return false;
+            }
+            self.recovery_state.remaining -= 1;
+            return true;
+        }
+        fn malformedReference(self: *Self, stack: *scratch.Stack, sink: anytype, finding: diagnostic.Diagnostic) void {
+            if (!deviations_enabled or self.acceptance() == .reject) {
+                _ = self.recoverSyntax(stack, sink, finding);
+                return;
+            }
+            // Each event owns one distinct ampersand: bounded by source length.
+            self.deviations += 1;
+            if (warnings_enabled and self.acceptance() == .warn) {
+                self.warnings += 1;
+                var warning = finding;
+                warning.code = .malformed_reference_tolerated;
+                const action = self.diagnostics.emit(warning.withFixes(self.fixes())) catch |err| {
+                    self.finish(stack, sink, .{ .diagnostic_stopped = .fromError(err) }, null);
+                    self.terminal.?.diagnostic_delivery = .failed;
+                    return;
+                };
+                if (action == .stop) self.finish(stack, sink, .{ .diagnostic_stopped = .requested }, null);
+            }
+        }
+        fn finish(self: *Self, stack: *scratch.Stack, sink: anytype, outcome: result.Outcome, finding: ?diagnostic.Diagnostic) void {
+            var delivery: diagnostic.reporting.Delivery = .complete;
+            var diagnostic_stop: ?diagnostic.reporting.StopReason = if (outcome == .diagnostic_stopped) outcome.diagnostic_stopped else null;
+            var syntax_errors = self.syntaxErrors();
+            if (outcome == .invalid_syntax and finding != null) syntax_errors += 1;
+            // Preserve the original terminal cause AND the acknowledgment. A
+            // parent operation must not emit again after accepted-stop/failure.
+            if (finding) |item| {
+                var d = item;
+                if (warnings_enabled and outcome == .unsupported_feature and self.unsupported() == .warning) {
+                    d.code = .unsupported_feature_warning;
+                    self.warnings += 1;
+                }
+                const action = self.diagnostics.emit(d.withFixes(self.fixes())) catch |err| action: {
+                    delivery = .failed;
+                    diagnostic_stop = .fromError(err);
+                    break :action .proceed;
+                };
+                if (action == .stop) diagnostic_stop = .requested;
+            }
+            if (outcome != .success) self.abortOutput(sink);
+            stack.len = 0;
+            self.terminal = .{
+                .outcome = outcome,
+                .completion = if (outcome == .success or (outcome == .invalid_syntax and self.phase == .commit)) .complete else .incomplete,
+                .syntax_errors = syntax_errors,
+                .diagnostic_delivery = delivery,
+                .diagnostic_stop = diagnostic_stop,
+                .counts = self.counts,
+                .accepted_deviations = if (deviations_enabled) self.deviations else 0,
+                .warnings = if (warnings_enabled) self.warnings else 0,
+            };
+        }
+        fn capacity(self: *Self, stack: *scratch.Stack, sink: anytype, resource: diagnostic.Resource, limit: u32, storage: bool) void {
+            self.finish(stack, sink, if (storage) .{ .storage_exhausted = resource } else .{ .resource_limit = .{ .resource = resource, .limit = limit } }, .{
+                .code = .capacity_exhausted,
+                .span = .{ .start = self.scanner.offset * enc.width, .len = 0 },
+                .details = .{ .capacity = .{ .resource = resource, .limit = limit } },
+            });
+        }
+        fn failure(self: *Self, stack: *scratch.Stack, sink: anytype, err: anyerror) void {
+            switch (err) {
+                error.NodeStorageExhausted => self.capacity(stack, sink, .node_pool, self.counts.nodes, true),
+                error.AttributeStorageExhausted => self.capacity(stack, sink, .attribute_pool, self.counts.attributes, true),
+                error.NestingStorageExhausted => self.capacity(stack, sink, .nesting_frames, stack.len, true),
+                error.OutOfMemory => self.finish(stack, sink, .out_of_memory, .{ .code = .out_of_memory, .span = .{ .start = self.scanner.offset * enc.width, .len = 0 } }),
+                else => self.finish(stack, sink, .sink_failure, null),
+            }
+        }
+        fn invalid(self: *Self, stack: *scratch.Stack, sink: anytype, code: diagnostic.Code, span: support.location.Span, related: ?support.location.Span) void {
+            if (!self.recoverSyntax(stack, sink, .{ .code = code, .span = span, .related = related })) return;
+            if (!recovery_enabled) unreachable;
+            switch (code) {
+                .unexpected_close => self.phase = .scan,
+                .unclosed_element => stack.len -= 1, // EOF: one finding/step, innermost first.
+                .mismatched_tag => {
+                    self.recovery_state.cursor = .{ .candidate = stack.len - 1 }; // top already compared
+                    self.phase = .recover_find;
+                },
+                else => unreachable,
+            }
+        }
+        // Keep optional header recovery out of the ordinary scan/grammar loop.
+        noinline fn beginHeaderRecovery(self: *Self, stack: *scratch.Stack, sink: anytype, finding: diagnostic.Diagnostic) void {
+            if (!recovery_enabled) unreachable;
+            if (!self.recoverSyntax(stack, sink, finding)) return;
+            self.recovery_state.cursor = .{ .header = .unquoted };
+            self.phase = .recover_header;
+        }
+        noinline fn recoverHeader(self: *Self, stack: *scratch.Stack, sink: anytype) void {
+            if (!recovery_enabled) unreachable;
+            switch (self.scanner.recoverHeaderStep(&self.recovery_state.cursor.header)) {
+                .pending => {},
+                .open => self.phase = .recover_open,
+                .empty => self.phase = .scan,
+                // The initial header diagnostic already rejected this region.
+                // Do not fabricate EOF findings for its parents.
+                .blocked => self.finish(stack, sink, .invalid_syntax, null),
+            }
+        }
+        fn step(self: *Self, stack: *scratch.Stack, sink: anytype, comptime batch: bool, allowance: u32) (if (batch) u32 else void) {
+            one_step: switch (self.phase) {
+                .preflight => {
+                    if (self.scanner.source.len > self.limits().max_source_bytes) break :one_step self.capacity(stack, sink, .source_bytes, self.limits().max_source_bytes, false);
+                    self.phase = .begin;
+                },
+                .begin => {
+                    self.began = true;
+                    sink.begin() catch |err| break :one_step self.failure(stack, sink, err);
+                    self.phase = .scan;
+                },
+                .scan => {
+                    if (batch) {
+                        const scan = @call(.always_inline, Scanner.advance, .{ &self.scanner, allowance });
+                        if (scan.ready) self.scanned(stack, sink);
+                        return scan.work_used;
+                    }
+                    if (self.scanner.stepReady()) self.scanned(stack, sink);
+                },
+                .grammar => switch (self.token.kind) {
+                    .eof => {
+                        if (stack.len != 0) break :one_step self.invalid(stack, sink, .unclosed_element, self.token.span, stack.top().name);
+                        self.phase = .commit;
+                    },
+                    .close => {
+                        if (stack.len == 0) break :one_step self.invalid(stack, sink, .unexpected_close, self.token.span, null);
+                        if (stack.top().name.len != self.token.name.len) break :one_step self.invalid(stack, sink, .mismatched_tag, self.token.name, stack.top().name);
+                        self.compare_index = 0;
+                        self.phase = .compare_open;
+                    },
+                    .open, .empty, .text, .comment, .cdata => {
+                        if (self.counts.nodes == self.limits().max_nodes) break :one_step self.capacity(stack, sink, .nodes, self.limits().max_nodes, false);
+                        if (self.token.kind == .open or self.token.kind == .empty) {
+                            if (stack.len == self.limits().max_nesting) break :one_step self.capacity(stack, sink, .nesting_depth, self.limits().max_nesting, false);
+                            if (self.token.kind == .open) stack.push(.{ .name = self.token.name }) catch |err| break :one_step self.failure(stack, sink, err);
+                            self.phase = .open;
+                        } else self.phase = .leaf;
+                    },
+                    .open_head => {
+                        if (self.counts.nodes == self.limits().max_nodes) break :one_step self.capacity(stack, sink, .nodes, self.limits().max_nodes, false);
+                        if (stack.len == self.limits().max_nesting) break :one_step self.capacity(stack, sink, .nesting_depth, self.limits().max_nesting, false);
+                        self.phase = .open_head;
+                    },
+                    .attribute => {
+                        if (self.counts.attributes == self.limits().max_attributes) break :one_step self.capacity(stack, sink, .attributes, self.limits().max_attributes, false);
+                        self.phase = .attribute;
+                    },
+                    .head_end => {
+                        if (self.retaining()) {
+                            sink.header(self.head.handle, @intCast(self.token.span.endOffset()));
+                            self.retainThrough(sink, self.token.span.endOffset());
+                        }
+                        stack.push(self.head) catch |err| break :one_step self.failure(stack, sink, err);
+                        self.phase = .scan;
+                    },
+                    .empty_end => self.phase = .empty_close,
+                },
+                .compare_open => {
+                    self.compare_byte = @intCast(enc.unit(self.scanner.source, stack.top().name.start + self.compare_index));
+                    self.phase = .compare_close;
+                },
+                .compare_close => {
+                    if (!nameByteEqual(self.compare_byte, @intCast(enc.unit(self.scanner.source, self.token.name.start + self.compare_index))))
+                        break :one_step self.invalid(stack, sink, .mismatched_tag, self.token.name, stack.top().name);
+                    self.compare_index += enc.width;
+                    self.phase = if (self.compare_index == self.token.name.len) .close else .compare_open;
+                },
+                .recover_find => {
+                    if (!recovery_enabled) unreachable;
+                    if (self.recovery_state.cursor.candidate == 0) {
+                        self.beginTypoRecovery(stack);
+                        break :one_step;
+                    }
+                    if (!self.searchCredit(stack, sink)) break :one_step;
+                    self.recovery_state.cursor.candidate -= 1;
+                    if (stack.frames[self.recovery_state.cursor.candidate].name.len == self.token.name.len) {
+                        self.compare_index = 0;
+                        self.phase = .recover_compare;
+                    }
+                },
+                .recover_compare => {
+                    if (!recovery_enabled) unreachable;
+                    if (!self.searchCredit(stack, sink)) break :one_step;
+                    const candidate = self.recovery_state.cursor.candidate;
+                    const opener = stack.frames[candidate].name;
+                    if (!nameByteEqual(@intCast(enc.unit(self.scanner.source, opener.start + self.compare_index)), @intCast(enc.unit(self.scanner.source, self.token.name.start + self.compare_index)))) {
+                        self.phase = .recover_find;
+                    } else {
+                        self.compare_index += enc.width;
+                        if (self.compare_index == self.token.name.len) {
+                            // Traversal only: no synthetic close events or records.
+                            // The mismatch already explains the abandoned frames.
+                            stack.len = candidate;
+                            self.phase = .scan;
+                        }
+                    }
+                },
+                .recover_one => self.recoverTypo(stack, sink, false),
+                .recover_two => self.recoverTypo(stack, sink, true),
+                .recover_header => self.recoverHeader(stack, sink),
+                .recover_open => {
+                    if (!recovery_enabled) unreachable;
+                    // open_head already enforced element/depth limits and counted
+                    // this element. Only its explicit '>' adds a nesting frame.
+                    stack.push(self.head) catch |err| break :one_step self.failure(stack, sink, err);
+                    self.phase = .scan;
+                },
+                .open => {
+                    const handle = if (self.writing()) sink.open(self.token.span, self.token.name) catch |err| break :one_step self.failure(stack, sink, err) else 0;
+                    if (self.retaining() and self.token.kind == .open) sink.unfinished(handle);
+                    self.retainThrough(sink, self.token.span.endOffset());
+                    if (self.token.kind == .open) stack.top().handle = handle;
+                    self.counts.nodes += 1;
+                    self.counts.elements += 1;
+                    self.counts.max_depth = @max(self.counts.max_depth, if (self.token.kind == .open) stack.len else stack.len + 1);
+                    self.phase = .scan;
+                },
+                .leaf => {
+                    const kind: Kind = switch (self.token.kind) {
+                        .text => .text,
+                        .comment => .comment,
+                        .cdata => .cdata,
+                        else => unreachable,
+                    };
+                    if (self.writing()) sink.leaf(kind, self.token.span) catch |err| break :one_step self.failure(stack, sink, err);
+                    self.retainThrough(sink, self.token.span.endOffset());
+                    self.counts.nodes += 1;
+                    self.phase = .scan;
+                },
+                .attribute => {
+                    if (self.writing()) sink.attribute(self.head.handle, self.token.name, self.token.span) catch |err| break :one_step self.failure(stack, sink, err);
+                    self.retainThrough(sink, self.token.span.endOffset());
+                    self.counts.attributes += 1;
+                    self.phase = .scan;
+                },
+                .open_head => {
+                    const handle = if (self.writing()) sink.open(self.token.span, self.token.name) catch |err| break :one_step self.failure(stack, sink, err) else 0;
+                    if (self.retaining()) sink.unfinished(handle);
+                    self.retainThrough(sink, self.token.span.endOffset());
+                    self.head = .{ .name = self.token.name, .handle = handle };
+                    self.counts.nodes += 1;
+                    self.counts.elements += 1;
+                    self.counts.max_depth = @max(self.counts.max_depth, stack.len + 1);
+                    self.phase = .scan;
+                },
+                .empty_close => {
+                    if (self.writing()) sink.close(self.head.handle, @as(u32, @intCast(self.token.span.endOffset()))) catch |err| break :one_step self.failure(stack, sink, err);
+                    self.retainThrough(sink, self.token.span.endOffset());
+                    self.phase = .scan;
+                },
+                .close => {
+                    if (self.writing()) sink.close(stack.top().handle, @as(u32, @intCast(self.token.span.endOffset()))) catch |err| break :one_step self.failure(stack, sink, err);
+                    self.retainThrough(sink, self.token.span.endOffset());
+                    stack.len -= 1;
+                    self.phase = .scan;
+                },
+                .commit => {
+                    if (!self.writing()) break :one_step self.finish(stack, sink, .invalid_syntax, null);
+                    sink.commit() catch |err| break :one_step self.failure(stack, sink, err);
+                    self.finish(stack, sink, .success, null);
+                },
+            }
+            return if (batch) 1 else {};
+        }
+        const Polling = support.execution.CancellationPolling(cancellable, if (fixed) |p| p.cancellation_interval else null);
+        fn cancellationInterval(self: *const Self) u32 {
+            return if (fixed) |p| p.cancellation_interval else self.settings.cancellation_interval;
+        }
+        inline fn scanned(self: *Self, stack: *scratch.Stack, sink: anytype) void {
+            switch (self.scanner.ready) {
+                .problem => |p| {
+                    if (recovery_enabled and self.scanner.canRecoverHeader()) {
+                        self.beginHeaderRecovery(stack, sink, p.diagnostic);
+                    } else self.finish(stack, sink, p.outcome, p.diagnostic);
+                },
+                .unsupported => |u| self.finish(stack, sink, .{ .unsupported_feature = u.feature }, if (self.unsupported() == .silent) null else u.finding()),
+                .malformed_reference => |d| self.malformedReference(stack, sink, d),
+                .token => |t| {
+                    self.token = t;
+                    self.phase = .grammar;
+                },
+            }
+        }
+        fn requested(self: *const Self) bool {
+            if (!cancellable) return false;
+            const signalled = if (self.hook) |h| h.requested() else false;
+            // A hook may synchronously cancel this session and return false.
+            // Re-read the terminal state before touching its aborted builder.
+            return signalled or self.terminal != null;
+        }
+        pub fn cancel(self: *Self, stack: *scratch.Stack, sink: anytype) result.Report {
+            if (self.terminal == null) self.finish(stack, sink, .cancelled, null);
+            return self.terminal.?;
+        }
+        pub fn run(self: *Self, stack: *scratch.Stack, sink: anytype) result.Report {
+            var polling: Polling = .{};
+            while (self.terminal == null) {
+                if (polling.due(self.cancellationInterval()) and self.requested()) return self.cancel(stack, sink);
+                polling.spend(1);
+                self.step(stack, sink, false, 1);
+            }
+            return self.terminal.?;
+        }
+        pub inline fn advance(self: *Self, stack: *scratch.Stack, sink: anytype, budget: u32) result.Progress {
+            @setEvalBranchQuota(10_000); // Specializes the bounded grammar/scanner path.
+            if (!metered) @compileError("metering is disabled; use run()");
+            // Preserve the single-step path for tiny budgets, per-step polling
+            // and the already-batched block scanner. Only scalar scanning can
+            // amortize dispatch across a run without changing its credit unit.
+            if (budget == 1) return @call(.always_inline, Self.advanceWith, .{ self, false, stack, sink, @as(u32, 1) });
+            if (backend == .block or (cancellable and self.cancellationInterval() == 1)) return self.advanceWith(false, stack, sink, budget);
+            return self.advanceWith(true, stack, sink, budget);
+        }
+        fn advanceWith(self: *Self, comptime batch: bool, stack: *scratch.Stack, sink: anytype, budget: u32) result.Progress {
+            var used: u32 = 0;
+            var polling: Polling = .{};
+            while (self.terminal == null) {
+                if (polling.due(self.cancellationInterval()) and self.requested()) {
+                    _ = self.cancel(stack, sink);
+                    break;
+                }
+                if (used == budget) break;
+                // A scan run may reach neither past the caller's budget nor
+                // past the next cancellation poll; grammar still costs one.
+                const allowance = if (cancellable) @min(budget - used, polling.allowance()) else budget - used;
+                const work = if (batch) @call(.always_inline, Self.step, .{ self, stack, sink, true, allowance }) else one: {
+                    if (comptime backend == .block and !cancellable) {
+                        @call(.always_inline, Self.step, .{ self, stack, sink, false, @as(u32, 1) });
+                    } else self.step(stack, sink, false, 1);
+                    break :one @as(u32, 1);
+                };
+                used += work;
+                polling.spend(work);
+            }
+            return .{ .outcome = if (self.terminal) |r| r.outcome else null, .work_used = used, .source_frontier = self.scanner.frontier * enc.width, .counts = self.counts, .accepted_deviations = if (deviations_enabled) self.deviations else 0, .warnings = if (warnings_enabled) self.warnings else 0, .syntax_errors = self.syntaxErrors() };
+        }
+    };
+}
+
+test "code-unit recovery allowance survives partitioning and cancellation in every reader" {
+    const text = std.mem.asBytes(&@as([40]["<aa>".len]u8, @splat("<aa>".*))) ++ std.mem.asBytes(&@as([40]["</ab>".len]u8, @splat("</ab>".*)));
+    const Request = struct {
+        stop: bool = false,
+        polls: u32 = 0,
+        fn poll(context: ?*anyopaque) bool {
+            const self: *@This() = @ptrCast(@alignCast(context.?));
+            self.polls += 1;
+            return self.stop;
+        }
+    };
+    var reference: ?result.Report = null;
+    inline for (.{ .ascii, .utf8, .utf16le, .utf16be, .utf32le, .utf32be }) |actual| {
+        const E = support.encoding.Reader(actual);
+        var buffer: [text.len * E.width]u8 = undefined;
+        for (text, 0..) |byte, index| switch (E.width) {
+            1 => buffer[index] = byte,
+            2 => std.mem.writeInt(u16, buffer[index * 2 ..][0..2], byte, E.endian),
+            4 => std.mem.writeInt(u32, buffer[index * 4 ..][0..4], byte, E.endian),
+            else => unreachable,
+        };
+        inline for (.{ .scalar, .block }) |backend| inline for (.{ false, true }) |runtime| {
+            const M = MachineWithEncoding(actual, backend, if (runtime) null else .{}, true, true, .structural);
+            var reference_work: ?u64 = null;
+            for ([_]u32{ 1, 7, 256 }) |budget| {
+                var storage: scratch.Fixed(40) = .{};
+                var stack: scratch.Stack = .{ .frames = storage.storage().frames };
+                var counter: @import("syntax.zig").Counter = .{};
+                var machine = M.init(&buffer, diagnostic.discard, if (runtime) .{} else {}, null);
+                try std.testing.expectEqual(@as(u32, text.len), machine.recovery_state.remaining);
+                var work: u64 = 0;
+                while (machine.terminal == null) {
+                    const remaining = machine.recovery_state.remaining;
+                    try std.testing.expectEqual(@as(u32, 0), machine.advance(&stack, &counter, 0).work_used);
+                    try std.testing.expectEqual(remaining, machine.recovery_state.remaining);
+                    const progress = machine.advance(&stack, &counter, budget);
+                    try std.testing.expect(progress.work_used <= budget);
+                    work += progress.work_used;
+                    try std.testing.expect(work < text.len * 10);
+                }
+                const report = machine.terminal.?;
+                try std.testing.expectEqual(result.Outcome{ .resource_limit = .{ .resource = .recovery_work, .limit = text.len } }, report.outcome);
+                try std.testing.expectEqual(@as(u32, 4), report.syntax_errors);
+                try std.testing.expectEqual(result.Completion.incomplete, report.completion);
+                if (reference) |prior| try std.testing.expectEqualDeep(prior, report) else reference = report;
+                if (reference_work) |prior| try std.testing.expectEqual(prior, work) else reference_work = work;
+            }
+
+            var storage: scratch.Fixed(40) = .{};
+            var stack: scratch.Stack = .{ .frames = storage.storage().frames };
+            var counter: @import("syntax.zig").Counter = .{};
+            var request: Request = .{};
+            var machine = M.init(&buffer, diagnostic.discard, if (runtime) .{} else {}, .{ .context = &request, .is_requested = Request.poll });
+            var work: u64 = 0;
+            while (machine.syntaxErrors() == 0) {
+                work += machine.advance(&stack, &counter, 1).work_used;
+                try std.testing.expect(work < text.len * 10);
+                try std.testing.expect(machine.terminal == null);
+            }
+            _ = machine.advance(&stack, &counter, 1); // spend an ancestor-search credit
+            const remaining = machine.recovery_state.remaining;
+            try std.testing.expectEqual(@as(u32, text.len - 1), remaining);
+            const polls = request.polls;
+            request.stop = true;
+            const progress = machine.advance(&stack, &counter, 0);
+            try std.testing.expectEqual(@as(u32, 0), progress.work_used);
+            try std.testing.expectEqual(polls + 1, request.polls);
+            try std.testing.expectEqual(remaining, machine.recovery_state.remaining);
+            const report = machine.terminal.?;
+            try std.testing.expectEqual(result.Outcome.cancelled, report.outcome);
+            try std.testing.expectEqual(@as(u32, 1), report.syntax_errors);
+            try std.testing.expectEqual(result.Completion.incomplete, report.completion);
+            try std.testing.expectEqualDeep(report, machine.run(&stack, &counter));
+            try std.testing.expectEqual(polls + 1, request.polls);
+        };
+    }
+}
+
+test "typo recovery is source-bounded resumable and cancellable in every reader" {
+    @setEvalBranchQuota(10_000);
+    const Request = struct {
+        stop: bool = false,
+        fn poll(context: ?*anyopaque) bool {
+            const self: *@This() = @ptrCast(@alignCast(context.?));
+            return self.stop;
+        }
+    };
+    inline for (.{ .one_edit, .two_edits }) |strategy| {
+        const text = if (strategy == .one_edit) "<config><server></servr></config>" else "<config><configuration></ocnfiguratiom></config>";
+        inline for (.{ .ascii, .utf8, .utf16le, .utf16be, .utf32le, .utf32be }) |actual| {
+            const E = support.encoding.Reader(actual);
+            var buffer: [text.len * E.width]u8 = undefined;
+            for (text, 0..) |byte, index| switch (E.width) {
+                1 => buffer[index] = byte,
+                2 => std.mem.writeInt(u16, buffer[index * 2 ..][0..2], byte, E.endian),
+                4 => std.mem.writeInt(u32, buffer[index * 4 ..][0..4], byte, E.endian),
+                else => unreachable,
+            };
+            inline for (.{ .scalar, .block }) |backend| inline for (.{ false, true }) |runtime| {
+                const settings: policy.ParseSettings = .{ .closing_tag_recovery = strategy };
+                const M = MachineWithEncoding(actual, backend, if (runtime) null else settings, true, true, .structural);
+                var reference_work: ?u64 = null;
+                var reference_credits: ?u32 = null;
+                for ([_]u32{ 1, 7, 256 }) |budget| {
+                    var storage: scratch.Fixed(4) = .{};
+                    var stack: scratch.Stack = .{ .frames = storage.storage().frames };
+                    var counter: @import("syntax.zig").Counter = .{};
+                    var machine = M.init(&buffer, diagnostic.discard, if (runtime) settings else {}, null);
+                    var work: u64 = 0;
+                    while (machine.terminal == null) {
+                        const progress = machine.advance(&stack, &counter, budget);
+                        try std.testing.expect(progress.work_used <= budget);
+                        work += progress.work_used;
+                        try std.testing.expect(work < text.len * 16);
+                    }
+                    if (reference_work) |prior| try std.testing.expectEqual(prior, work) else reference_work = work;
+                    if (reference_credits) |prior| try std.testing.expectEqual(prior, machine.recovery_state.remaining) else reference_credits = machine.recovery_state.remaining;
+                    try std.testing.expect(machine.recovery_state.remaining < text.len);
+                    try std.testing.expectEqual(result.Outcome.invalid_syntax, machine.terminal.?.outcome);
+                    try std.testing.expectEqual(result.Completion.complete, machine.terminal.?.completion);
+                    try std.testing.expectEqual(@as(u32, 1), machine.terminal.?.syntax_errors);
+                }
+                var storage: scratch.Fixed(4) = .{};
+                var stack: scratch.Stack = .{ .frames = storage.storage().frames };
+                var counter: @import("syntax.zig").Counter = .{};
+                var request: Request = .{};
+                var machine = M.init(&buffer, diagnostic.discard, if (runtime) settings else {}, .{ .context = &request, .is_requested = Request.poll });
+                while (machine.phase != .recover_one and machine.phase != .recover_two) _ = machine.advance(&stack, &counter, 1);
+                try std.testing.expect(machine.terminal == null);
+                const before = machine.recovery_state.remaining;
+                _ = machine.advance(&stack, &counter, 1);
+                try std.testing.expectEqual(before - 1, machine.recovery_state.remaining);
+                // No input-dependent work on a zero-credit call, including a
+                // suspended DP row. Cancellation still wins before the budget.
+                const remaining = machine.recovery_state.remaining;
+                try std.testing.expectEqual(@as(u32, 0), machine.advance(&stack, &counter, 0).work_used);
+                try std.testing.expectEqual(remaining, machine.recovery_state.remaining);
+                request.stop = true;
+                try std.testing.expectEqual(@as(u32, 0), machine.advance(&stack, &counter, 0).work_used);
+                try std.testing.expectEqual(result.Outcome.cancelled, machine.terminal.?.outcome);
+                try std.testing.expectEqual(@as(u32, 1), machine.terminal.?.syntax_errors);
+                try std.testing.expectEqual(remaining, machine.recovery_state.remaining);
+
+                counter = .{};
+                machine = M.init(&buffer, diagnostic.discard, if (runtime) settings else {}, null);
+                while (machine.phase != .recover_one and machine.phase != .recover_two) _ = machine.advance(&stack, &counter, 1);
+                machine.recovery_state.remaining = 0;
+                _ = machine.advance(&stack, &counter, 1);
+                try std.testing.expectEqual(result.Outcome{ .resource_limit = .{ .resource = .recovery_work, .limit = text.len } }, machine.terminal.?.outcome);
+                try std.testing.expectEqual(result.Completion.incomplete, machine.terminal.?.completion);
+                try std.testing.expectEqual(@as(u32, 1), machine.terminal.?.syntax_errors);
+            };
+        }
+    }
+}
+
+test "each event attempt is charged and every rejecting sink aborts exactly once" {
+    try std.testing.expect(Machine(.scalar, .{}, false, false, .structural).Settings == void);
+    try std.testing.expect(Machine(.scalar, .{}, false, false, .structural).Hook == void);
+    try std.testing.expect(@FieldType(Machine(.scalar, .{ .on_error = .fail_fast }, false, false, .structural), "recovery_state") == void);
+    try std.testing.expectEqual(@as(usize, 3 * @sizeOf(u32)), @sizeOf(@FieldType(Machine(.scalar, .{ .closing_tag_recovery = .exact }, true, false, .structural), "recovery_state")));
+    try std.testing.expect(@sizeOf(@FieldType(Machine(.scalar, .{}, true, false, .structural), "recovery_state")) > 3 * @sizeOf(u32));
+    try std.testing.expect(@FieldType(lexer.Scanner(.scalar, false, false), "frontier") == void);
+    try std.testing.expect(@FieldType(lexer.Scanner(.scalar, true, true), "frontier") == u32);
+    const Probe = struct {
+        calls: u32 = 0,
+        aborts: u32 = 0,
+        fail_at: ?u32 = null,
+        pub fn attempt(self: *@This()) error{Rejected}!void {
+            const call = self.calls;
+            self.calls += 1;
+            if (self.fail_at == call) return error.Rejected;
+        }
+        pub fn begin(self: *@This()) !void {
+            try self.attempt();
+        }
+        pub fn open(self: *@This(), _: support.location.Span, _: support.location.Span) !u32 {
+            try self.attempt();
+            return 0;
+        }
+        pub fn leaf(self: *@This(), _: Kind, _: support.location.Span) !void {
+            try self.attempt();
+        }
+        pub fn attribute(self: *@This(), _: u32, _: support.location.Span, _: support.location.Span) !void {
+            try self.attempt();
+        }
+        pub fn close(self: *@This(), _: u32, _: u32) !void {
+            try self.attempt();
+        }
+        pub fn commit(self: *@This()) !void {
+            try self.attempt();
+        }
+        pub fn abort(self: *@This()) void {
+            self.aborts += 1;
+        }
+    };
+    for (0..10) |attempt| {
+        var probe: Probe = .{ .fail_at = if (attempt == 9) null else @intCast(attempt) };
+        var storage: scratch.Fixed(1) = .{};
+        var stack: scratch.Stack = .{ .frames = storage.storage().frames };
+        var m = Machine(.scalar, .{}, true, false, .structural).init("<a x='1'>x<b y='2'/></a>", diagnostic.discard, {}, {});
+        while (m.terminal == null) {
+            const calls = probe.calls;
+            const p = m.advance(&stack, &probe, 1);
+            try std.testing.expectEqual(@as(u32, 1), p.work_used);
+            try std.testing.expect(probe.calls - calls <= 1);
+        }
+        const expected: result.Outcome = if (probe.fail_at == null) .success else .sink_failure;
+        try std.testing.expectEqual(expected, m.terminal.?.outcome);
+        try std.testing.expectEqual(@as(u32, if (probe.fail_at == null) 0 else 1), probe.aborts);
+        const calls = probe.calls;
+        _ = m.advance(&stack, &probe, 100);
+        _ = m.run(&stack, &probe);
+        _ = m.cancel(&stack, &probe);
+        try std.testing.expectEqual(calls, probe.calls);
+        try std.testing.expectEqual(@as(u32, if (probe.fail_at == null) 0 else 1), probe.aborts);
+    }
+    // Output is aborted at the first rejection; grammar alone continues.
+    var probe: Probe = .{};
+    var storage: scratch.Fixed(4) = .{};
+    var stack: scratch.Stack = .{ .frames = storage.storage().frames };
+    var m = Machine(.scalar, .{}, true, false, .structural).init("<a><b></a><c x='1'>text</c></extra>", diagnostic.discard, {}, {});
+    var calls_at_abort: ?u32 = null;
+    while (m.terminal == null) {
+        _ = m.advance(&stack, &probe, 1);
+        if (calls_at_abort) |count| try std.testing.expectEqual(count, probe.calls);
+        if (probe.aborts != 0) calls_at_abort = probe.calls;
+    }
+    try std.testing.expectEqual(@as(u32, 1), probe.aborts);
+    try std.testing.expectEqual(@as(u32, 3), probe.calls); // begin, open a, open b
+    try std.testing.expectEqual(@as(u32, 2), m.terminal.?.syntax_errors);
+    try std.testing.expectEqual(result.Completion.complete, m.terminal.?.completion);
+
+    probe = .{};
+    m = Machine(.scalar, .{}, true, false, .structural).init("<a good='1' bad=0><b broken=0/></a>", diagnostic.discard, {}, {});
+    calls_at_abort = null;
+    while (m.terminal == null) {
+        const calls = probe.calls;
+        _ = m.advance(&stack, &probe, 1);
+        try std.testing.expect(probe.calls - calls <= 1);
+        if (calls_at_abort) |count| try std.testing.expectEqual(count, probe.calls);
+        if (probe.aborts != 0) calls_at_abort = probe.calls;
+    }
+    try std.testing.expectEqual(@as(u32, 1), probe.aborts);
+    try std.testing.expectEqual(@as(u32, 3), probe.calls); // begin, open a, good attribute
+    try std.testing.expectEqual(@as(u32, 2), m.terminal.?.syntax_errors);
+    try std.testing.expectEqual(result.Completion.complete, m.terminal.?.completion);
+}

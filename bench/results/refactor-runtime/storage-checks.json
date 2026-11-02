@@ -1,0 +1,62 @@
+{
+  "inplace": {
+    "binary_sha256": "658798fed28e0e7e3e7a665d1de4fa6fb45269437874745846b930b87639e839",
+    "checks": {
+      "lsp": {
+        "exit": 0,
+        "stdout": "{\n  \"checks\": \"passed\",\n  \"binary_bytes\": 945208,\n  \"startup_ms_median\": 2.1948340000000344,\n  \"startup_ms_max\": 2.4075409999999575,\n  \"edit_bytes\": 800012,\n  \"edit_ms_median\": 7.577875000000011,\n  \"edit_ms_max\": 7.952124999999977\n}\n",
+        "stderr": ""
+      },
+      "protocol": {
+        "exit": 0,
+        "stdout": "Protocol boundaries passed: framing, lifecycle/error order, IDs, source updates and 26 captured replies/findings.\n",
+        "stderr": ""
+      },
+      "attributes": {
+        "exit": 0,
+        "stdout": "Attributes: owner filtering, quoted names, UTF-8/16/32, hover exclusions and stale/cancelled requests passed\n",
+        "stderr": ""
+      },
+      "code_actions": {
+        "exit": 0,
+        "stdout": "Code actions: parser edits apply cleanly; UTF-8/16/32, HTML rebase, filters, stale generations and versioned edits passed.\n",
+        "stderr": ""
+      },
+      "html": {
+        "exit": 0,
+        "stdout": "HTML: staged merge, selection, UTF-8/16/32, moved labels, repairs, limits, 70,000-label tail coverage and obsolete generations passed\n",
+        "stderr": ""
+      }
+    }
+  },
+  "arena": {
+    "binary_sha256": "b3357da8c175ab19e1e93b70299df2239402b1a9590ac65b509f83e530ce1602",
+    "checks": {
+      "lsp": {
+        "exit": 0,
+        "stdout": "{\n  \"checks\": \"passed\",\n  \"binary_bytes\": 945016,\n  \"startup_ms_median\": 2.145375000000005,\n  \"startup_ms_max\": 2.329040999999976,\n  \"edit_bytes\": 800012,\n  \"edit_ms_median\": 7.740062499999977,\n  \"edit_ms_max\": 7.931958000000017\n}\n",
+        "stderr": ""
+      },
+      "protocol": {
+        "exit": 0,
+        "stdout": "Protocol boundaries passed: framing, lifecycle/error order, IDs, source updates and 26 captured replies/findings.\n",
+        "stderr": ""
+      },
+      "attributes": {
+        "exit": 0,
+        "stdout": "Attributes: owner filtering, quoted names, UTF-8/16/32, hover exclusions and stale/cancelled requests passed\n",
+        "stderr": ""
+      },
+      "code_actions": {
+        "exit": 0,
+        "stdout": "Code actions: parser edits apply cleanly; UTF-8/16/32, HTML rebase, filters, stale generations and versioned edits passed.\n",
+        "stderr": ""
+      },
+      "html": {
+        "exit": 0,
+        "stdout": "HTML: staged merge, selection, UTF-8/16/32, moved labels, repairs, limits, 70,000-label tail coverage and obsolete generations passed\n",
+        "stderr": ""
+      }
+    }
+  }
+}

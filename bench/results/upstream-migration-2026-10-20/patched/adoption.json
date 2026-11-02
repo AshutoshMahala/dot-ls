@@ -1,0 +1,30 @@
+{
+  "upstream_commit": "b58db00e982b2ab785b317c1557e9e110128462e",
+  "patches": [
+    "index-values.patch",
+    "outline-observer.patch"
+  ],
+  "application_unit_tests_release_safe": 42,
+  "parser_unit_tests_release_safe": 208,
+  "outline_comparisons": 17,
+  "outline_exact_names_hierarchy_and_ranges": true,
+  "active_binary_rebuilt": true,
+  "no_retained_ast": true,
+  "preserved_features": [
+    "diagnostics",
+    "completion",
+    "references",
+    "delayed HTML checks",
+    "quick fixes",
+    "broken-file outline"
+  ],
+  "policy": "New Graphviz vocabulary/content/value/named-reference validation remains explicitly disabled; existing structural behavior retained.",
+  "vendor_integrity": "Reversing both declared patches restores every included upstream byte.",
+  "source_backups": "/private/tmp/dot-ls-patched-upstream-q9ei4xm2/pre-update",
+  "performance_note": "Small diagnostics overhead remains. Quoted reference stage is close to old baseline after restoring trusted operations. See summary.json for all sizes.",
+  "final_checks_pending": [],
+  "application_unit_tests_debug": 42,
+  "installed_parser_unit_tests_release_safe": 208,
+  "installed_protocol_suites_passed": 7,
+  "layout_and_vendor_integrity_checks": "passed"
+}

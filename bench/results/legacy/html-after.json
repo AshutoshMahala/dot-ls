@@ -1,0 +1,82 @@
+{
+  "label": "after",
+  "binary_bytes": 800824,
+  "binary_sha256": "06634ddefd6c88f0d168ad6825401b43b57b27a322643d8bb53f234e389d2344",
+  "runs": [
+    {
+      "mb": 5,
+      "idle_rss_bytes": 2162688,
+      "closed_rss_bytes": 2457600,
+      "peak_rss_bytes": 22265856,
+      "samples": [
+        {
+          "edit": "initial",
+          "dot_ms": 10.112959,
+          "merged_ms": 14.994292,
+          "settled_rss_bytes": 8028160,
+          "source_bytes": 4999990
+        },
+        {
+          "edit": "outer_only",
+          "dot_ms": 9.574625,
+          "merged_ms": 12.926167,
+          "settled_rss_bytes": 8028160,
+          "source_bytes": 4999990
+        },
+        {
+          "edit": "one_html_edit",
+          "dot_ms": 9.734958,
+          "merged_ms": 13.096792,
+          "settled_rss_bytes": 8028160,
+          "source_bytes": 4999990
+        },
+        {
+          "edit": "outer_newline",
+          "dot_ms": 10.080292,
+          "merged_ms": 13.469583,
+          "settled_rss_bytes": 8028160,
+          "source_bytes": 4999991
+        }
+      ],
+      "time_output": "        0.11 real         0.07 user         0.00 sys\n            22265856  maximum resident set size\n                   0  average shared memory size\n                   0  average unshared data size\n                   0  average unshared stack size\n                5428  page reclaims\n                  34  page faults\n                   0  swaps\n                   0  block input operations\n                   0  block output operations\n                   0  messages sent\n                   0  messages received\n                   0  signals received\n                 320  voluntary context switches\n                  45  involuntary context switches\n          1897654258  instructions retired\n           338516910  cycles elapsed\n            21414296  peak memory footprint\n"
+    },
+    {
+      "mb": 40,
+      "idle_rss_bytes": 2162688,
+      "closed_rss_bytes": 2457600,
+      "peak_rss_bytes": 129531904,
+      "samples": [
+        {
+          "edit": "initial",
+          "dot_ms": 164.333708,
+          "merged_ms": 188.560583,
+          "settled_rss_bytes": 38371328,
+          "source_bytes": 39999955
+        },
+        {
+          "edit": "outer_only",
+          "dot_ms": 162.46325,
+          "merged_ms": 184.566167,
+          "settled_rss_bytes": 38371328,
+          "source_bytes": 39999955
+        },
+        {
+          "edit": "one_html_edit",
+          "dot_ms": 163.578291,
+          "merged_ms": 185.520125,
+          "settled_rss_bytes": 38371328,
+          "source_bytes": 39999955
+        },
+        {
+          "edit": "outer_newline",
+          "dot_ms": 160.77075,
+          "merged_ms": 182.594416,
+          "settled_rss_bytes": 38371328,
+          "source_bytes": 39999956
+        }
+      ],
+      "time_output": "        1.52 real         1.38 user         0.08 sys\n           129531904  maximum resident set size\n                   0  average shared memory size\n                   0  average unshared data size\n                   0  average unshared stack size\n               64030  page reclaims\n                   0  page faults\n                   0  swaps\n                   0  block input operations\n                   0  block output operations\n                   0  messages sent\n                   0  messages received\n                   0  signals received\n                2584  voluntary context switches\n                  46  involuntary context switches\n         36063880414  instructions retired\n          5994061606  cycles elapsed\n           128778792  peak memory footprint\n"
+    }
+  ],
+  "notes": "Zig 0.16 ReleaseSafe, page allocator, buffered JSON. Pre-encoded edits. 1,000 distinct HTML labels with about 4 MB total HTML; last has a mismatched closer. Original example edges fill remaining size. Four successive versions per fresh process. The old binary does not check HTML, so only its DOT stage is compared. New merged time includes HTML checks/reuse and diagnostic mapping; completion context and references follow. Server RSS only; Zed remains open. No simultaneous builds or benchmarks."
+}

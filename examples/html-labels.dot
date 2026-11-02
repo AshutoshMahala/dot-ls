@@ -1,0 +1,8 @@
+// HTML-like label checks run after DOT diagnostics.
+// Repair the bad label by adding </TR> before </TABLE>.
+digraph html_labels {
+    good [label=<<B>bold</B> and <I>italic</I>>];
+    bad [label=<<TABLE><TR></TABLE>>];
+    quoted [label="<B>This remains a normal DOT string.</B>"];
+    good -> bad [xlabel=<<I>edge label</I>>];
+}

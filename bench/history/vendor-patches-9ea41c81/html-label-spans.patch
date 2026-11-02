@@ -1,0 +1,44 @@
+--- a/src/dot/syntax.zig
++++ b/src/dot/syntax.zig
+@@ -1375,6 +1375,7 @@
+ pub const CountingSink = struct {
+     // Local optional observer. It cannot stop syntax analysis on index failure.
+     observer: ?struct { context: *anyopaque, emit: *const fn (*anyopaque, location.Span) void } = null,
++    attribute_observer: ?struct { context: *anyopaque, emit: *const fn (*anyopaque, location.Span, location.Span) void } = null,
+     counts: Capacities = .{},
+     scope_state: syntax_event.ScopeState = .{},
+     phase: enum { idle, building, committed, terminal } = .idle,
+@@ -1445,10 +1446,12 @@
+         self.counts.ported_references += 1;
+         return index;
+     }
+-    pub fn attribute(self: *CountingSink, _: syntax_event.Attribute) Error!void {
++    pub fn attribute(self: *CountingSink, event: syntax_event.Attribute) Error!void {
++        if (self.attribute_observer) |o| o.emit(o.context, event.key, event.value);
+         self.counts.attributes += 1;
+     }
+-    pub fn assignment(self: *CountingSink, _: syntax_event.Attribute) Error!void {
++    pub fn assignment(self: *CountingSink, event: syntax_event.Attribute) Error!void {
++        if (self.attribute_observer) |o| o.emit(o.context, event.key, event.value);
+         self.counts.assignments += 1;
+         self.counts.statements += 1;
+     }
+--- a/src/dot/profile.zig
++++ b/src/dot/profile.zig
+@@ -221,6 +221,16 @@
+                 return .{ .driver = if (runtime_policy) switch (variantOf(effective)) {
+                     inline else => |variant| @unionInit(Drivers, @tagName(variant), EngineFor(variant).MeasureSession.init(source, scratch, diagnostics, engineOptions(EngineFor(variant), effective, hook))),
+                 } else FixedEngine.MeasureSession.init(source, scratch, diagnostics, engineOptions(FixedEngine, effective, hook)) };
++            }
++            /// Local delayed-label bridge. Only complete parser-accepted pairs.
++            pub fn observeAttributes(self: *Self, context: *anyopaque, emit: *const fn (*anyopaque, api.Span, api.Span) void) void {
++                if (runtime_policy) {
++                    switch (self.driver) {
++                        inline else => |*driver| {
++                            driver.counting.attribute_observer = .{ .context = context, .emit = emit };
++                        },
++                    }
++                } else self.driver.counting.attribute_observer = .{ .context = context, .emit = emit };
+             }
+             pub fn observeNodes(self: *Self, context: *anyopaque, emit: *const fn (*anyopaque, api.Span) void) void {
+                 if (runtime_policy) {

@@ -1,0 +1,5721 @@
+{
+  "binary": "/private/tmp/dot-ls-quickfix-before/dot-ls",
+  "sha256": "fdea34c2600f08b83902605ef825e168ad8f43daa4af202d06fbbf422cf25f5a",
+  "runs": [
+    {
+      "kind": "plain",
+      "mb": 5,
+      "trial": 1,
+      "source_sha256": "17dbeb816186da5409fbcb9cf341cf14c773718b3fb59aa933226ed2f69b5ddb",
+      "phases": [
+        {
+          "phase": "open",
+          "inserted_errors": 0,
+          "version": 1,
+          "first_diagnostics_ms": 33.978999999999985,
+          "final_diagnostics_ms": 33.978999999999985,
+          "write_ms": 6.341708999999973,
+          "notifications": [
+            {
+              "ms": 33.978999999999985,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            }
+          ],
+          "settled_rss_bytes": 6684672,
+          "settled_footprint_bytes": 5800296,
+          "cpu_through_settle_seconds": 0.05774208333333333,
+          "reported_incomplete": false
+        },
+        {
+          "phase": "operator-1",
+          "inserted_errors": 1,
+          "version": 2,
+          "first_diagnostics_ms": 35.90216699999993,
+          "final_diagnostics_ms": 35.90216699999993,
+          "write_ms": 5.95374999999998,
+          "notifications": [
+            {
+              "ms": 35.90216699999993,
+              "wire_bytes": 608,
+              "diagnostics": 1,
+              "errors": 1,
+              "incomplete": false,
+              "codes": {
+                "E.Validation.Operator.002": 1
+              },
+              "examples": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 48077,
+                      "character": 14
+                    },
+                    "end": {
+                      "line": 48077,
+                      "character": 16
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Validation.Operator.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 0,
+                            "character": 0
+                          },
+                          "end": {
+                            "line": 0,
+                            "character": 7
+                          }
+                        }
+                      },
+                      "message": "Graph kind declared here."
+                    }
+                  ],
+                  "message": "Edge operator '--' does not match this digraph.\nUse '->' here, or change the graph declaration."
+                }
+              ]
+            }
+          ],
+          "settled_rss_bytes": 6684672,
+          "settled_footprint_bytes": 5816704,
+          "cpu_through_settle_seconds": 0.05938591666666666,
+          "reported_incomplete": false
+        },
+        {
+          "phase": "repair",
+          "inserted_errors": 0,
+          "version": 3,
+          "first_diagnostics_ms": 33.590457999999934,
+          "final_diagnostics_ms": 33.590457999999934,
+          "write_ms": 7.0566249999999275,
+          "notifications": [
+            {
+              "ms": 33.590457999999934,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            }
+          ],
+          "settled_rss_bytes": 6684672,
+          "settled_footprint_bytes": 5816704,
+          "cpu_through_settle_seconds": 0.05748616666666666,
+          "reported_incomplete": false
+        },
+        {
+          "phase": "operator-1000",
+          "inserted_errors": 1000,
+          "version": 4,
+          "first_diagnostics_ms": 40.57395799999996,
+          "final_diagnostics_ms": 40.57395799999996,
+          "write_ms": 4.870583000000206,
+          "notifications": [
+            {
+              "ms": 40.57395799999996,
+              "wire_bytes": 460179,
+              "diagnostics": 1001,
+              "errors": 1000,
+              "incomplete": true,
+              "codes": {
+                "E.Validation.Operator.002": 1000,
+                "dot-ls:validation-incomplete": 1
+              },
+              "examples": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 97,
+                      "character": 14
+                    },
+                    "end": {
+                      "line": 97,
+                      "character": 16
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Validation.Operator.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 0,
+                            "character": 0
+                          },
+                          "end": {
+                            "line": 0,
+                            "character": 7
+                          }
+                        }
+                      },
+                      "message": "Graph kind declared here."
+                    }
+                  ],
+                  "message": "Edge operator '--' does not match this digraph.\nUse '->' here, or change the graph declaration."
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:validation-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "DOT validation is incomplete. Further errors or repeated attributes may remain."
+                }
+              ]
+            }
+          ],
+          "settled_rss_bytes": 6684672,
+          "settled_footprint_bytes": 5800296,
+          "cpu_through_settle_seconds": 0.06580754166666669,
+          "reported_incomplete": true
+        },
+        {
+          "phase": "clean-final",
+          "inserted_errors": 0,
+          "version": 5,
+          "first_diagnostics_ms": 36.511874999999975,
+          "final_diagnostics_ms": 36.511874999999975,
+          "write_ms": 6.65400000000016,
+          "notifications": [
+            {
+              "ms": 36.511874999999975,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            }
+          ],
+          "settled_rss_bytes": 6684672,
+          "settled_footprint_bytes": 5800296,
+          "cpu_through_settle_seconds": 0.06166220833333333,
+          "reported_incomplete": false
+        }
+      ],
+      "actions": [
+        {
+          "phase": "operator-1",
+          "count": 0,
+          "request_ms": 0.11475000000005231,
+          "response_bytes": 78,
+          "settled_rss_bytes": 6684672
+        },
+        {
+          "phase": "operator-1000",
+          "count": 0,
+          "request_ms": 0.14358300000028024,
+          "response_bytes": 78,
+          "settled_rss_bytes": 6684672
+        }
+      ],
+      "startup_ms": 124.96016699999998,
+      "idle": {
+        "t": 0.584488416,
+        "rss_bytes": 2179072,
+        "footprint_bytes": 1376592,
+        "cpu_seconds": 0.0037804583333333336,
+        "start_ticks": 1541207041718
+      },
+      "resources": {
+        "exit_code": 0,
+        "actual_peak_rss_bytes": 17842176,
+        "sampled_peak_rss_bytes": 14024704,
+        "sampled_peak_footprint_bytes": 13156736,
+        "cpu_user_seconds": 0.275901,
+        "cpu_system_seconds": 0.031003,
+        "safety_stop": null,
+        "stderr": ""
+      }
+    },
+    {
+      "kind": "plain",
+      "mb": 5,
+      "trial": 2,
+      "source_sha256": "17dbeb816186da5409fbcb9cf341cf14c773718b3fb59aa933226ed2f69b5ddb",
+      "phases": [
+        {
+          "phase": "open",
+          "inserted_errors": 0,
+          "version": 1,
+          "first_diagnostics_ms": 35.01983399999986,
+          "final_diagnostics_ms": 35.01983399999986,
+          "write_ms": 5.196250000000013,
+          "notifications": [
+            {
+              "ms": 35.01983399999986,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            }
+          ],
+          "settled_rss_bytes": 6684672,
+          "settled_footprint_bytes": 5800296,
+          "cpu_through_settle_seconds": 0.06061725,
+          "reported_incomplete": false
+        },
+        {
+          "phase": "operator-1",
+          "inserted_errors": 1,
+          "version": 2,
+          "first_diagnostics_ms": 38.8269999999995,
+          "final_diagnostics_ms": 38.8269999999995,
+          "write_ms": 5.1651249999995485,
+          "notifications": [
+            {
+              "ms": 38.8269999999995,
+              "wire_bytes": 608,
+              "diagnostics": 1,
+              "errors": 1,
+              "incomplete": false,
+              "codes": {
+                "E.Validation.Operator.002": 1
+              },
+              "examples": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 48077,
+                      "character": 14
+                    },
+                    "end": {
+                      "line": 48077,
+                      "character": 16
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Validation.Operator.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 0,
+                            "character": 0
+                          },
+                          "end": {
+                            "line": 0,
+                            "character": 7
+                          }
+                        }
+                      },
+                      "message": "Graph kind declared here."
+                    }
+                  ],
+                  "message": "Edge operator '--' does not match this digraph.\nUse '->' here, or change the graph declaration."
+                }
+              ]
+            }
+          ],
+          "settled_rss_bytes": 6684672,
+          "settled_footprint_bytes": 5816704,
+          "cpu_through_settle_seconds": 0.06374654166666668,
+          "reported_incomplete": false
+        },
+        {
+          "phase": "repair",
+          "inserted_errors": 0,
+          "version": 3,
+          "first_diagnostics_ms": 24.217707999999227,
+          "final_diagnostics_ms": 24.217707999999227,
+          "write_ms": 1.5347919999992854,
+          "notifications": [
+            {
+              "ms": 24.217707999999227,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            }
+          ],
+          "settled_rss_bytes": 6684672,
+          "settled_footprint_bytes": 5816704,
+          "cpu_through_settle_seconds": 0.04839058333333335,
+          "reported_incomplete": false
+        },
+        {
+          "phase": "operator-1000",
+          "inserted_errors": 1000,
+          "version": 4,
+          "first_diagnostics_ms": 33.76237500000023,
+          "final_diagnostics_ms": 33.76237500000023,
+          "write_ms": 5.378083000000089,
+          "notifications": [
+            {
+              "ms": 33.76237500000023,
+              "wire_bytes": 460179,
+              "diagnostics": 1001,
+              "errors": 1000,
+              "incomplete": true,
+              "codes": {
+                "E.Validation.Operator.002": 1000,
+                "dot-ls:validation-incomplete": 1
+              },
+              "examples": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 97,
+                      "character": 14
+                    },
+                    "end": {
+                      "line": 97,
+                      "character": 16
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Validation.Operator.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 0,
+                            "character": 0
+                          },
+                          "end": {
+                            "line": 0,
+                            "character": 7
+                          }
+                        }
+                      },
+                      "message": "Graph kind declared here."
+                    }
+                  ],
+                  "message": "Edge operator '--' does not match this digraph.\nUse '->' here, or change the graph declaration."
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:validation-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "DOT validation is incomplete. Further errors or repeated attributes may remain."
+                }
+              ]
+            }
+          ],
+          "settled_rss_bytes": 6684672,
+          "settled_footprint_bytes": 5833112,
+          "cpu_through_settle_seconds": 0.054320791666666646,
+          "reported_incomplete": true
+        },
+        {
+          "phase": "clean-final",
+          "inserted_errors": 0,
+          "version": 5,
+          "first_diagnostics_ms": 38.48616700000029,
+          "final_diagnostics_ms": 38.48616700000029,
+          "write_ms": 6.803750000000441,
+          "notifications": [
+            {
+              "ms": 38.48616700000029,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            }
+          ],
+          "settled_rss_bytes": 6684672,
+          "settled_footprint_bytes": 5833112,
+          "cpu_through_settle_seconds": 0.06262195833333334,
+          "reported_incomplete": false
+        }
+      ],
+      "actions": [
+        {
+          "phase": "operator-1",
+          "count": 0,
+          "request_ms": 0.33074999999982424,
+          "response_bytes": 78,
+          "settled_rss_bytes": 6684672
+        },
+        {
+          "phase": "operator-1000",
+          "count": 0,
+          "request_ms": 0.09341599999945771,
+          "response_bytes": 78,
+          "settled_rss_bytes": 6684672
+        }
+      ],
+      "startup_ms": 8.447708999999914,
+      "idle": {
+        "t": 3.813785041,
+        "rss_bytes": 2179072,
+        "footprint_bytes": 1376592,
+        "cpu_seconds": 0.004871583333333333,
+        "start_ticks": 1541287375378
+      },
+      "resources": {
+        "exit_code": 0,
+        "actual_peak_rss_bytes": 17842176,
+        "sampled_peak_rss_bytes": 16744448,
+        "sampled_peak_footprint_bytes": 15876480,
+        "cpu_user_seconds": 0.267323,
+        "cpu_system_seconds": 0.027637,
+        "safety_stop": null,
+        "stderr": ""
+      }
+    },
+    {
+      "kind": "plain",
+      "mb": 5,
+      "trial": 3,
+      "source_sha256": "17dbeb816186da5409fbcb9cf341cf14c773718b3fb59aa933226ed2f69b5ddb",
+      "phases": [
+        {
+          "phase": "open",
+          "inserted_errors": 0,
+          "version": 1,
+          "first_diagnostics_ms": 32.77041700000005,
+          "final_diagnostics_ms": 32.77041700000005,
+          "write_ms": 5.301833000000755,
+          "notifications": [
+            {
+              "ms": 32.77041700000005,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            }
+          ],
+          "settled_rss_bytes": 6684672,
+          "settled_footprint_bytes": 5800296,
+          "cpu_through_settle_seconds": 0.05734941666666667,
+          "reported_incomplete": false
+        },
+        {
+          "phase": "operator-1",
+          "inserted_errors": 1,
+          "version": 2,
+          "first_diagnostics_ms": 37.951166000000036,
+          "final_diagnostics_ms": 37.951166000000036,
+          "write_ms": 5.757749999999895,
+          "notifications": [
+            {
+              "ms": 37.951166000000036,
+              "wire_bytes": 608,
+              "diagnostics": 1,
+              "errors": 1,
+              "incomplete": false,
+              "codes": {
+                "E.Validation.Operator.002": 1
+              },
+              "examples": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 48077,
+                      "character": 14
+                    },
+                    "end": {
+                      "line": 48077,
+                      "character": 16
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Validation.Operator.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 0,
+                            "character": 0
+                          },
+                          "end": {
+                            "line": 0,
+                            "character": 7
+                          }
+                        }
+                      },
+                      "message": "Graph kind declared here."
+                    }
+                  ],
+                  "message": "Edge operator '--' does not match this digraph.\nUse '->' here, or change the graph declaration."
+                }
+              ]
+            }
+          ],
+          "settled_rss_bytes": 6684672,
+          "settled_footprint_bytes": 5816704,
+          "cpu_through_settle_seconds": 0.062281791666666676,
+          "reported_incomplete": false
+        },
+        {
+          "phase": "repair",
+          "inserted_errors": 0,
+          "version": 3,
+          "first_diagnostics_ms": 35.42200000000051,
+          "final_diagnostics_ms": 35.42200000000051,
+          "write_ms": 6.203582999999568,
+          "notifications": [
+            {
+              "ms": 35.42200000000051,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            }
+          ],
+          "settled_rss_bytes": 6684672,
+          "settled_footprint_bytes": 5816704,
+          "cpu_through_settle_seconds": 0.05985549999999999,
+          "reported_incomplete": false
+        },
+        {
+          "phase": "operator-1000",
+          "inserted_errors": 1000,
+          "version": 4,
+          "first_diagnostics_ms": 40.270958999998996,
+          "final_diagnostics_ms": 40.270958999998996,
+          "write_ms": 7.356083999999541,
+          "notifications": [
+            {
+              "ms": 40.270958999998996,
+              "wire_bytes": 460179,
+              "diagnostics": 1001,
+              "errors": 1000,
+              "incomplete": true,
+              "codes": {
+                "E.Validation.Operator.002": 1000,
+                "dot-ls:validation-incomplete": 1
+              },
+              "examples": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 97,
+                      "character": 14
+                    },
+                    "end": {
+                      "line": 97,
+                      "character": 16
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Validation.Operator.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 0,
+                            "character": 0
+                          },
+                          "end": {
+                            "line": 0,
+                            "character": 7
+                          }
+                        }
+                      },
+                      "message": "Graph kind declared here."
+                    }
+                  ],
+                  "message": "Edge operator '--' does not match this digraph.\nUse '->' here, or change the graph declaration."
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:validation-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "DOT validation is incomplete. Further errors or repeated attributes may remain."
+                }
+              ]
+            }
+          ],
+          "settled_rss_bytes": 6684672,
+          "settled_footprint_bytes": 5800296,
+          "cpu_through_settle_seconds": 0.06389754166666667,
+          "reported_incomplete": true
+        },
+        {
+          "phase": "clean-final",
+          "inserted_errors": 0,
+          "version": 5,
+          "first_diagnostics_ms": 32.22220900000039,
+          "final_diagnostics_ms": 32.22220900000039,
+          "write_ms": 4.557584000000503,
+          "notifications": [
+            {
+              "ms": 32.22220900000039,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            }
+          ],
+          "settled_rss_bytes": 6684672,
+          "settled_footprint_bytes": 5800296,
+          "cpu_through_settle_seconds": 0.056585666666666645,
+          "reported_incomplete": false
+        }
+      ],
+      "actions": [
+        {
+          "phase": "operator-1",
+          "count": 0,
+          "request_ms": 0.10295900000034663,
+          "response_bytes": 78,
+          "settled_rss_bytes": 6684672
+        },
+        {
+          "phase": "operator-1000",
+          "count": 0,
+          "request_ms": 0.25950000000030116,
+          "response_bytes": 78,
+          "settled_rss_bytes": 6684672
+        }
+      ],
+      "startup_ms": 3.6909579999999664,
+      "idle": {
+        "t": 7.008489541,
+        "rss_bytes": 2179072,
+        "footprint_bytes": 1376592,
+        "cpu_seconds": 0.0023380833333333335,
+        "start_ticks": 1541364331240
+      },
+      "resources": {
+        "exit_code": 0,
+        "actual_peak_rss_bytes": 17842176,
+        "sampled_peak_rss_bytes": 15548416,
+        "sampled_peak_footprint_bytes": 14680448,
+        "cpu_user_seconds": 0.274843,
+        "cpu_system_seconds": 0.029379,
+        "safety_stop": null,
+        "stderr": ""
+      }
+    },
+    {
+      "kind": "html",
+      "mb": 5,
+      "trial": 1,
+      "source_sha256": "a4447aa7804372b958d5d7c761366fae1d644e85d862f303bdcfd9e77b4f7b1f",
+      "phases": [
+        {
+          "phase": "open",
+          "inserted_errors": 0,
+          "version": 1,
+          "first_diagnostics_ms": 28.132499999999894,
+          "final_diagnostics_ms": 28.51049999999944,
+          "write_ms": 5.366041000000266,
+          "notifications": [
+            {
+              "ms": 28.132499999999894,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            },
+            {
+              "ms": 28.51049999999944,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            }
+          ],
+          "settled_rss_bytes": 5029888,
+          "settled_footprint_bytes": 4145512,
+          "cpu_through_settle_seconds": 0.043858916666666664,
+          "reported_incomplete": false
+        },
+        {
+          "phase": "operator-1",
+          "inserted_errors": 1,
+          "version": 2,
+          "first_diagnostics_ms": 34.01283300000024,
+          "final_diagnostics_ms": 34.40491599999973,
+          "write_ms": 5.690083000001067,
+          "notifications": [
+            {
+              "ms": 34.01283300000024,
+              "wire_bytes": 608,
+              "diagnostics": 1,
+              "errors": 1,
+              "incomplete": false,
+              "codes": {
+                "E.Validation.Operator.002": 1
+              },
+              "examples": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 88236,
+                      "character": 14
+                    },
+                    "end": {
+                      "line": 88236,
+                      "character": 16
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Validation.Operator.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 0,
+                            "character": 0
+                          },
+                          "end": {
+                            "line": 0,
+                            "character": 7
+                          }
+                        }
+                      },
+                      "message": "Graph kind declared here."
+                    }
+                  ],
+                  "message": "Edge operator '--' does not match this digraph.\nUse '->' here, or change the graph declaration."
+                }
+              ]
+            },
+            {
+              "ms": 34.40491599999973,
+              "wire_bytes": 608,
+              "diagnostics": 1,
+              "errors": 1,
+              "incomplete": false,
+              "codes": {
+                "E.Validation.Operator.002": 1
+              },
+              "examples": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 88236,
+                      "character": 14
+                    },
+                    "end": {
+                      "line": 88236,
+                      "character": 16
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Validation.Operator.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 0,
+                            "character": 0
+                          },
+                          "end": {
+                            "line": 0,
+                            "character": 7
+                          }
+                        }
+                      },
+                      "message": "Graph kind declared here."
+                    }
+                  ],
+                  "message": "Edge operator '--' does not match this digraph.\nUse '->' here, or change the graph declaration."
+                }
+              ]
+            }
+          ],
+          "settled_rss_bytes": 5029888,
+          "settled_footprint_bytes": 4161920,
+          "cpu_through_settle_seconds": 0.05045825,
+          "reported_incomplete": false
+        },
+        {
+          "phase": "repair",
+          "inserted_errors": 0,
+          "version": 3,
+          "first_diagnostics_ms": 30.126832999998854,
+          "final_diagnostics_ms": 30.536916999999164,
+          "write_ms": 7.209957999998906,
+          "notifications": [
+            {
+              "ms": 30.126832999998854,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            },
+            {
+              "ms": 30.536916999999164,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            }
+          ],
+          "settled_rss_bytes": 5029888,
+          "settled_footprint_bytes": 4161920,
+          "cpu_through_settle_seconds": 0.04649016666666668,
+          "reported_incomplete": false
+        },
+        {
+          "phase": "operator-1000",
+          "inserted_errors": 1000,
+          "version": 4,
+          "first_diagnostics_ms": 35.25433299999925,
+          "final_diagnostics_ms": 39.20866600000039,
+          "write_ms": 5.441040999999203,
+          "notifications": [
+            {
+              "ms": 35.25433299999925,
+              "wire_bytes": 461153,
+              "diagnostics": 1001,
+              "errors": 1000,
+              "incomplete": true,
+              "codes": {
+                "E.Validation.Operator.002": 1000,
+                "dot-ls:validation-incomplete": 1
+              },
+              "examples": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 180,
+                      "character": 14
+                    },
+                    "end": {
+                      "line": 180,
+                      "character": 16
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Validation.Operator.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 0,
+                            "character": 0
+                          },
+                          "end": {
+                            "line": 0,
+                            "character": 7
+                          }
+                        }
+                      },
+                      "message": "Graph kind declared here."
+                    }
+                  ],
+                  "message": "Edge operator '--' does not match this digraph.\nUse '->' here, or change the graph declaration."
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:validation-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "DOT validation is incomplete. Further errors or repeated attributes may remain."
+                }
+              ]
+            },
+            {
+              "ms": 39.20866600000039,
+              "wire_bytes": 461153,
+              "diagnostics": 1001,
+              "errors": 1000,
+              "incomplete": true,
+              "codes": {
+                "E.Validation.Operator.002": 1000,
+                "dot-ls:validation-incomplete": 1
+              },
+              "examples": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 180,
+                      "character": 14
+                    },
+                    "end": {
+                      "line": 180,
+                      "character": 16
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Validation.Operator.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 0,
+                            "character": 0
+                          },
+                          "end": {
+                            "line": 0,
+                            "character": 7
+                          }
+                        }
+                      },
+                      "message": "Graph kind declared here."
+                    }
+                  ],
+                  "message": "Edge operator '--' does not match this digraph.\nUse '->' here, or change the graph declaration."
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:validation-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "DOT validation is incomplete. Further errors or repeated attributes may remain."
+                }
+              ]
+            }
+          ],
+          "settled_rss_bytes": 5029888,
+          "settled_footprint_bytes": 4178328,
+          "cpu_through_settle_seconds": 0.052716874999999996,
+          "reported_incomplete": true
+        },
+        {
+          "phase": "clean-final",
+          "inserted_errors": 0,
+          "version": 5,
+          "first_diagnostics_ms": 29.64074999999866,
+          "final_diagnostics_ms": 30.03724999999946,
+          "write_ms": 5.811499999998304,
+          "notifications": [
+            {
+              "ms": 29.64074999999866,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            },
+            {
+              "ms": 30.03724999999946,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            }
+          ],
+          "settled_rss_bytes": 5029888,
+          "settled_footprint_bytes": 4161920,
+          "cpu_through_settle_seconds": 0.046281249999999996,
+          "reported_incomplete": false
+        }
+      ],
+      "actions": [
+        {
+          "phase": "operator-1",
+          "count": 0,
+          "request_ms": 0.12008300000054817,
+          "response_bytes": 78,
+          "settled_rss_bytes": 5029888
+        },
+        {
+          "phase": "operator-1000",
+          "count": 0,
+          "request_ms": 0.13287500000025432,
+          "response_bytes": 78,
+          "settled_rss_bytes": 5029888
+        }
+      ],
+      "startup_ms": 3.5535420000005757,
+      "idle": {
+        "t": 10.306877041,
+        "rss_bytes": 2179072,
+        "footprint_bytes": 1376592,
+        "cpu_seconds": 0.00211025,
+        "start_ticks": 1541443278012
+      },
+      "resources": {
+        "exit_code": 0,
+        "actual_peak_rss_bytes": 17956864,
+        "sampled_peak_rss_bytes": 14303232,
+        "sampled_peak_footprint_bytes": 13435264,
+        "cpu_user_seconds": 0.217005,
+        "cpu_system_seconds": 0.025712,
+        "safety_stop": null,
+        "stderr": ""
+      }
+    },
+    {
+      "kind": "html",
+      "mb": 5,
+      "trial": 2,
+      "source_sha256": "a4447aa7804372b958d5d7c761366fae1d644e85d862f303bdcfd9e77b4f7b1f",
+      "phases": [
+        {
+          "phase": "open",
+          "inserted_errors": 0,
+          "version": 1,
+          "first_diagnostics_ms": 30.71641699999894,
+          "final_diagnostics_ms": 31.140916999998325,
+          "write_ms": 6.1347499999993005,
+          "notifications": [
+            {
+              "ms": 30.71641699999894,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            },
+            {
+              "ms": 31.140916999998325,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            }
+          ],
+          "settled_rss_bytes": 5029888,
+          "settled_footprint_bytes": 4145512,
+          "cpu_through_settle_seconds": 0.046451458333333334,
+          "reported_incomplete": false
+        },
+        {
+          "phase": "operator-1",
+          "inserted_errors": 1,
+          "version": 2,
+          "first_diagnostics_ms": 29.35541599999958,
+          "final_diagnostics_ms": 29.825999999999908,
+          "write_ms": 4.963874999999618,
+          "notifications": [
+            {
+              "ms": 29.35541599999958,
+              "wire_bytes": 608,
+              "diagnostics": 1,
+              "errors": 1,
+              "incomplete": false,
+              "codes": {
+                "E.Validation.Operator.002": 1
+              },
+              "examples": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 88236,
+                      "character": 14
+                    },
+                    "end": {
+                      "line": 88236,
+                      "character": 16
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Validation.Operator.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 0,
+                            "character": 0
+                          },
+                          "end": {
+                            "line": 0,
+                            "character": 7
+                          }
+                        }
+                      },
+                      "message": "Graph kind declared here."
+                    }
+                  ],
+                  "message": "Edge operator '--' does not match this digraph.\nUse '->' here, or change the graph declaration."
+                }
+              ]
+            },
+            {
+              "ms": 29.825999999999908,
+              "wire_bytes": 608,
+              "diagnostics": 1,
+              "errors": 1,
+              "incomplete": false,
+              "codes": {
+                "E.Validation.Operator.002": 1
+              },
+              "examples": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 88236,
+                      "character": 14
+                    },
+                    "end": {
+                      "line": 88236,
+                      "character": 16
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Validation.Operator.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 0,
+                            "character": 0
+                          },
+                          "end": {
+                            "line": 0,
+                            "character": 7
+                          }
+                        }
+                      },
+                      "message": "Graph kind declared here."
+                    }
+                  ],
+                  "message": "Edge operator '--' does not match this digraph.\nUse '->' here, or change the graph declaration."
+                }
+              ]
+            }
+          ],
+          "settled_rss_bytes": 5029888,
+          "settled_footprint_bytes": 4161920,
+          "cpu_through_settle_seconds": 0.043809999999999995,
+          "reported_incomplete": false
+        },
+        {
+          "phase": "repair",
+          "inserted_errors": 0,
+          "version": 3,
+          "first_diagnostics_ms": 31.512499999999832,
+          "final_diagnostics_ms": 31.93987500000084,
+          "write_ms": 7.213542000000572,
+          "notifications": [
+            {
+              "ms": 31.512499999999832,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            },
+            {
+              "ms": 31.93987500000084,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            }
+          ],
+          "settled_rss_bytes": 5029888,
+          "settled_footprint_bytes": 4161920,
+          "cpu_through_settle_seconds": 0.04745395833333331,
+          "reported_incomplete": false
+        },
+        {
+          "phase": "operator-1000",
+          "inserted_errors": 1000,
+          "version": 4,
+          "first_diagnostics_ms": 35.03045899999968,
+          "final_diagnostics_ms": 38.56495900000034,
+          "write_ms": 5.149791999999209,
+          "notifications": [
+            {
+              "ms": 35.03045899999968,
+              "wire_bytes": 461153,
+              "diagnostics": 1001,
+              "errors": 1000,
+              "incomplete": true,
+              "codes": {
+                "E.Validation.Operator.002": 1000,
+                "dot-ls:validation-incomplete": 1
+              },
+              "examples": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 180,
+                      "character": 14
+                    },
+                    "end": {
+                      "line": 180,
+                      "character": 16
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Validation.Operator.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 0,
+                            "character": 0
+                          },
+                          "end": {
+                            "line": 0,
+                            "character": 7
+                          }
+                        }
+                      },
+                      "message": "Graph kind declared here."
+                    }
+                  ],
+                  "message": "Edge operator '--' does not match this digraph.\nUse '->' here, or change the graph declaration."
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:validation-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "DOT validation is incomplete. Further errors or repeated attributes may remain."
+                }
+              ]
+            },
+            {
+              "ms": 38.56495900000034,
+              "wire_bytes": 461153,
+              "diagnostics": 1001,
+              "errors": 1000,
+              "incomplete": true,
+              "codes": {
+                "E.Validation.Operator.002": 1000,
+                "dot-ls:validation-incomplete": 1
+              },
+              "examples": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 180,
+                      "character": 14
+                    },
+                    "end": {
+                      "line": 180,
+                      "character": 16
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Validation.Operator.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 0,
+                            "character": 0
+                          },
+                          "end": {
+                            "line": 0,
+                            "character": 7
+                          }
+                        }
+                      },
+                      "message": "Graph kind declared here."
+                    }
+                  ],
+                  "message": "Edge operator '--' does not match this digraph.\nUse '->' here, or change the graph declaration."
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:validation-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "DOT validation is incomplete. Further errors or repeated attributes may remain."
+                }
+              ]
+            }
+          ],
+          "settled_rss_bytes": 5029888,
+          "settled_footprint_bytes": 4161920,
+          "cpu_through_settle_seconds": 0.05128425,
+          "reported_incomplete": true
+        },
+        {
+          "phase": "clean-final",
+          "inserted_errors": 0,
+          "version": 5,
+          "first_diagnostics_ms": 29.359582999999745,
+          "final_diagnostics_ms": 29.743291000000838,
+          "write_ms": 6.242207999999749,
+          "notifications": [
+            {
+              "ms": 29.359582999999745,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            },
+            {
+              "ms": 29.743291000000838,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            }
+          ],
+          "settled_rss_bytes": 5029888,
+          "settled_footprint_bytes": 4161920,
+          "cpu_through_settle_seconds": 0.04487387500000001,
+          "reported_incomplete": false
+        }
+      ],
+      "actions": [
+        {
+          "phase": "operator-1",
+          "count": 0,
+          "request_ms": 0.09866699999960815,
+          "response_bytes": 78,
+          "settled_rss_bytes": 5029888
+        },
+        {
+          "phase": "operator-1000",
+          "count": 0,
+          "request_ms": 0.13150000000017315,
+          "response_bytes": 78,
+          "settled_rss_bytes": 5029888
+        }
+      ],
+      "startup_ms": 5.85504200000031,
+      "idle": {
+        "t": 12.990380958,
+        "rss_bytes": 2179072,
+        "footprint_bytes": 1376592,
+        "cpu_seconds": 0.0033514166666666666,
+        "start_ticks": 1541507625299
+      },
+      "resources": {
+        "exit_code": 0,
+        "actual_peak_rss_bytes": 17956864,
+        "sampled_peak_rss_bytes": 12304384,
+        "sampled_peak_footprint_bytes": 11452824,
+        "cpu_user_seconds": 0.21126999999999999,
+        "cpu_system_seconds": 0.026919,
+        "safety_stop": null,
+        "stderr": ""
+      }
+    },
+    {
+      "kind": "html",
+      "mb": 5,
+      "trial": 3,
+      "source_sha256": "a4447aa7804372b958d5d7c761366fae1d644e85d862f303bdcfd9e77b4f7b1f",
+      "phases": [
+        {
+          "phase": "open",
+          "inserted_errors": 0,
+          "version": 1,
+          "first_diagnostics_ms": 32.98495800000012,
+          "final_diagnostics_ms": 33.41104200000089,
+          "write_ms": 6.62637499999974,
+          "notifications": [
+            {
+              "ms": 32.98495800000012,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            },
+            {
+              "ms": 33.41104200000089,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            }
+          ],
+          "settled_rss_bytes": 5029888,
+          "settled_footprint_bytes": 4145512,
+          "cpu_through_settle_seconds": 0.04957375,
+          "reported_incomplete": false
+        },
+        {
+          "phase": "operator-1",
+          "inserted_errors": 1,
+          "version": 2,
+          "first_diagnostics_ms": 33.04487500000164,
+          "final_diagnostics_ms": 33.49433400000024,
+          "write_ms": 4.0656670000025485,
+          "notifications": [
+            {
+              "ms": 33.04487500000164,
+              "wire_bytes": 608,
+              "diagnostics": 1,
+              "errors": 1,
+              "incomplete": false,
+              "codes": {
+                "E.Validation.Operator.002": 1
+              },
+              "examples": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 88236,
+                      "character": 14
+                    },
+                    "end": {
+                      "line": 88236,
+                      "character": 16
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Validation.Operator.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 0,
+                            "character": 0
+                          },
+                          "end": {
+                            "line": 0,
+                            "character": 7
+                          }
+                        }
+                      },
+                      "message": "Graph kind declared here."
+                    }
+                  ],
+                  "message": "Edge operator '--' does not match this digraph.\nUse '->' here, or change the graph declaration."
+                }
+              ]
+            },
+            {
+              "ms": 33.49433400000024,
+              "wire_bytes": 608,
+              "diagnostics": 1,
+              "errors": 1,
+              "incomplete": false,
+              "codes": {
+                "E.Validation.Operator.002": 1
+              },
+              "examples": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 88236,
+                      "character": 14
+                    },
+                    "end": {
+                      "line": 88236,
+                      "character": 16
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Validation.Operator.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 0,
+                            "character": 0
+                          },
+                          "end": {
+                            "line": 0,
+                            "character": 7
+                          }
+                        }
+                      },
+                      "message": "Graph kind declared here."
+                    }
+                  ],
+                  "message": "Edge operator '--' does not match this digraph.\nUse '->' here, or change the graph declaration."
+                }
+              ]
+            }
+          ],
+          "settled_rss_bytes": 5029888,
+          "settled_footprint_bytes": 4161920,
+          "cpu_through_settle_seconds": 0.04988216666666668,
+          "reported_incomplete": false
+        },
+        {
+          "phase": "repair",
+          "inserted_errors": 0,
+          "version": 3,
+          "first_diagnostics_ms": 28.728832999998843,
+          "final_diagnostics_ms": 29.112375000000412,
+          "write_ms": 5.272832999999366,
+          "notifications": [
+            {
+              "ms": 28.728832999998843,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            },
+            {
+              "ms": 29.112375000000412,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            }
+          ],
+          "settled_rss_bytes": 5029888,
+          "settled_footprint_bytes": 4161920,
+          "cpu_through_settle_seconds": 0.04575570833333334,
+          "reported_incomplete": false
+        },
+        {
+          "phase": "operator-1000",
+          "inserted_errors": 1000,
+          "version": 4,
+          "first_diagnostics_ms": 33.05699999999945,
+          "final_diagnostics_ms": 38.19291699999994,
+          "write_ms": 5.379583999999937,
+          "notifications": [
+            {
+              "ms": 33.05699999999945,
+              "wire_bytes": 461153,
+              "diagnostics": 1001,
+              "errors": 1000,
+              "incomplete": true,
+              "codes": {
+                "E.Validation.Operator.002": 1000,
+                "dot-ls:validation-incomplete": 1
+              },
+              "examples": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 180,
+                      "character": 14
+                    },
+                    "end": {
+                      "line": 180,
+                      "character": 16
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Validation.Operator.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 0,
+                            "character": 0
+                          },
+                          "end": {
+                            "line": 0,
+                            "character": 7
+                          }
+                        }
+                      },
+                      "message": "Graph kind declared here."
+                    }
+                  ],
+                  "message": "Edge operator '--' does not match this digraph.\nUse '->' here, or change the graph declaration."
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:validation-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "DOT validation is incomplete. Further errors or repeated attributes may remain."
+                }
+              ]
+            },
+            {
+              "ms": 38.19291699999994,
+              "wire_bytes": 461153,
+              "diagnostics": 1001,
+              "errors": 1000,
+              "incomplete": true,
+              "codes": {
+                "E.Validation.Operator.002": 1000,
+                "dot-ls:validation-incomplete": 1
+              },
+              "examples": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 180,
+                      "character": 14
+                    },
+                    "end": {
+                      "line": 180,
+                      "character": 16
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Validation.Operator.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 0,
+                            "character": 0
+                          },
+                          "end": {
+                            "line": 0,
+                            "character": 7
+                          }
+                        }
+                      },
+                      "message": "Graph kind declared here."
+                    }
+                  ],
+                  "message": "Edge operator '--' does not match this digraph.\nUse '->' here, or change the graph declaration."
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:validation-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "DOT validation is incomplete. Further errors or repeated attributes may remain."
+                }
+              ]
+            }
+          ],
+          "settled_rss_bytes": 5029888,
+          "settled_footprint_bytes": 4161920,
+          "cpu_through_settle_seconds": 0.04830345833333333,
+          "reported_incomplete": true
+        },
+        {
+          "phase": "clean-final",
+          "inserted_errors": 0,
+          "version": 5,
+          "first_diagnostics_ms": 30.405916999999505,
+          "final_diagnostics_ms": 30.876167000002397,
+          "write_ms": 6.1189580000018395,
+          "notifications": [
+            {
+              "ms": 30.405916999999505,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            },
+            {
+              "ms": 30.876167000002397,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            }
+          ],
+          "settled_rss_bytes": 5029888,
+          "settled_footprint_bytes": 4161920,
+          "cpu_through_settle_seconds": 0.04694441666666668,
+          "reported_incomplete": false
+        }
+      ],
+      "actions": [
+        {
+          "phase": "operator-1",
+          "count": 0,
+          "request_ms": 0.1828330000002154,
+          "response_bytes": 78,
+          "settled_rss_bytes": 5029888
+        },
+        {
+          "phase": "operator-1000",
+          "count": 0,
+          "request_ms": 0.10437499999937927,
+          "response_bytes": 78,
+          "settled_rss_bytes": 5029888
+        }
+      ],
+      "startup_ms": 5.494625000000752,
+      "idle": {
+        "t": 15.66381725,
+        "rss_bytes": 2179072,
+        "footprint_bytes": 1376592,
+        "cpu_seconds": 0.003131875,
+        "start_ticks": 1541571737628
+      },
+      "resources": {
+        "exit_code": 0,
+        "actual_peak_rss_bytes": 17956864,
+        "sampled_peak_rss_bytes": 12140544,
+        "sampled_peak_footprint_bytes": 11272576,
+        "cpu_user_seconds": 0.218584,
+        "cpu_system_seconds": 0.026837999999999997,
+        "safety_stop": null,
+        "stderr": ""
+      }
+    },
+    {
+      "kind": "plain",
+      "mb": 20,
+      "trial": 1,
+      "source_sha256": "711152c28e4378ea857a186d9f2f502a19e173a872069975a92f2573783d96f4",
+      "phases": [
+        {
+          "phase": "open",
+          "inserted_errors": 0,
+          "version": 1,
+          "first_diagnostics_ms": 106.45870800000168,
+          "final_diagnostics_ms": 106.45870800000168,
+          "write_ms": 11.600540999999964,
+          "notifications": [
+            {
+              "ms": 106.45870800000168,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            }
+          ],
+          "settled_rss_bytes": 19234816,
+          "settled_footprint_bytes": 18383256,
+          "cpu_through_settle_seconds": 0.19549058333333336,
+          "reported_incomplete": false
+        },
+        {
+          "phase": "operator-1",
+          "inserted_errors": 1,
+          "version": 2,
+          "first_diagnostics_ms": 118.54116700000006,
+          "final_diagnostics_ms": 118.54116700000006,
+          "write_ms": 11.80674999999809,
+          "notifications": [
+            {
+              "ms": 118.54116700000006,
+              "wire_bytes": 610,
+              "diagnostics": 1,
+              "errors": 1,
+              "incomplete": false,
+              "codes": {
+                "E.Validation.Operator.002": 1
+              },
+              "examples": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 192308,
+                      "character": 14
+                    },
+                    "end": {
+                      "line": 192308,
+                      "character": 16
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Validation.Operator.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 0,
+                            "character": 0
+                          },
+                          "end": {
+                            "line": 0,
+                            "character": 7
+                          }
+                        }
+                      },
+                      "message": "Graph kind declared here."
+                    }
+                  ],
+                  "message": "Edge operator '--' does not match this digraph.\nUse '->' here, or change the graph declaration."
+                }
+              ]
+            }
+          ],
+          "settled_rss_bytes": 19234816,
+          "settled_footprint_bytes": 18383256,
+          "cpu_through_settle_seconds": 0.20790620833333331,
+          "reported_incomplete": false
+        },
+        {
+          "phase": "repair",
+          "inserted_errors": 0,
+          "version": 3,
+          "first_diagnostics_ms": 105.87695799999963,
+          "final_diagnostics_ms": 105.87695799999963,
+          "write_ms": 10.375291999999092,
+          "notifications": [
+            {
+              "ms": 105.87695799999963,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            }
+          ],
+          "settled_rss_bytes": 19234816,
+          "settled_footprint_bytes": 18366848,
+          "cpu_through_settle_seconds": 0.19520775000000007,
+          "reported_incomplete": false
+        },
+        {
+          "phase": "operator-1000",
+          "inserted_errors": 1000,
+          "version": 4,
+          "first_diagnostics_ms": 120.85708300000064,
+          "final_diagnostics_ms": 120.85708300000064,
+          "write_ms": 11.170040999999742,
+          "notifications": [
+            {
+              "ms": 120.85708300000064,
+              "wire_bytes": 461833,
+              "diagnostics": 1001,
+              "errors": 1000,
+              "incomplete": true,
+              "codes": {
+                "E.Validation.Operator.002": 1000,
+                "dot-ls:validation-incomplete": 1
+              },
+              "examples": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 385,
+                      "character": 14
+                    },
+                    "end": {
+                      "line": 385,
+                      "character": 16
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Validation.Operator.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 0,
+                            "character": 0
+                          },
+                          "end": {
+                            "line": 0,
+                            "character": 7
+                          }
+                        }
+                      },
+                      "message": "Graph kind declared here."
+                    }
+                  ],
+                  "message": "Edge operator '--' does not match this digraph.\nUse '->' here, or change the graph declaration."
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:validation-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "DOT validation is incomplete. Further errors or repeated attributes may remain."
+                }
+              ]
+            }
+          ],
+          "settled_rss_bytes": 19234816,
+          "settled_footprint_bytes": 18383256,
+          "cpu_through_settle_seconds": 0.21108424999999997,
+          "reported_incomplete": true
+        },
+        {
+          "phase": "clean-final",
+          "inserted_errors": 0,
+          "version": 5,
+          "first_diagnostics_ms": 92.46075000000076,
+          "final_diagnostics_ms": 92.46075000000076,
+          "write_ms": 6.006833000000711,
+          "notifications": [
+            {
+              "ms": 92.46075000000076,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            }
+          ],
+          "settled_rss_bytes": 19234816,
+          "settled_footprint_bytes": 18366848,
+          "cpu_through_settle_seconds": 0.18357750000000006,
+          "reported_incomplete": false
+        }
+      ],
+      "actions": [
+        {
+          "phase": "operator-1",
+          "count": 0,
+          "request_ms": 0.25341600000317044,
+          "response_bytes": 78,
+          "settled_rss_bytes": 19234816
+        },
+        {
+          "phase": "operator-1000",
+          "count": 0,
+          "request_ms": 0.17529100000146514,
+          "response_bytes": 78,
+          "settled_rss_bytes": 19234816
+        }
+      ],
+      "startup_ms": 4.2865000000027464,
+      "idle": {
+        "t": 18.810128375,
+        "rss_bytes": 2179072,
+        "footprint_bytes": 1376592,
+        "cpu_seconds": 0.00226425,
+        "start_ticks": 1541647396512
+      },
+      "resources": {
+        "exit_code": 0,
+        "actual_peak_rss_bytes": 63832064,
+        "sampled_peak_rss_bytes": 58507264,
+        "sampled_peak_footprint_bytes": 57672112,
+        "cpu_user_seconds": 0.912474,
+        "cpu_system_seconds": 0.086102,
+        "safety_stop": null,
+        "stderr": ""
+      }
+    },
+    {
+      "kind": "plain",
+      "mb": 20,
+      "trial": 2,
+      "source_sha256": "711152c28e4378ea857a186d9f2f502a19e173a872069975a92f2573783d96f4",
+      "phases": [
+        {
+          "phase": "open",
+          "inserted_errors": 0,
+          "version": 1,
+          "first_diagnostics_ms": 109.10829100000186,
+          "final_diagnostics_ms": 109.10829100000186,
+          "write_ms": 13.159790999999643,
+          "notifications": [
+            {
+              "ms": 109.10829100000186,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            }
+          ],
+          "settled_rss_bytes": 19234816,
+          "settled_footprint_bytes": 18383256,
+          "cpu_through_settle_seconds": 0.19874466666666665,
+          "reported_incomplete": false
+        },
+        {
+          "phase": "operator-1",
+          "inserted_errors": 1,
+          "version": 2,
+          "first_diagnostics_ms": 116.51887499999702,
+          "final_diagnostics_ms": 116.51887499999702,
+          "write_ms": 12.408707999998825,
+          "notifications": [
+            {
+              "ms": 116.51887499999702,
+              "wire_bytes": 610,
+              "diagnostics": 1,
+              "errors": 1,
+              "incomplete": false,
+              "codes": {
+                "E.Validation.Operator.002": 1
+              },
+              "examples": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 192308,
+                      "character": 14
+                    },
+                    "end": {
+                      "line": 192308,
+                      "character": 16
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Validation.Operator.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 0,
+                            "character": 0
+                          },
+                          "end": {
+                            "line": 0,
+                            "character": 7
+                          }
+                        }
+                      },
+                      "message": "Graph kind declared here."
+                    }
+                  ],
+                  "message": "Edge operator '--' does not match this digraph.\nUse '->' here, or change the graph declaration."
+                }
+              ]
+            }
+          ],
+          "settled_rss_bytes": 19234816,
+          "settled_footprint_bytes": 18366848,
+          "cpu_through_settle_seconds": 0.20566562500000002,
+          "reported_incomplete": false
+        },
+        {
+          "phase": "repair",
+          "inserted_errors": 0,
+          "version": 3,
+          "first_diagnostics_ms": 104.60425000000129,
+          "final_diagnostics_ms": 104.60425000000129,
+          "write_ms": 11.230250000000552,
+          "notifications": [
+            {
+              "ms": 104.60425000000129,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            }
+          ],
+          "settled_rss_bytes": 19234816,
+          "settled_footprint_bytes": 18383256,
+          "cpu_through_settle_seconds": 0.19253154166666664,
+          "reported_incomplete": false
+        },
+        {
+          "phase": "operator-1000",
+          "inserted_errors": 1000,
+          "version": 4,
+          "first_diagnostics_ms": 114.9219170000002,
+          "final_diagnostics_ms": 114.9219170000002,
+          "write_ms": 10.679792000001243,
+          "notifications": [
+            {
+              "ms": 114.9219170000002,
+              "wire_bytes": 461833,
+              "diagnostics": 1001,
+              "errors": 1000,
+              "incomplete": true,
+              "codes": {
+                "E.Validation.Operator.002": 1000,
+                "dot-ls:validation-incomplete": 1
+              },
+              "examples": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 385,
+                      "character": 14
+                    },
+                    "end": {
+                      "line": 385,
+                      "character": 16
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Validation.Operator.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 0,
+                            "character": 0
+                          },
+                          "end": {
+                            "line": 0,
+                            "character": 7
+                          }
+                        }
+                      },
+                      "message": "Graph kind declared here."
+                    }
+                  ],
+                  "message": "Edge operator '--' does not match this digraph.\nUse '->' here, or change the graph declaration."
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:validation-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "DOT validation is incomplete. Further errors or repeated attributes may remain."
+                }
+              ]
+            }
+          ],
+          "settled_rss_bytes": 19234816,
+          "settled_footprint_bytes": 18383256,
+          "cpu_through_settle_seconds": 0.2042628333333334,
+          "reported_incomplete": true
+        },
+        {
+          "phase": "clean-final",
+          "inserted_errors": 0,
+          "version": 5,
+          "first_diagnostics_ms": 102.57870799999935,
+          "final_diagnostics_ms": 102.57870799999935,
+          "write_ms": 12.183457999999092,
+          "notifications": [
+            {
+              "ms": 102.57870799999935,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            }
+          ],
+          "settled_rss_bytes": 19234816,
+          "settled_footprint_bytes": 18366848,
+          "cpu_through_settle_seconds": 0.19184866666666678,
+          "reported_incomplete": false
+        }
+      ],
+      "actions": [
+        {
+          "phase": "operator-1",
+          "count": 0,
+          "request_ms": 0.18929100000164567,
+          "response_bytes": 78,
+          "settled_rss_bytes": 19234816
+        },
+        {
+          "phase": "operator-1000",
+          "count": 0,
+          "request_ms": 0.10708299999961923,
+          "response_bytes": 78,
+          "settled_rss_bytes": 19234816
+        }
+      ],
+      "startup_ms": 4.838583000001506,
+      "idle": {
+        "t": 22.397703916,
+        "rss_bytes": 2179072,
+        "footprint_bytes": 1376592,
+        "cpu_seconds": 0.0024164583333333334,
+        "start_ticks": 1541733380808
+      },
+      "resources": {
+        "exit_code": 0,
+        "actual_peak_rss_bytes": 63832064,
+        "sampled_peak_rss_bytes": 59080704,
+        "sampled_peak_footprint_bytes": 58245552,
+        "cpu_user_seconds": 0.9142159999999999,
+        "cpu_system_seconds": 0.08279399999999999,
+        "safety_stop": null,
+        "stderr": ""
+      }
+    },
+    {
+      "kind": "plain",
+      "mb": 20,
+      "trial": 3,
+      "source_sha256": "711152c28e4378ea857a186d9f2f502a19e173a872069975a92f2573783d96f4",
+      "phases": [
+        {
+          "phase": "open",
+          "inserted_errors": 0,
+          "version": 1,
+          "first_diagnostics_ms": 102.66104200000115,
+          "final_diagnostics_ms": 102.66104200000115,
+          "write_ms": 11.021124999999188,
+          "notifications": [
+            {
+              "ms": 102.66104200000115,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            }
+          ],
+          "settled_rss_bytes": 19234816,
+          "settled_footprint_bytes": 18366848,
+          "cpu_through_settle_seconds": 0.19150366666666668,
+          "reported_incomplete": false
+        },
+        {
+          "phase": "operator-1",
+          "inserted_errors": 1,
+          "version": 2,
+          "first_diagnostics_ms": 115.26504200000076,
+          "final_diagnostics_ms": 115.26504200000076,
+          "write_ms": 11.36874999999904,
+          "notifications": [
+            {
+              "ms": 115.26504200000076,
+              "wire_bytes": 610,
+              "diagnostics": 1,
+              "errors": 1,
+              "incomplete": false,
+              "codes": {
+                "E.Validation.Operator.002": 1
+              },
+              "examples": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 192308,
+                      "character": 14
+                    },
+                    "end": {
+                      "line": 192308,
+                      "character": 16
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Validation.Operator.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 0,
+                            "character": 0
+                          },
+                          "end": {
+                            "line": 0,
+                            "character": 7
+                          }
+                        }
+                      },
+                      "message": "Graph kind declared here."
+                    }
+                  ],
+                  "message": "Edge operator '--' does not match this digraph.\nUse '->' here, or change the graph declaration."
+                }
+              ]
+            }
+          ],
+          "settled_rss_bytes": 19234816,
+          "settled_footprint_bytes": 18383256,
+          "cpu_through_settle_seconds": 0.20412574999999997,
+          "reported_incomplete": false
+        },
+        {
+          "phase": "repair",
+          "inserted_errors": 0,
+          "version": 3,
+          "first_diagnostics_ms": 105.73920799999925,
+          "final_diagnostics_ms": 105.73920799999925,
+          "write_ms": 13.14324999999883,
+          "notifications": [
+            {
+              "ms": 105.73920799999925,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            }
+          ],
+          "settled_rss_bytes": 19234816,
+          "settled_footprint_bytes": 18366848,
+          "cpu_through_settle_seconds": 0.19321008333333334,
+          "reported_incomplete": false
+        },
+        {
+          "phase": "operator-1000",
+          "inserted_errors": 1000,
+          "version": 4,
+          "first_diagnostics_ms": 114.49020899999951,
+          "final_diagnostics_ms": 114.49020899999951,
+          "write_ms": 10.833749999999753,
+          "notifications": [
+            {
+              "ms": 114.49020899999951,
+              "wire_bytes": 461833,
+              "diagnostics": 1001,
+              "errors": 1000,
+              "incomplete": true,
+              "codes": {
+                "E.Validation.Operator.002": 1000,
+                "dot-ls:validation-incomplete": 1
+              },
+              "examples": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 385,
+                      "character": 14
+                    },
+                    "end": {
+                      "line": 385,
+                      "character": 16
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Validation.Operator.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 0,
+                            "character": 0
+                          },
+                          "end": {
+                            "line": 0,
+                            "character": 7
+                          }
+                        }
+                      },
+                      "message": "Graph kind declared here."
+                    }
+                  ],
+                  "message": "Edge operator '--' does not match this digraph.\nUse '->' here, or change the graph declaration."
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:validation-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "DOT validation is incomplete. Further errors or repeated attributes may remain."
+                }
+              ]
+            }
+          ],
+          "settled_rss_bytes": 19234816,
+          "settled_footprint_bytes": 18383256,
+          "cpu_through_settle_seconds": 0.20407495833333333,
+          "reported_incomplete": true
+        },
+        {
+          "phase": "clean-final",
+          "inserted_errors": 0,
+          "version": 5,
+          "first_diagnostics_ms": 109.21683299999785,
+          "final_diagnostics_ms": 109.21683299999785,
+          "write_ms": 11.138374999998035,
+          "notifications": [
+            {
+              "ms": 109.21683299999785,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            }
+          ],
+          "settled_rss_bytes": 19234816,
+          "settled_footprint_bytes": 18366848,
+          "cpu_through_settle_seconds": 0.1993056666666666,
+          "reported_incomplete": false
+        }
+      ],
+      "actions": [
+        {
+          "phase": "operator-1",
+          "count": 0,
+          "request_ms": 0.1752500000016255,
+          "response_bytes": 78,
+          "settled_rss_bytes": 19234816
+        },
+        {
+          "phase": "operator-1000",
+          "count": 0,
+          "request_ms": 0.1310829999994212,
+          "response_bytes": 78,
+          "settled_rss_bytes": 19234816
+        }
+      ],
+      "startup_ms": 5.2377909999989924,
+      "idle": {
+        "t": 25.977186,
+        "rss_bytes": 2179072,
+        "footprint_bytes": 1376592,
+        "cpu_seconds": 0.0024222916666666663,
+        "start_ticks": 1541819504039
+      },
+      "resources": {
+        "exit_code": 0,
+        "actual_peak_rss_bytes": 63799296,
+        "sampled_peak_rss_bytes": 60768256,
+        "sampled_peak_footprint_bytes": 59949512,
+        "cpu_user_seconds": 0.9170959999999999,
+        "cpu_system_seconds": 0.080233,
+        "safety_stop": null,
+        "stderr": ""
+      }
+    },
+    {
+      "kind": "html",
+      "mb": 20,
+      "trial": 1,
+      "source_sha256": "8d3b808b90f67ddaf96ee13b46f7685b14b3ec915ff022c994c65c7e17c1ad41",
+      "phases": [
+        {
+          "phase": "open",
+          "inserted_errors": 0,
+          "version": 1,
+          "first_diagnostics_ms": 87.46666600000097,
+          "final_diagnostics_ms": 88.90341600000085,
+          "write_ms": 10.932958000001491,
+          "notifications": [
+            {
+              "ms": 87.46666600000097,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            },
+            {
+              "ms": 88.90341600000085,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            }
+          ],
+          "settled_rss_bytes": 12304384,
+          "settled_footprint_bytes": 11436416,
+          "cpu_through_settle_seconds": 0.14805912499999999,
+          "reported_incomplete": false
+        },
+        {
+          "phase": "operator-1",
+          "inserted_errors": 1,
+          "version": 2,
+          "first_diagnostics_ms": 106.76541599999823,
+          "final_diagnostics_ms": 108.02845799999972,
+          "write_ms": 11.710624999999197,
+          "notifications": [
+            {
+              "ms": 106.76541599999823,
+              "wire_bytes": 610,
+              "diagnostics": 1,
+              "errors": 1,
+              "incomplete": false,
+              "codes": {
+                "E.Validation.Operator.002": 1
+              },
+              "examples": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 352944,
+                      "character": 14
+                    },
+                    "end": {
+                      "line": 352944,
+                      "character": 16
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Validation.Operator.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 0,
+                            "character": 0
+                          },
+                          "end": {
+                            "line": 0,
+                            "character": 7
+                          }
+                        }
+                      },
+                      "message": "Graph kind declared here."
+                    }
+                  ],
+                  "message": "Edge operator '--' does not match this digraph.\nUse '->' here, or change the graph declaration."
+                }
+              ]
+            },
+            {
+              "ms": 108.02845799999972,
+              "wire_bytes": 610,
+              "diagnostics": 1,
+              "errors": 1,
+              "incomplete": false,
+              "codes": {
+                "E.Validation.Operator.002": 1
+              },
+              "examples": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 352944,
+                      "character": 14
+                    },
+                    "end": {
+                      "line": 352944,
+                      "character": 16
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Validation.Operator.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 0,
+                            "character": 0
+                          },
+                          "end": {
+                            "line": 0,
+                            "character": 7
+                          }
+                        }
+                      },
+                      "message": "Graph kind declared here."
+                    }
+                  ],
+                  "message": "Edge operator '--' does not match this digraph.\nUse '->' here, or change the graph declaration."
+                }
+              ]
+            }
+          ],
+          "settled_rss_bytes": 12304384,
+          "settled_footprint_bytes": 11452824,
+          "cpu_through_settle_seconds": 0.16524899999999998,
+          "reported_incomplete": false
+        },
+        {
+          "phase": "repair",
+          "inserted_errors": 0,
+          "version": 3,
+          "first_diagnostics_ms": 91.7682080000013,
+          "final_diagnostics_ms": 93.07166700000025,
+          "write_ms": 11.305332999999251,
+          "notifications": [
+            {
+              "ms": 91.7682080000013,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            },
+            {
+              "ms": 93.07166700000025,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            }
+          ],
+          "settled_rss_bytes": 12304384,
+          "settled_footprint_bytes": 11452824,
+          "cpu_through_settle_seconds": 0.14989383333333334,
+          "reported_incomplete": false
+        },
+        {
+          "phase": "operator-1000",
+          "inserted_errors": 1000,
+          "version": 4,
+          "first_diagnostics_ms": 105.86683400000041,
+          "final_diagnostics_ms": 110.12354200000019,
+          "write_ms": 9.834375000000506,
+          "notifications": [
+            {
+              "ms": 105.86683400000041,
+              "wire_bytes": 462097,
+              "diagnostics": 1001,
+              "errors": 1000,
+              "incomplete": true,
+              "codes": {
+                "E.Validation.Operator.002": 1000,
+                "dot-ls:validation-incomplete": 1
+              },
+              "examples": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 708,
+                      "character": 14
+                    },
+                    "end": {
+                      "line": 708,
+                      "character": 16
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Validation.Operator.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 0,
+                            "character": 0
+                          },
+                          "end": {
+                            "line": 0,
+                            "character": 7
+                          }
+                        }
+                      },
+                      "message": "Graph kind declared here."
+                    }
+                  ],
+                  "message": "Edge operator '--' does not match this digraph.\nUse '->' here, or change the graph declaration."
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:validation-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "DOT validation is incomplete. Further errors or repeated attributes may remain."
+                }
+              ]
+            },
+            {
+              "ms": 110.12354200000019,
+              "wire_bytes": 462097,
+              "diagnostics": 1001,
+              "errors": 1000,
+              "incomplete": true,
+              "codes": {
+                "E.Validation.Operator.002": 1000,
+                "dot-ls:validation-incomplete": 1
+              },
+              "examples": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 708,
+                      "character": 14
+                    },
+                    "end": {
+                      "line": 708,
+                      "character": 16
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Validation.Operator.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 0,
+                            "character": 0
+                          },
+                          "end": {
+                            "line": 0,
+                            "character": 7
+                          }
+                        }
+                      },
+                      "message": "Graph kind declared here."
+                    }
+                  ],
+                  "message": "Edge operator '--' does not match this digraph.\nUse '->' here, or change the graph declaration."
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:validation-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "DOT validation is incomplete. Further errors or repeated attributes may remain."
+                }
+              ]
+            }
+          ],
+          "settled_rss_bytes": 12304384,
+          "settled_footprint_bytes": 11469232,
+          "cpu_through_settle_seconds": 0.1662951666666666,
+          "reported_incomplete": true
+        },
+        {
+          "phase": "clean-final",
+          "inserted_errors": 0,
+          "version": 5,
+          "first_diagnostics_ms": 91.81554200000619,
+          "final_diagnostics_ms": 93.15725000000441,
+          "write_ms": 11.993209000003446,
+          "notifications": [
+            {
+              "ms": 91.81554200000619,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            },
+            {
+              "ms": 93.15725000000441,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            }
+          ],
+          "settled_rss_bytes": 12304384,
+          "settled_footprint_bytes": 11452824,
+          "cpu_through_settle_seconds": 0.15020633333333333,
+          "reported_incomplete": false
+        }
+      ],
+      "actions": [
+        {
+          "phase": "operator-1",
+          "count": 0,
+          "request_ms": 0.2520839999995417,
+          "response_bytes": 78,
+          "settled_rss_bytes": 12304384
+        },
+        {
+          "phase": "operator-1000",
+          "count": 0,
+          "request_ms": 0.21241700000018682,
+          "response_bytes": 78,
+          "settled_rss_bytes": 12304384
+        }
+      ],
+      "startup_ms": 4.084415999997759,
+      "idle": {
+        "t": 29.905188125,
+        "rss_bytes": 2179072,
+        "footprint_bytes": 1376592,
+        "cpu_seconds": 0.002138875,
+        "start_ticks": 1541913604635
+      },
+      "resources": {
+        "exit_code": 0,
+        "actual_peak_rss_bytes": 63913984,
+        "sampled_peak_rss_bytes": 52674560,
+        "sampled_peak_footprint_bytes": 51823000,
+        "cpu_user_seconds": 0.7095859999999999,
+        "cpu_system_seconds": 0.072835,
+        "safety_stop": null,
+        "stderr": ""
+      }
+    },
+    {
+      "kind": "html",
+      "mb": 20,
+      "trial": 2,
+      "source_sha256": "8d3b808b90f67ddaf96ee13b46f7685b14b3ec915ff022c994c65c7e17c1ad41",
+      "phases": [
+        {
+          "phase": "open",
+          "inserted_errors": 0,
+          "version": 1,
+          "first_diagnostics_ms": 88.9102910000048,
+          "final_diagnostics_ms": 90.27312500000306,
+          "write_ms": 11.005375000003426,
+          "notifications": [
+            {
+              "ms": 88.9102910000048,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            },
+            {
+              "ms": 90.27312500000306,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            }
+          ],
+          "settled_rss_bytes": 12304384,
+          "settled_footprint_bytes": 11436416,
+          "cpu_through_settle_seconds": 0.14854716666666667,
+          "reported_incomplete": false
+        },
+        {
+          "phase": "operator-1",
+          "inserted_errors": 1,
+          "version": 2,
+          "first_diagnostics_ms": 102.0660840000005,
+          "final_diagnostics_ms": 103.45162500000527,
+          "write_ms": 10.632499999999823,
+          "notifications": [
+            {
+              "ms": 102.0660840000005,
+              "wire_bytes": 610,
+              "diagnostics": 1,
+              "errors": 1,
+              "incomplete": false,
+              "codes": {
+                "E.Validation.Operator.002": 1
+              },
+              "examples": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 352944,
+                      "character": 14
+                    },
+                    "end": {
+                      "line": 352944,
+                      "character": 16
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Validation.Operator.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 0,
+                            "character": 0
+                          },
+                          "end": {
+                            "line": 0,
+                            "character": 7
+                          }
+                        }
+                      },
+                      "message": "Graph kind declared here."
+                    }
+                  ],
+                  "message": "Edge operator '--' does not match this digraph.\nUse '->' here, or change the graph declaration."
+                }
+              ]
+            },
+            {
+              "ms": 103.45162500000527,
+              "wire_bytes": 610,
+              "diagnostics": 1,
+              "errors": 1,
+              "incomplete": false,
+              "codes": {
+                "E.Validation.Operator.002": 1
+              },
+              "examples": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 352944,
+                      "character": 14
+                    },
+                    "end": {
+                      "line": 352944,
+                      "character": 16
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Validation.Operator.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 0,
+                            "character": 0
+                          },
+                          "end": {
+                            "line": 0,
+                            "character": 7
+                          }
+                        }
+                      },
+                      "message": "Graph kind declared here."
+                    }
+                  ],
+                  "message": "Edge operator '--' does not match this digraph.\nUse '->' here, or change the graph declaration."
+                }
+              ]
+            }
+          ],
+          "settled_rss_bytes": 12304384,
+          "settled_footprint_bytes": 11452824,
+          "cpu_through_settle_seconds": 0.16092845833333336,
+          "reported_incomplete": false
+        },
+        {
+          "phase": "repair",
+          "inserted_errors": 0,
+          "version": 3,
+          "first_diagnostics_ms": 91.61233300000049,
+          "final_diagnostics_ms": 92.97425000000459,
+          "write_ms": 11.689291999999796,
+          "notifications": [
+            {
+              "ms": 91.61233300000049,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            },
+            {
+              "ms": 92.97425000000459,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            }
+          ],
+          "settled_rss_bytes": 12304384,
+          "settled_footprint_bytes": 11452824,
+          "cpu_through_settle_seconds": 0.14995945833333335,
+          "reported_incomplete": false
+        },
+        {
+          "phase": "operator-1000",
+          "inserted_errors": 1000,
+          "version": 4,
+          "first_diagnostics_ms": 105.74816700000156,
+          "final_diagnostics_ms": 109.03966699999756,
+          "write_ms": 11.721082999997634,
+          "notifications": [
+            {
+              "ms": 105.74816700000156,
+              "wire_bytes": 462097,
+              "diagnostics": 1001,
+              "errors": 1000,
+              "incomplete": true,
+              "codes": {
+                "E.Validation.Operator.002": 1000,
+                "dot-ls:validation-incomplete": 1
+              },
+              "examples": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 708,
+                      "character": 14
+                    },
+                    "end": {
+                      "line": 708,
+                      "character": 16
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Validation.Operator.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 0,
+                            "character": 0
+                          },
+                          "end": {
+                            "line": 0,
+                            "character": 7
+                          }
+                        }
+                      },
+                      "message": "Graph kind declared here."
+                    }
+                  ],
+                  "message": "Edge operator '--' does not match this digraph.\nUse '->' here, or change the graph declaration."
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:validation-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "DOT validation is incomplete. Further errors or repeated attributes may remain."
+                }
+              ]
+            },
+            {
+              "ms": 109.03966699999756,
+              "wire_bytes": 462097,
+              "diagnostics": 1001,
+              "errors": 1000,
+              "incomplete": true,
+              "codes": {
+                "E.Validation.Operator.002": 1000,
+                "dot-ls:validation-incomplete": 1
+              },
+              "examples": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 708,
+                      "character": 14
+                    },
+                    "end": {
+                      "line": 708,
+                      "character": 16
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Validation.Operator.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 0,
+                            "character": 0
+                          },
+                          "end": {
+                            "line": 0,
+                            "character": 7
+                          }
+                        }
+                      },
+                      "message": "Graph kind declared here."
+                    }
+                  ],
+                  "message": "Edge operator '--' does not match this digraph.\nUse '->' here, or change the graph declaration."
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:validation-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "DOT validation is incomplete. Further errors or repeated attributes may remain."
+                }
+              ]
+            }
+          ],
+          "settled_rss_bytes": 12304384,
+          "settled_footprint_bytes": 11469232,
+          "cpu_through_settle_seconds": 0.16562387499999992,
+          "reported_incomplete": true
+        },
+        {
+          "phase": "clean-final",
+          "inserted_errors": 0,
+          "version": 5,
+          "first_diagnostics_ms": 89.42433299999664,
+          "final_diagnostics_ms": 90.77245799999645,
+          "write_ms": 12.016499999994323,
+          "notifications": [
+            {
+              "ms": 89.42433299999664,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            },
+            {
+              "ms": 90.77245799999645,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            }
+          ],
+          "settled_rss_bytes": 12304384,
+          "settled_footprint_bytes": 11469232,
+          "cpu_through_settle_seconds": 0.1484385416666666,
+          "reported_incomplete": false
+        }
+      ],
+      "actions": [
+        {
+          "phase": "operator-1",
+          "count": 0,
+          "request_ms": 0.36487500000248474,
+          "response_bytes": 78,
+          "settled_rss_bytes": 12304384
+        },
+        {
+          "phase": "operator-1000",
+          "count": 0,
+          "request_ms": 0.13329200000100627,
+          "response_bytes": 78,
+          "settled_rss_bytes": 12304384
+        }
+      ],
+      "startup_ms": 4.74320899999725,
+      "idle": {
+        "t": 33.451104916,
+        "rss_bytes": 2179072,
+        "footprint_bytes": 1376592,
+        "cpu_seconds": 0.00238475,
+        "start_ticks": 1541998727116
+      },
+      "resources": {
+        "exit_code": 0,
+        "actual_peak_rss_bytes": 63881216,
+        "sampled_peak_rss_bytes": 63766528,
+        "sampled_peak_footprint_bytes": 62964192,
+        "cpu_user_seconds": 0.707058,
+        "cpu_system_seconds": 0.069894,
+        "safety_stop": null,
+        "stderr": ""
+      }
+    },
+    {
+      "kind": "html",
+      "mb": 20,
+      "trial": 3,
+      "source_sha256": "8d3b808b90f67ddaf96ee13b46f7685b14b3ec915ff022c994c65c7e17c1ad41",
+      "phases": [
+        {
+          "phase": "open",
+          "inserted_errors": 0,
+          "version": 1,
+          "first_diagnostics_ms": 84.03175000000118,
+          "final_diagnostics_ms": 85.3511669999989,
+          "write_ms": 8.201333999998894,
+          "notifications": [
+            {
+              "ms": 84.03175000000118,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            },
+            {
+              "ms": 85.3511669999989,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            }
+          ],
+          "settled_rss_bytes": 12304384,
+          "settled_footprint_bytes": 11436416,
+          "cpu_through_settle_seconds": 0.14553491666666668,
+          "reported_incomplete": false
+        },
+        {
+          "phase": "operator-1",
+          "inserted_errors": 1,
+          "version": 2,
+          "first_diagnostics_ms": 105.25245800000249,
+          "final_diagnostics_ms": 106.54279100000252,
+          "write_ms": 12.045958000001633,
+          "notifications": [
+            {
+              "ms": 105.25245800000249,
+              "wire_bytes": 610,
+              "diagnostics": 1,
+              "errors": 1,
+              "incomplete": false,
+              "codes": {
+                "E.Validation.Operator.002": 1
+              },
+              "examples": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 352944,
+                      "character": 14
+                    },
+                    "end": {
+                      "line": 352944,
+                      "character": 16
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Validation.Operator.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 0,
+                            "character": 0
+                          },
+                          "end": {
+                            "line": 0,
+                            "character": 7
+                          }
+                        }
+                      },
+                      "message": "Graph kind declared here."
+                    }
+                  ],
+                  "message": "Edge operator '--' does not match this digraph.\nUse '->' here, or change the graph declaration."
+                }
+              ]
+            },
+            {
+              "ms": 106.54279100000252,
+              "wire_bytes": 610,
+              "diagnostics": 1,
+              "errors": 1,
+              "incomplete": false,
+              "codes": {
+                "E.Validation.Operator.002": 1
+              },
+              "examples": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 352944,
+                      "character": 14
+                    },
+                    "end": {
+                      "line": 352944,
+                      "character": 16
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Validation.Operator.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 0,
+                            "character": 0
+                          },
+                          "end": {
+                            "line": 0,
+                            "character": 7
+                          }
+                        }
+                      },
+                      "message": "Graph kind declared here."
+                    }
+                  ],
+                  "message": "Edge operator '--' does not match this digraph.\nUse '->' here, or change the graph declaration."
+                }
+              ]
+            }
+          ],
+          "settled_rss_bytes": 12304384,
+          "settled_footprint_bytes": 11452824,
+          "cpu_through_settle_seconds": 0.16085233333333335,
+          "reported_incomplete": false
+        },
+        {
+          "phase": "repair",
+          "inserted_errors": 0,
+          "version": 3,
+          "first_diagnostics_ms": 88.7121250000007,
+          "final_diagnostics_ms": 90.02025000000202,
+          "write_ms": 11.37795799999708,
+          "notifications": [
+            {
+              "ms": 88.7121250000007,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            },
+            {
+              "ms": 90.02025000000202,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            }
+          ],
+          "settled_rss_bytes": 12304384,
+          "settled_footprint_bytes": 11452824,
+          "cpu_through_settle_seconds": 0.14811049999999998,
+          "reported_incomplete": false
+        },
+        {
+          "phase": "operator-1000",
+          "inserted_errors": 1000,
+          "version": 4,
+          "first_diagnostics_ms": 101.84279100000282,
+          "final_diagnostics_ms": 104.87733299999746,
+          "write_ms": 9.877125000002707,
+          "notifications": [
+            {
+              "ms": 101.84279100000282,
+              "wire_bytes": 462097,
+              "diagnostics": 1001,
+              "errors": 1000,
+              "incomplete": true,
+              "codes": {
+                "E.Validation.Operator.002": 1000,
+                "dot-ls:validation-incomplete": 1
+              },
+              "examples": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 708,
+                      "character": 14
+                    },
+                    "end": {
+                      "line": 708,
+                      "character": 16
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Validation.Operator.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 0,
+                            "character": 0
+                          },
+                          "end": {
+                            "line": 0,
+                            "character": 7
+                          }
+                        }
+                      },
+                      "message": "Graph kind declared here."
+                    }
+                  ],
+                  "message": "Edge operator '--' does not match this digraph.\nUse '->' here, or change the graph declaration."
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:validation-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "DOT validation is incomplete. Further errors or repeated attributes may remain."
+                }
+              ]
+            },
+            {
+              "ms": 104.87733299999746,
+              "wire_bytes": 462097,
+              "diagnostics": 1001,
+              "errors": 1000,
+              "incomplete": true,
+              "codes": {
+                "E.Validation.Operator.002": 1000,
+                "dot-ls:validation-incomplete": 1
+              },
+              "examples": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 708,
+                      "character": 14
+                    },
+                    "end": {
+                      "line": 708,
+                      "character": 16
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Validation.Operator.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 0,
+                            "character": 0
+                          },
+                          "end": {
+                            "line": 0,
+                            "character": 7
+                          }
+                        }
+                      },
+                      "message": "Graph kind declared here."
+                    }
+                  ],
+                  "message": "Edge operator '--' does not match this digraph.\nUse '->' here, or change the graph declaration."
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:validation-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "DOT validation is incomplete. Further errors or repeated attributes may remain."
+                }
+              ]
+            }
+          ],
+          "settled_rss_bytes": 12304384,
+          "settled_footprint_bytes": 11469232,
+          "cpu_through_settle_seconds": 0.1633221666666667,
+          "reported_incomplete": true
+        },
+        {
+          "phase": "clean-final",
+          "inserted_errors": 0,
+          "version": 5,
+          "first_diagnostics_ms": 89.85504099999986,
+          "final_diagnostics_ms": 91.16129099999881,
+          "write_ms": 11.022250000003453,
+          "notifications": [
+            {
+              "ms": 89.85504099999986,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            },
+            {
+              "ms": 91.16129099999881,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            }
+          ],
+          "settled_rss_bytes": 12304384,
+          "settled_footprint_bytes": 11469232,
+          "cpu_through_settle_seconds": 0.14924745833333342,
+          "reported_incomplete": false
+        }
+      ],
+      "actions": [
+        {
+          "phase": "operator-1",
+          "count": 0,
+          "request_ms": 0.20849999999938973,
+          "response_bytes": 78,
+          "settled_rss_bytes": 12304384
+        },
+        {
+          "phase": "operator-1000",
+          "count": 0,
+          "request_ms": 0.1388330000011706,
+          "response_bytes": 78,
+          "settled_rss_bytes": 12304384
+        }
+      ],
+      "startup_ms": 5.477999999996541,
+      "idle": {
+        "t": 36.980428291,
+        "rss_bytes": 2179072,
+        "footprint_bytes": 1376592,
+        "cpu_seconds": 0.0026447916666666664,
+        "start_ticks": 1542083498149
+      },
+      "resources": {
+        "exit_code": 0,
+        "actual_peak_rss_bytes": 63881216,
+        "sampled_peak_rss_bytes": 52445184,
+        "sampled_peak_footprint_bytes": 51626440,
+        "cpu_user_seconds": 0.703927,
+        "cpu_system_seconds": 0.067123,
+        "safety_stop": null,
+        "stderr": ""
+      }
+    },
+    {
+      "kind": "plain",
+      "mb": 40,
+      "trial": 1,
+      "source_sha256": "a036d9507f9ec57b17278661d893dcbb2ebfd563c1b963c022be04fd52a06020",
+      "phases": [
+        {
+          "phase": "open",
+          "inserted_errors": 0,
+          "version": 1,
+          "first_diagnostics_ms": 185.4947499999966,
+          "final_diagnostics_ms": 185.4947499999966,
+          "write_ms": 14.713958999998056,
+          "notifications": [
+            {
+              "ms": 185.4947499999966,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            }
+          ],
+          "settled_rss_bytes": 35946496,
+          "settled_footprint_bytes": 35111344,
+          "cpu_through_settle_seconds": 0.378458625,
+          "reported_incomplete": false
+        },
+        {
+          "phase": "operator-1",
+          "inserted_errors": 1,
+          "version": 2,
+          "first_diagnostics_ms": 197.73108300000075,
+          "final_diagnostics_ms": 197.73108300000075,
+          "write_ms": 9.353124999996965,
+          "notifications": [
+            {
+              "ms": 197.73108300000075,
+              "wire_bytes": 610,
+              "diagnostics": 1,
+              "errors": 1,
+              "incomplete": false,
+              "codes": {
+                "E.Validation.Operator.002": 1
+              },
+              "examples": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 384616,
+                      "character": 14
+                    },
+                    "end": {
+                      "line": 384616,
+                      "character": 16
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Validation.Operator.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 0,
+                            "character": 0
+                          },
+                          "end": {
+                            "line": 0,
+                            "character": 7
+                          }
+                        }
+                      },
+                      "message": "Graph kind declared here."
+                    }
+                  ],
+                  "message": "Edge operator '--' does not match this digraph.\nUse '->' here, or change the graph declaration."
+                }
+              ]
+            }
+          ],
+          "settled_rss_bytes": 35946496,
+          "settled_footprint_bytes": 35111344,
+          "cpu_through_settle_seconds": 0.39141425,
+          "reported_incomplete": false
+        },
+        {
+          "phase": "repair",
+          "inserted_errors": 0,
+          "version": 3,
+          "first_diagnostics_ms": 193.29941700000575,
+          "final_diagnostics_ms": 193.29941700000575,
+          "write_ms": 16.89637500000174,
+          "notifications": [
+            {
+              "ms": 193.29941700000575,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            }
+          ],
+          "settled_rss_bytes": 35946496,
+          "settled_footprint_bytes": 35111344,
+          "cpu_through_settle_seconds": 0.38464758333333327,
+          "reported_incomplete": false
+        },
+        {
+          "phase": "operator-1000",
+          "inserted_errors": 1000,
+          "version": 4,
+          "first_diagnostics_ms": 216.94312500000024,
+          "final_diagnostics_ms": 216.94312500000024,
+          "write_ms": 18.40329199999502,
+          "notifications": [
+            {
+              "ms": 216.94312500000024,
+              "wire_bytes": 462121,
+              "diagnostics": 1001,
+              "errors": 1000,
+              "incomplete": true,
+              "codes": {
+                "E.Validation.Operator.002": 1000,
+                "dot-ls:validation-incomplete": 1
+              },
+              "examples": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 769,
+                      "character": 14
+                    },
+                    "end": {
+                      "line": 769,
+                      "character": 16
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Validation.Operator.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 0,
+                            "character": 0
+                          },
+                          "end": {
+                            "line": 0,
+                            "character": 7
+                          }
+                        }
+                      },
+                      "message": "Graph kind declared here."
+                    }
+                  ],
+                  "message": "Edge operator '--' does not match this digraph.\nUse '->' here, or change the graph declaration."
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:validation-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "DOT validation is incomplete. Further errors or repeated attributes may remain."
+                }
+              ]
+            }
+          ],
+          "settled_rss_bytes": 35946496,
+          "settled_footprint_bytes": 35111344,
+          "cpu_through_settle_seconds": 0.405257,
+          "reported_incomplete": true
+        },
+        {
+          "phase": "clean-final",
+          "inserted_errors": 0,
+          "version": 5,
+          "first_diagnostics_ms": 188.8857499999972,
+          "final_diagnostics_ms": 188.8857499999972,
+          "write_ms": 17.678124999996214,
+          "notifications": [
+            {
+              "ms": 188.8857499999972,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            }
+          ],
+          "settled_rss_bytes": 35946496,
+          "settled_footprint_bytes": 35111344,
+          "cpu_through_settle_seconds": 0.3803469583333332,
+          "reported_incomplete": false
+        }
+      ],
+      "actions": [
+        {
+          "phase": "operator-1",
+          "count": 0,
+          "request_ms": 0.13545899999911626,
+          "response_bytes": 78,
+          "settled_rss_bytes": 35946496
+        },
+        {
+          "phase": "operator-1000",
+          "count": 0,
+          "request_ms": 0.19100000000094042,
+          "response_bytes": 78,
+          "settled_rss_bytes": 35946496
+        }
+      ],
+      "startup_ms": 5.476207999997484,
+      "idle": {
+        "t": 41.432318041,
+        "rss_bytes": 2179072,
+        "footprint_bytes": 1376592,
+        "cpu_seconds": 0.002183375,
+        "start_ticks": 1542190285341
+      },
+      "resources": {
+        "exit_code": 0,
+        "actual_peak_rss_bytes": 125157376,
+        "sampled_peak_rss_bytes": 118276096,
+        "sampled_peak_footprint_bytes": 117490168,
+        "cpu_user_seconds": 1.785385,
+        "cpu_system_seconds": 0.160127,
+        "safety_stop": null,
+        "stderr": ""
+      }
+    },
+    {
+      "kind": "plain",
+      "mb": 40,
+      "trial": 2,
+      "source_sha256": "a036d9507f9ec57b17278661d893dcbb2ebfd563c1b963c022be04fd52a06020",
+      "phases": [
+        {
+          "phase": "open",
+          "inserted_errors": 0,
+          "version": 1,
+          "first_diagnostics_ms": 175.937624999996,
+          "final_diagnostics_ms": 175.937624999996,
+          "write_ms": 9.313167000001954,
+          "notifications": [
+            {
+              "ms": 175.937624999996,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            }
+          ],
+          "settled_rss_bytes": 35946496,
+          "settled_footprint_bytes": 35111344,
+          "cpu_through_settle_seconds": 0.36766433333333337,
+          "reported_incomplete": false
+        },
+        {
+          "phase": "operator-1",
+          "inserted_errors": 1,
+          "version": 2,
+          "first_diagnostics_ms": 207.9245830000005,
+          "final_diagnostics_ms": 207.9245830000005,
+          "write_ms": 15.454333000000986,
+          "notifications": [
+            {
+              "ms": 207.9245830000005,
+              "wire_bytes": 610,
+              "diagnostics": 1,
+              "errors": 1,
+              "incomplete": false,
+              "codes": {
+                "E.Validation.Operator.002": 1
+              },
+              "examples": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 384616,
+                      "character": 14
+                    },
+                    "end": {
+                      "line": 384616,
+                      "character": 16
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Validation.Operator.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 0,
+                            "character": 0
+                          },
+                          "end": {
+                            "line": 0,
+                            "character": 7
+                          }
+                        }
+                      },
+                      "message": "Graph kind declared here."
+                    }
+                  ],
+                  "message": "Edge operator '--' does not match this digraph.\nUse '->' here, or change the graph declaration."
+                }
+              ]
+            }
+          ],
+          "settled_rss_bytes": 35946496,
+          "settled_footprint_bytes": 35111344,
+          "cpu_through_settle_seconds": 0.3970719166666667,
+          "reported_incomplete": false
+        },
+        {
+          "phase": "repair",
+          "inserted_errors": 0,
+          "version": 3,
+          "first_diagnostics_ms": 185.94687499999907,
+          "final_diagnostics_ms": 185.94687499999907,
+          "write_ms": 16.61308399999939,
+          "notifications": [
+            {
+              "ms": 185.94687499999907,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            }
+          ],
+          "settled_rss_bytes": 35946496,
+          "settled_footprint_bytes": 35111344,
+          "cpu_through_settle_seconds": 0.37820316666666653,
+          "reported_incomplete": false
+        },
+        {
+          "phase": "operator-1000",
+          "inserted_errors": 1000,
+          "version": 4,
+          "first_diagnostics_ms": 205.3080410000021,
+          "final_diagnostics_ms": 205.3080410000021,
+          "write_ms": 14.814874999999006,
+          "notifications": [
+            {
+              "ms": 205.3080410000021,
+              "wire_bytes": 462121,
+              "diagnostics": 1001,
+              "errors": 1000,
+              "incomplete": true,
+              "codes": {
+                "E.Validation.Operator.002": 1000,
+                "dot-ls:validation-incomplete": 1
+              },
+              "examples": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 769,
+                      "character": 14
+                    },
+                    "end": {
+                      "line": 769,
+                      "character": 16
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Validation.Operator.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 0,
+                            "character": 0
+                          },
+                          "end": {
+                            "line": 0,
+                            "character": 7
+                          }
+                        }
+                      },
+                      "message": "Graph kind declared here."
+                    }
+                  ],
+                  "message": "Edge operator '--' does not match this digraph.\nUse '->' here, or change the graph declaration."
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:validation-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "DOT validation is incomplete. Further errors or repeated attributes may remain."
+                }
+              ]
+            }
+          ],
+          "settled_rss_bytes": 35946496,
+          "settled_footprint_bytes": 35111344,
+          "cpu_through_settle_seconds": 0.39453804166666684,
+          "reported_incomplete": true
+        },
+        {
+          "phase": "clean-final",
+          "inserted_errors": 0,
+          "version": 5,
+          "first_diagnostics_ms": 187.3992080000022,
+          "final_diagnostics_ms": 187.3992080000022,
+          "write_ms": 14.278292000000192,
+          "notifications": [
+            {
+              "ms": 187.3992080000022,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            }
+          ],
+          "settled_rss_bytes": 35946496,
+          "settled_footprint_bytes": 35094936,
+          "cpu_through_settle_seconds": 0.3802432916666667,
+          "reported_incomplete": false
+        }
+      ],
+      "actions": [
+        {
+          "phase": "operator-1",
+          "count": 0,
+          "request_ms": 0.19304100000283597,
+          "response_bytes": 78,
+          "settled_rss_bytes": 35946496
+        },
+        {
+          "phase": "operator-1000",
+          "count": 0,
+          "request_ms": 0.29970800000000963,
+          "response_bytes": 78,
+          "settled_rss_bytes": 35946496
+        }
+      ],
+      "startup_ms": 5.039375000002622,
+      "idle": {
+        "t": 45.973375916,
+        "rss_bytes": 2179072,
+        "footprint_bytes": 1376592,
+        "cpu_seconds": 0.0026683333333333333,
+        "start_ticks": 1542299221651
+      },
+      "resources": {
+        "exit_code": 0,
+        "actual_peak_rss_bytes": 125059072,
+        "sampled_peak_rss_bytes": 116129792,
+        "sampled_peak_footprint_bytes": 115343864,
+        "cpu_user_seconds": 1.782738,
+        "cpu_system_seconds": 0.140432,
+        "safety_stop": null,
+        "stderr": ""
+      }
+    },
+    {
+      "kind": "plain",
+      "mb": 40,
+      "trial": 3,
+      "source_sha256": "a036d9507f9ec57b17278661d893dcbb2ebfd563c1b963c022be04fd52a06020",
+      "phases": [
+        {
+          "phase": "open",
+          "inserted_errors": 0,
+          "version": 1,
+          "first_diagnostics_ms": 188.22000000000116,
+          "final_diagnostics_ms": 188.22000000000116,
+          "write_ms": 17.079250000001878,
+          "notifications": [
+            {
+              "ms": 188.22000000000116,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            }
+          ],
+          "settled_rss_bytes": 35946496,
+          "settled_footprint_bytes": 35111344,
+          "cpu_through_settle_seconds": 0.37643212499999995,
+          "reported_incomplete": false
+        },
+        {
+          "phase": "operator-1",
+          "inserted_errors": 1,
+          "version": 2,
+          "first_diagnostics_ms": 207.6581250000018,
+          "final_diagnostics_ms": 207.6581250000018,
+          "write_ms": 15.482042000002139,
+          "notifications": [
+            {
+              "ms": 207.6581250000018,
+              "wire_bytes": 610,
+              "diagnostics": 1,
+              "errors": 1,
+              "incomplete": false,
+              "codes": {
+                "E.Validation.Operator.002": 1
+              },
+              "examples": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 384616,
+                      "character": 14
+                    },
+                    "end": {
+                      "line": 384616,
+                      "character": 16
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Validation.Operator.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 0,
+                            "character": 0
+                          },
+                          "end": {
+                            "line": 0,
+                            "character": 7
+                          }
+                        }
+                      },
+                      "message": "Graph kind declared here."
+                    }
+                  ],
+                  "message": "Edge operator '--' does not match this digraph.\nUse '->' here, or change the graph declaration."
+                }
+              ]
+            }
+          ],
+          "settled_rss_bytes": 35946496,
+          "settled_footprint_bytes": 35111344,
+          "cpu_through_settle_seconds": 0.40227491666666665,
+          "reported_incomplete": false
+        },
+        {
+          "phase": "repair",
+          "inserted_errors": 0,
+          "version": 3,
+          "first_diagnostics_ms": 188.40279100000146,
+          "final_diagnostics_ms": 188.40279100000146,
+          "write_ms": 15.736457999999232,
+          "notifications": [
+            {
+              "ms": 188.40279100000146,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            }
+          ],
+          "settled_rss_bytes": 35946496,
+          "settled_footprint_bytes": 35111344,
+          "cpu_through_settle_seconds": 0.3773069166666667,
+          "reported_incomplete": false
+        },
+        {
+          "phase": "operator-1000",
+          "inserted_errors": 1000,
+          "version": 4,
+          "first_diagnostics_ms": 207.39962500000075,
+          "final_diagnostics_ms": 207.39962500000075,
+          "write_ms": 13.276582999999675,
+          "notifications": [
+            {
+              "ms": 207.39962500000075,
+              "wire_bytes": 462121,
+              "diagnostics": 1001,
+              "errors": 1000,
+              "incomplete": true,
+              "codes": {
+                "E.Validation.Operator.002": 1000,
+                "dot-ls:validation-incomplete": 1
+              },
+              "examples": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 769,
+                      "character": 14
+                    },
+                    "end": {
+                      "line": 769,
+                      "character": 16
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Validation.Operator.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 0,
+                            "character": 0
+                          },
+                          "end": {
+                            "line": 0,
+                            "character": 7
+                          }
+                        }
+                      },
+                      "message": "Graph kind declared here."
+                    }
+                  ],
+                  "message": "Edge operator '--' does not match this digraph.\nUse '->' here, or change the graph declaration."
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:validation-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "DOT validation is incomplete. Further errors or repeated attributes may remain."
+                }
+              ]
+            }
+          ],
+          "settled_rss_bytes": 35946496,
+          "settled_footprint_bytes": 35111344,
+          "cpu_through_settle_seconds": 0.4000742500000001,
+          "reported_incomplete": true
+        },
+        {
+          "phase": "clean-final",
+          "inserted_errors": 0,
+          "version": 5,
+          "first_diagnostics_ms": 184.16912500000393,
+          "final_diagnostics_ms": 184.16912500000393,
+          "write_ms": 15.26662500000242,
+          "notifications": [
+            {
+              "ms": 184.16912500000393,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            }
+          ],
+          "settled_rss_bytes": 35946496,
+          "settled_footprint_bytes": 35111344,
+          "cpu_through_settle_seconds": 0.37283158333333355,
+          "reported_incomplete": false
+        }
+      ],
+      "actions": [
+        {
+          "phase": "operator-1",
+          "count": 0,
+          "request_ms": 0.16216600000262815,
+          "response_bytes": 78,
+          "settled_rss_bytes": 35946496
+        },
+        {
+          "phase": "operator-1000",
+          "count": 0,
+          "request_ms": 0.14058299999675228,
+          "response_bytes": 78,
+          "settled_rss_bytes": 35946496
+        }
+      ],
+      "startup_ms": 5.178374999999846,
+      "idle": {
+        "t": 50.5016065,
+        "rss_bytes": 2179072,
+        "footprint_bytes": 1376592,
+        "cpu_seconds": 0.002603,
+        "start_ticks": 1542407949050
+      },
+      "resources": {
+        "exit_code": 0,
+        "actual_peak_rss_bytes": 125059072,
+        "sampled_peak_rss_bytes": 113033216,
+        "sampled_peak_footprint_bytes": 112230880,
+        "cpu_user_seconds": 1.791652,
+        "cpu_system_seconds": 0.1439,
+        "safety_stop": null,
+        "stderr": ""
+      }
+    },
+    {
+      "kind": "html",
+      "mb": 40,
+      "trial": 1,
+      "source_sha256": "2826d8f9a267ef19c4f0fb1287c18613522b3797cc997fe78fc3c7dd6f8140c0",
+      "phases": [
+        {
+          "phase": "open",
+          "inserted_errors": 0,
+          "version": 1,
+          "first_diagnostics_ms": 159.2137080000029,
+          "final_diagnostics_ms": 161.79679200000407,
+          "write_ms": 17.557957999997598,
+          "notifications": [
+            {
+              "ms": 159.2137080000029,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            },
+            {
+              "ms": 161.79679200000407,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            }
+          ],
+          "settled_rss_bytes": 22036480,
+          "settled_footprint_bytes": 21184920,
+          "cpu_through_settle_seconds": 0.28594425,
+          "reported_incomplete": false
+        },
+        {
+          "phase": "operator-1",
+          "inserted_errors": 1,
+          "version": 2,
+          "first_diagnostics_ms": 186.63716600000413,
+          "final_diagnostics_ms": 189.25500000000284,
+          "write_ms": 16.405833000000314,
+          "notifications": [
+            {
+              "ms": 186.63716600000413,
+              "wire_bytes": 610,
+              "diagnostics": 1,
+              "errors": 1,
+              "incomplete": false,
+              "codes": {
+                "E.Validation.Operator.002": 1
+              },
+              "examples": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 705882,
+                      "character": 14
+                    },
+                    "end": {
+                      "line": 705882,
+                      "character": 16
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Validation.Operator.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 0,
+                            "character": 0
+                          },
+                          "end": {
+                            "line": 0,
+                            "character": 7
+                          }
+                        }
+                      },
+                      "message": "Graph kind declared here."
+                    }
+                  ],
+                  "message": "Edge operator '--' does not match this digraph.\nUse '->' here, or change the graph declaration."
+                }
+              ]
+            },
+            {
+              "ms": 189.25500000000284,
+              "wire_bytes": 610,
+              "diagnostics": 1,
+              "errors": 1,
+              "incomplete": false,
+              "codes": {
+                "E.Validation.Operator.002": 1
+              },
+              "examples": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 705882,
+                      "character": 14
+                    },
+                    "end": {
+                      "line": 705882,
+                      "character": 16
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Validation.Operator.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 0,
+                            "character": 0
+                          },
+                          "end": {
+                            "line": 0,
+                            "character": 7
+                          }
+                        }
+                      },
+                      "message": "Graph kind declared here."
+                    }
+                  ],
+                  "message": "Edge operator '--' does not match this digraph.\nUse '->' here, or change the graph declaration."
+                }
+              ]
+            }
+          ],
+          "settled_rss_bytes": 22036480,
+          "settled_footprint_bytes": 21201328,
+          "cpu_through_settle_seconds": 0.31270670833333336,
+          "reported_incomplete": false
+        },
+        {
+          "phase": "repair",
+          "inserted_errors": 0,
+          "version": 3,
+          "first_diagnostics_ms": 158.99379100000033,
+          "final_diagnostics_ms": 161.65258299999863,
+          "write_ms": 14.18199999999814,
+          "notifications": [
+            {
+              "ms": 158.99379100000033,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            },
+            {
+              "ms": 161.65258299999863,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            }
+          ],
+          "settled_rss_bytes": 22036480,
+          "settled_footprint_bytes": 21201328,
+          "cpu_through_settle_seconds": 0.28885891666666663,
+          "reported_incomplete": false
+        },
+        {
+          "phase": "operator-1000",
+          "inserted_errors": 1000,
+          "version": 4,
+          "first_diagnostics_ms": 191.2718749999982,
+          "final_diagnostics_ms": 196.9978329999975,
+          "write_ms": 15.304749999998535,
+          "notifications": [
+            {
+              "ms": 191.2718749999982,
+              "wire_bytes": 462837,
+              "diagnostics": 1001,
+              "errors": 1000,
+              "incomplete": true,
+              "codes": {
+                "E.Validation.Operator.002": 1000,
+                "dot-ls:validation-incomplete": 1
+              },
+              "examples": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 1416,
+                      "character": 14
+                    },
+                    "end": {
+                      "line": 1416,
+                      "character": 16
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Validation.Operator.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 0,
+                            "character": 0
+                          },
+                          "end": {
+                            "line": 0,
+                            "character": 7
+                          }
+                        }
+                      },
+                      "message": "Graph kind declared here."
+                    }
+                  ],
+                  "message": "Edge operator '--' does not match this digraph.\nUse '->' here, or change the graph declaration."
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:validation-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "DOT validation is incomplete. Further errors or repeated attributes may remain."
+                }
+              ]
+            },
+            {
+              "ms": 196.9978329999975,
+              "wire_bytes": 462837,
+              "diagnostics": 1001,
+              "errors": 1000,
+              "incomplete": true,
+              "codes": {
+                "E.Validation.Operator.002": 1000,
+                "dot-ls:validation-incomplete": 1
+              },
+              "examples": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 1416,
+                      "character": 14
+                    },
+                    "end": {
+                      "line": 1416,
+                      "character": 16
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Validation.Operator.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 0,
+                            "character": 0
+                          },
+                          "end": {
+                            "line": 0,
+                            "character": 7
+                          }
+                        }
+                      },
+                      "message": "Graph kind declared here."
+                    }
+                  ],
+                  "message": "Edge operator '--' does not match this digraph.\nUse '->' here, or change the graph declaration."
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:validation-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "DOT validation is incomplete. Further errors or repeated attributes may remain."
+                }
+              ]
+            }
+          ],
+          "settled_rss_bytes": 22036480,
+          "settled_footprint_bytes": 21201328,
+          "cpu_through_settle_seconds": 0.31746683333333325,
+          "reported_incomplete": true
+        },
+        {
+          "phase": "clean-final",
+          "inserted_errors": 0,
+          "version": 5,
+          "first_diagnostics_ms": 156.44237499999747,
+          "final_diagnostics_ms": 159.08445800000237,
+          "write_ms": 18.580083000003356,
+          "notifications": [
+            {
+              "ms": 156.44237499999747,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            },
+            {
+              "ms": 159.08445800000237,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            }
+          ],
+          "settled_rss_bytes": 22036480,
+          "settled_footprint_bytes": 21201328,
+          "cpu_through_settle_seconds": 0.2823742916666665,
+          "reported_incomplete": false
+        }
+      ],
+      "actions": [
+        {
+          "phase": "operator-1",
+          "count": 0,
+          "request_ms": 0.12866699999847242,
+          "response_bytes": 78,
+          "settled_rss_bytes": 22036480
+        },
+        {
+          "phase": "operator-1000",
+          "count": 0,
+          "request_ms": 0.16333399999979292,
+          "response_bytes": 78,
+          "settled_rss_bytes": 22036480
+        }
+      ],
+      "startup_ms": 5.276125000001741,
+      "idle": {
+        "t": 55.710076,
+        "rss_bytes": 2179072,
+        "footprint_bytes": 1376592,
+        "cpu_seconds": 0.002231125,
+        "start_ticks": 1542532831397
+      },
+      "resources": {
+        "exit_code": 0,
+        "actual_peak_rss_bytes": 125206528,
+        "sampled_peak_rss_bytes": 102940672,
+        "sampled_peak_footprint_bytes": 102121928,
+        "cpu_user_seconds": 1.36252,
+        "cpu_system_seconds": 0.130051,
+        "safety_stop": null,
+        "stderr": ""
+      }
+    },
+    {
+      "kind": "html",
+      "mb": 40,
+      "trial": 2,
+      "source_sha256": "2826d8f9a267ef19c4f0fb1287c18613522b3797cc997fe78fc3c7dd6f8140c0",
+      "phases": [
+        {
+          "phase": "open",
+          "inserted_errors": 0,
+          "version": 1,
+          "first_diagnostics_ms": 158.74062500000008,
+          "final_diagnostics_ms": 161.4183330000003,
+          "write_ms": 15.725541999998427,
+          "notifications": [
+            {
+              "ms": 158.74062500000008,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            },
+            {
+              "ms": 161.4183330000003,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            }
+          ],
+          "settled_rss_bytes": 22036480,
+          "settled_footprint_bytes": 21184920,
+          "cpu_through_settle_seconds": 0.2858907916666667,
+          "reported_incomplete": false
+        },
+        {
+          "phase": "operator-1",
+          "inserted_errors": 1,
+          "version": 2,
+          "first_diagnostics_ms": 184.45883300000077,
+          "final_diagnostics_ms": 187.0645000000053,
+          "write_ms": 15.228958000001569,
+          "notifications": [
+            {
+              "ms": 184.45883300000077,
+              "wire_bytes": 610,
+              "diagnostics": 1,
+              "errors": 1,
+              "incomplete": false,
+              "codes": {
+                "E.Validation.Operator.002": 1
+              },
+              "examples": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 705882,
+                      "character": 14
+                    },
+                    "end": {
+                      "line": 705882,
+                      "character": 16
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Validation.Operator.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 0,
+                            "character": 0
+                          },
+                          "end": {
+                            "line": 0,
+                            "character": 7
+                          }
+                        }
+                      },
+                      "message": "Graph kind declared here."
+                    }
+                  ],
+                  "message": "Edge operator '--' does not match this digraph.\nUse '->' here, or change the graph declaration."
+                }
+              ]
+            },
+            {
+              "ms": 187.0645000000053,
+              "wire_bytes": 610,
+              "diagnostics": 1,
+              "errors": 1,
+              "incomplete": false,
+              "codes": {
+                "E.Validation.Operator.002": 1
+              },
+              "examples": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 705882,
+                      "character": 14
+                    },
+                    "end": {
+                      "line": 705882,
+                      "character": 16
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Validation.Operator.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 0,
+                            "character": 0
+                          },
+                          "end": {
+                            "line": 0,
+                            "character": 7
+                          }
+                        }
+                      },
+                      "message": "Graph kind declared here."
+                    }
+                  ],
+                  "message": "Edge operator '--' does not match this digraph.\nUse '->' here, or change the graph declaration."
+                }
+              ]
+            }
+          ],
+          "settled_rss_bytes": 22036480,
+          "settled_footprint_bytes": 21201328,
+          "cpu_through_settle_seconds": 0.3110136249999999,
+          "reported_incomplete": false
+        },
+        {
+          "phase": "repair",
+          "inserted_errors": 0,
+          "version": 3,
+          "first_diagnostics_ms": 157.14479200000397,
+          "final_diagnostics_ms": 159.75050000000124,
+          "write_ms": 15.157750000000192,
+          "notifications": [
+            {
+              "ms": 157.14479200000397,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            },
+            {
+              "ms": 159.75050000000124,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            }
+          ],
+          "settled_rss_bytes": 22036480,
+          "settled_footprint_bytes": 21201328,
+          "cpu_through_settle_seconds": 0.2831033333333334,
+          "reported_incomplete": false
+        },
+        {
+          "phase": "operator-1000",
+          "inserted_errors": 1000,
+          "version": 4,
+          "first_diagnostics_ms": 184.77541699999733,
+          "final_diagnostics_ms": 188.16679199999697,
+          "write_ms": 16.465957999997727,
+          "notifications": [
+            {
+              "ms": 184.77541699999733,
+              "wire_bytes": 462837,
+              "diagnostics": 1001,
+              "errors": 1000,
+              "incomplete": true,
+              "codes": {
+                "E.Validation.Operator.002": 1000,
+                "dot-ls:validation-incomplete": 1
+              },
+              "examples": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 1416,
+                      "character": 14
+                    },
+                    "end": {
+                      "line": 1416,
+                      "character": 16
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Validation.Operator.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 0,
+                            "character": 0
+                          },
+                          "end": {
+                            "line": 0,
+                            "character": 7
+                          }
+                        }
+                      },
+                      "message": "Graph kind declared here."
+                    }
+                  ],
+                  "message": "Edge operator '--' does not match this digraph.\nUse '->' here, or change the graph declaration."
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:validation-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "DOT validation is incomplete. Further errors or repeated attributes may remain."
+                }
+              ]
+            },
+            {
+              "ms": 188.16679199999697,
+              "wire_bytes": 462837,
+              "diagnostics": 1001,
+              "errors": 1000,
+              "incomplete": true,
+              "codes": {
+                "E.Validation.Operator.002": 1000,
+                "dot-ls:validation-incomplete": 1
+              },
+              "examples": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 1416,
+                      "character": 14
+                    },
+                    "end": {
+                      "line": 1416,
+                      "character": 16
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Validation.Operator.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 0,
+                            "character": 0
+                          },
+                          "end": {
+                            "line": 0,
+                            "character": 7
+                          }
+                        }
+                      },
+                      "message": "Graph kind declared here."
+                    }
+                  ],
+                  "message": "Edge operator '--' does not match this digraph.\nUse '->' here, or change the graph declaration."
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:validation-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "DOT validation is incomplete. Further errors or repeated attributes may remain."
+                }
+              ]
+            }
+          ],
+          "settled_rss_bytes": 22036480,
+          "settled_footprint_bytes": 21201328,
+          "cpu_through_settle_seconds": 0.3101947083333334,
+          "reported_incomplete": true
+        },
+        {
+          "phase": "clean-final",
+          "inserted_errors": 0,
+          "version": 5,
+          "first_diagnostics_ms": 157.80712499999794,
+          "final_diagnostics_ms": 160.34216699999604,
+          "write_ms": 16.831457999998634,
+          "notifications": [
+            {
+              "ms": 157.80712499999794,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            },
+            {
+              "ms": 160.34216699999604,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            }
+          ],
+          "settled_rss_bytes": 22036480,
+          "settled_footprint_bytes": 21201328,
+          "cpu_through_settle_seconds": 0.2840574583333335,
+          "reported_incomplete": false
+        }
+      ],
+      "actions": [
+        {
+          "phase": "operator-1",
+          "count": 0,
+          "request_ms": 0.14895799999692372,
+          "response_bytes": 78,
+          "settled_rss_bytes": 22036480
+        },
+        {
+          "phase": "operator-1000",
+          "count": 0,
+          "request_ms": 0.25825000000168075,
+          "response_bytes": 78,
+          "settled_rss_bytes": 22036480
+        }
+      ],
+      "startup_ms": 5.519749999997714,
+      "idle": {
+        "t": 60.143142708,
+        "rss_bytes": 2179072,
+        "footprint_bytes": 1376592,
+        "cpu_seconds": 0.002578125,
+        "start_ticks": 1542639304591
+      },
+      "resources": {
+        "exit_code": 0,
+        "actual_peak_rss_bytes": 125140992,
+        "sampled_peak_rss_bytes": 124207104,
+        "sampled_peak_footprint_bytes": 123421176,
+        "cpu_user_seconds": 1.356912,
+        "cpu_system_seconds": 0.12301799999999999,
+        "safety_stop": null,
+        "stderr": ""
+      }
+    },
+    {
+      "kind": "html",
+      "mb": 40,
+      "trial": 3,
+      "source_sha256": "2826d8f9a267ef19c4f0fb1287c18613522b3797cc997fe78fc3c7dd6f8140c0",
+      "phases": [
+        {
+          "phase": "open",
+          "inserted_errors": 0,
+          "version": 1,
+          "first_diagnostics_ms": 157.7754590000069,
+          "final_diagnostics_ms": 160.49200000000496,
+          "write_ms": 14.786374999999907,
+          "notifications": [
+            {
+              "ms": 157.7754590000069,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            },
+            {
+              "ms": 160.49200000000496,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            }
+          ],
+          "settled_rss_bytes": 22036480,
+          "settled_footprint_bytes": 21184920,
+          "cpu_through_settle_seconds": 0.28464429166666666,
+          "reported_incomplete": false
+        },
+        {
+          "phase": "operator-1",
+          "inserted_errors": 1,
+          "version": 2,
+          "first_diagnostics_ms": 184.66399999999794,
+          "final_diagnostics_ms": 187.1862090000036,
+          "write_ms": 16.753583999999933,
+          "notifications": [
+            {
+              "ms": 184.66399999999794,
+              "wire_bytes": 610,
+              "diagnostics": 1,
+              "errors": 1,
+              "incomplete": false,
+              "codes": {
+                "E.Validation.Operator.002": 1
+              },
+              "examples": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 705882,
+                      "character": 14
+                    },
+                    "end": {
+                      "line": 705882,
+                      "character": 16
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Validation.Operator.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 0,
+                            "character": 0
+                          },
+                          "end": {
+                            "line": 0,
+                            "character": 7
+                          }
+                        }
+                      },
+                      "message": "Graph kind declared here."
+                    }
+                  ],
+                  "message": "Edge operator '--' does not match this digraph.\nUse '->' here, or change the graph declaration."
+                }
+              ]
+            },
+            {
+              "ms": 187.1862090000036,
+              "wire_bytes": 610,
+              "diagnostics": 1,
+              "errors": 1,
+              "incomplete": false,
+              "codes": {
+                "E.Validation.Operator.002": 1
+              },
+              "examples": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 705882,
+                      "character": 14
+                    },
+                    "end": {
+                      "line": 705882,
+                      "character": 16
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Validation.Operator.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 0,
+                            "character": 0
+                          },
+                          "end": {
+                            "line": 0,
+                            "character": 7
+                          }
+                        }
+                      },
+                      "message": "Graph kind declared here."
+                    }
+                  ],
+                  "message": "Edge operator '--' does not match this digraph.\nUse '->' here, or change the graph declaration."
+                }
+              ]
+            }
+          ],
+          "settled_rss_bytes": 22036480,
+          "settled_footprint_bytes": 21201328,
+          "cpu_through_settle_seconds": 0.3116555,
+          "reported_incomplete": false
+        },
+        {
+          "phase": "repair",
+          "inserted_errors": 0,
+          "version": 3,
+          "first_diagnostics_ms": 157.35408400000495,
+          "final_diagnostics_ms": 159.97429200000113,
+          "write_ms": 16.87354199999902,
+          "notifications": [
+            {
+              "ms": 157.35408400000495,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            },
+            {
+              "ms": 159.97429200000113,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            }
+          ],
+          "settled_rss_bytes": 22036480,
+          "settled_footprint_bytes": 21201328,
+          "cpu_through_settle_seconds": 0.2812187083333333,
+          "reported_incomplete": false
+        },
+        {
+          "phase": "operator-1000",
+          "inserted_errors": 1000,
+          "version": 4,
+          "first_diagnostics_ms": 187.1136660000019,
+          "final_diagnostics_ms": 190.601290999993,
+          "write_ms": 17.71574999999359,
+          "notifications": [
+            {
+              "ms": 187.1136660000019,
+              "wire_bytes": 462837,
+              "diagnostics": 1001,
+              "errors": 1000,
+              "incomplete": true,
+              "codes": {
+                "E.Validation.Operator.002": 1000,
+                "dot-ls:validation-incomplete": 1
+              },
+              "examples": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 1416,
+                      "character": 14
+                    },
+                    "end": {
+                      "line": 1416,
+                      "character": 16
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Validation.Operator.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 0,
+                            "character": 0
+                          },
+                          "end": {
+                            "line": 0,
+                            "character": 7
+                          }
+                        }
+                      },
+                      "message": "Graph kind declared here."
+                    }
+                  ],
+                  "message": "Edge operator '--' does not match this digraph.\nUse '->' here, or change the graph declaration."
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:validation-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "DOT validation is incomplete. Further errors or repeated attributes may remain."
+                }
+              ]
+            },
+            {
+              "ms": 190.601290999993,
+              "wire_bytes": 462837,
+              "diagnostics": 1001,
+              "errors": 1000,
+              "incomplete": true,
+              "codes": {
+                "E.Validation.Operator.002": 1000,
+                "dot-ls:validation-incomplete": 1
+              },
+              "examples": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 1416,
+                      "character": 14
+                    },
+                    "end": {
+                      "line": 1416,
+                      "character": 16
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Validation.Operator.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 0,
+                            "character": 0
+                          },
+                          "end": {
+                            "line": 0,
+                            "character": 7
+                          }
+                        }
+                      },
+                      "message": "Graph kind declared here."
+                    }
+                  ],
+                  "message": "Edge operator '--' does not match this digraph.\nUse '->' here, or change the graph declaration."
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:validation-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "DOT validation is incomplete. Further errors or repeated attributes may remain."
+                }
+              ]
+            }
+          ],
+          "settled_rss_bytes": 22036480,
+          "settled_footprint_bytes": 21184920,
+          "cpu_through_settle_seconds": 0.3109879583333335,
+          "reported_incomplete": true
+        },
+        {
+          "phase": "clean-final",
+          "inserted_errors": 0,
+          "version": 5,
+          "first_diagnostics_ms": 155.5374999999941,
+          "final_diagnostics_ms": 158.24291599999185,
+          "write_ms": 12.795083000000318,
+          "notifications": [
+            {
+              "ms": 155.5374999999941,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            },
+            {
+              "ms": 158.24291599999185,
+              "wire_bytes": 149,
+              "diagnostics": 0,
+              "errors": 0,
+              "incomplete": false,
+              "codes": {},
+              "examples": []
+            }
+          ],
+          "settled_rss_bytes": 22036480,
+          "settled_footprint_bytes": 21201328,
+          "cpu_through_settle_seconds": 0.2824600833333335,
+          "reported_incomplete": false
+        }
+      ],
+      "actions": [
+        {
+          "phase": "operator-1",
+          "count": 0,
+          "request_ms": 0.23645800000338113,
+          "response_bytes": 78,
+          "settled_rss_bytes": 22036480
+        },
+        {
+          "phase": "operator-1000",
+          "count": 0,
+          "request_ms": 0.10804200000791297,
+          "response_bytes": 78,
+          "settled_rss_bytes": 22036480
+        }
+      ],
+      "startup_ms": 5.218374999998332,
+      "idle": {
+        "t": 64.557764791,
+        "rss_bytes": 2179072,
+        "footprint_bytes": 1376592,
+        "cpu_seconds": 0.0029129583333333334,
+        "start_ticks": 1542745295141
+      },
+      "resources": {
+        "exit_code": 0,
+        "actual_peak_rss_bytes": 125140992,
+        "sampled_peak_rss_bytes": 103317504,
+        "sampled_peak_footprint_bytes": 102515168,
+        "cpu_user_seconds": 1.357859,
+        "cpu_system_seconds": 0.118474,
+        "safety_stop": null,
+        "stderr": ""
+      }
+    }
+  ]
+}

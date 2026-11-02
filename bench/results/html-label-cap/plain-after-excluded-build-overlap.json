@@ -1,0 +1,1446 @@
+{
+  "binary": "/Users/ash/dev/dotls/dotls/zig-out/bin/dot-ls",
+  "binary_sha256": "042d3982618c9283f649391c940c09b1cecf4ce62bc5ea0cc52ab9c4f17e8e40",
+  "runs": [
+    {
+      "build": "after",
+      "kind": "plain",
+      "mb": 5,
+      "trial": 1,
+      "labels": 0,
+      "source_sha256": "17dbeb816186da5409fbcb9cf341cf14c773718b3fb59aa933226ed2f69b5ddb",
+      "phases": [
+        {
+          "phase": "open",
+          "version": 1,
+          "dot_ms": 18.452625,
+          "final_ms": 18.452625,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 6651904,
+          "notifications": [
+            {
+              "ms": 18.452625,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "outer_edit",
+          "version": 2,
+          "dot_ms": 19.301000000000013,
+          "final_ms": 19.301000000000013,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 6651904,
+          "notifications": [
+            {
+              "ms": 19.301000000000013,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 3,
+          "dot_ms": 21.389207999999993,
+          "final_ms": 21.389207999999993,
+          "errors": 1,
+          "incomplete": false,
+          "settled_rss_bytes": 3571712,
+          "notifications": [
+            {
+              "ms": 21.389207999999993,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 96153,
+                      "character": 4
+                    },
+                    "end": {
+                      "line": 96153,
+                      "character": 5
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Byte.003",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "Invalid byte 0x40 in DOT syntax.\nremove the byte, or put the text inside a double-quoted identifier"
+                }
+              ],
+              "wire_bytes": 427
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 4,
+          "dot_ms": 18.091958000000076,
+          "final_ms": 18.091958000000076,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 6651904,
+          "notifications": [
+            {
+              "ms": 18.091958000000076,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 5,
+          "dot_ms": 20.968582999999708,
+          "final_ms": 20.968582999999708,
+          "errors": 1,
+          "incomplete": false,
+          "settled_rss_bytes": 3571712,
+          "notifications": [
+            {
+              "ms": 20.968582999999708,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 96153,
+                      "character": 4
+                    },
+                    "end": {
+                      "line": 96153,
+                      "character": 5
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Byte.003",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "Invalid byte 0x40 in DOT syntax.\nremove the byte, or put the text inside a double-quoted identifier"
+                }
+              ],
+              "wire_bytes": 427
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 6,
+          "dot_ms": 18.45595900000019,
+          "final_ms": 18.45595900000019,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 6651904,
+          "notifications": [
+            {
+              "ms": 18.45595900000019,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        }
+      ],
+      "startup_ms": 3.63095799999999,
+      "idle": {
+        "t": 0.457125458,
+        "rss_bytes": 2162688,
+        "footprint_bytes": 1360208,
+        "cpu_seconds": 0.0021204166666666667,
+        "start_ticks": 1369468564486
+      },
+      "resources": {
+        "exit_code": 0,
+        "actual_peak_rss_bytes": 17874944,
+        "sampled_peak_rss_bytes": 15482880,
+        "sampled_peak_footprint_bytes": 14614912,
+        "cpu_user_seconds": 0.21817499999999998,
+        "cpu_system_seconds": 0.013257,
+        "safety_stop": null,
+        "stderr": ""
+      }
+    },
+    {
+      "build": "after",
+      "kind": "plain",
+      "mb": 5,
+      "trial": 2,
+      "labels": 0,
+      "source_sha256": "17dbeb816186da5409fbcb9cf341cf14c773718b3fb59aa933226ed2f69b5ddb",
+      "phases": [
+        {
+          "phase": "open",
+          "version": 1,
+          "dot_ms": 18.473709000000227,
+          "final_ms": 18.473709000000227,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 6651904,
+          "notifications": [
+            {
+              "ms": 18.473709000000227,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "outer_edit",
+          "version": 2,
+          "dot_ms": 19.256791000000106,
+          "final_ms": 19.256791000000106,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 6651904,
+          "notifications": [
+            {
+              "ms": 19.256791000000106,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 3,
+          "dot_ms": 21.725707999999955,
+          "final_ms": 21.725707999999955,
+          "errors": 1,
+          "incomplete": false,
+          "settled_rss_bytes": 3571712,
+          "notifications": [
+            {
+              "ms": 21.725707999999955,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 96153,
+                      "character": 4
+                    },
+                    "end": {
+                      "line": 96153,
+                      "character": 5
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Byte.003",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "Invalid byte 0x40 in DOT syntax.\nremove the byte, or put the text inside a double-quoted identifier"
+                }
+              ],
+              "wire_bytes": 427
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 4,
+          "dot_ms": 18.439458000000464,
+          "final_ms": 18.439458000000464,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 6651904,
+          "notifications": [
+            {
+              "ms": 18.439458000000464,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 5,
+          "dot_ms": 21.337875000000395,
+          "final_ms": 21.337875000000395,
+          "errors": 1,
+          "incomplete": false,
+          "settled_rss_bytes": 3571712,
+          "notifications": [
+            {
+              "ms": 21.337875000000395,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 96153,
+                      "character": 4
+                    },
+                    "end": {
+                      "line": 96153,
+                      "character": 5
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Byte.003",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "Invalid byte 0x40 in DOT syntax.\nremove the byte, or put the text inside a double-quoted identifier"
+                }
+              ],
+              "wire_bytes": 427
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 6,
+          "dot_ms": 18.890125000000424,
+          "final_ms": 18.890125000000424,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 6651904,
+          "notifications": [
+            {
+              "ms": 18.890125000000424,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        }
+      ],
+      "startup_ms": 2.97554199999972,
+      "idle": {
+        "t": 3.209461291,
+        "rss_bytes": 2162688,
+        "footprint_bytes": 1360208,
+        "cpu_seconds": 0.0018668333333333332,
+        "start_ticks": 1369534592024
+      },
+      "resources": {
+        "exit_code": 0,
+        "actual_peak_rss_bytes": 17874944,
+        "sampled_peak_rss_bytes": 15482880,
+        "sampled_peak_footprint_bytes": 14598504,
+        "cpu_user_seconds": 0.221685,
+        "cpu_system_seconds": 0.012003,
+        "safety_stop": null,
+        "stderr": ""
+      }
+    },
+    {
+      "build": "after",
+      "kind": "plain",
+      "mb": 5,
+      "trial": 3,
+      "labels": 0,
+      "source_sha256": "17dbeb816186da5409fbcb9cf341cf14c773718b3fb59aa933226ed2f69b5ddb",
+      "phases": [
+        {
+          "phase": "open",
+          "version": 1,
+          "dot_ms": 18.443167000000038,
+          "final_ms": 18.443167000000038,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 6651904,
+          "notifications": [
+            {
+              "ms": 18.443167000000038,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "outer_edit",
+          "version": 2,
+          "dot_ms": 18.490625000000094,
+          "final_ms": 18.490625000000094,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 6651904,
+          "notifications": [
+            {
+              "ms": 18.490625000000094,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 3,
+          "dot_ms": 22.1908329999998,
+          "final_ms": 22.1908329999998,
+          "errors": 1,
+          "incomplete": false,
+          "settled_rss_bytes": 3571712,
+          "notifications": [
+            {
+              "ms": 22.1908329999998,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 96153,
+                      "character": 4
+                    },
+                    "end": {
+                      "line": 96153,
+                      "character": 5
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Byte.003",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "Invalid byte 0x40 in DOT syntax.\nremove the byte, or put the text inside a double-quoted identifier"
+                }
+              ],
+              "wire_bytes": 427
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 4,
+          "dot_ms": 18.574958000000308,
+          "final_ms": 18.574958000000308,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 6651904,
+          "notifications": [
+            {
+              "ms": 18.574958000000308,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 5,
+          "dot_ms": 21.588249999999753,
+          "final_ms": 21.588249999999753,
+          "errors": 1,
+          "incomplete": false,
+          "settled_rss_bytes": 3571712,
+          "notifications": [
+            {
+              "ms": 21.588249999999753,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 96153,
+                      "character": 4
+                    },
+                    "end": {
+                      "line": 96153,
+                      "character": 5
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Byte.003",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "Invalid byte 0x40 in DOT syntax.\nremove the byte, or put the text inside a double-quoted identifier"
+                }
+              ],
+              "wire_bytes": 427
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 6,
+          "dot_ms": 18.88299999999976,
+          "final_ms": 18.88299999999976,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 6651904,
+          "notifications": [
+            {
+              "ms": 18.88299999999976,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        }
+      ],
+      "startup_ms": 3.1616660000004515,
+      "idle": {
+        "t": 5.962203833,
+        "rss_bytes": 2162688,
+        "footprint_bytes": 1360208,
+        "cpu_seconds": 0.0018925,
+        "start_ticks": 1369600652312
+      },
+      "resources": {
+        "exit_code": 0,
+        "actual_peak_rss_bytes": 17842176,
+        "sampled_peak_rss_bytes": 15482880,
+        "sampled_peak_footprint_bytes": 14614912,
+        "cpu_user_seconds": 0.21967899999999999,
+        "cpu_system_seconds": 0.011970999999999999,
+        "safety_stop": null,
+        "stderr": ""
+      }
+    },
+    {
+      "build": "after",
+      "kind": "plain",
+      "mb": 20,
+      "trial": 1,
+      "labels": 0,
+      "source_sha256": "711152c28e4378ea857a186d9f2f502a19e173a872069975a92f2573783d96f4",
+      "phases": [
+        {
+          "phase": "open",
+          "version": 1,
+          "dot_ms": 96.59029200000013,
+          "final_ms": 96.59029200000013,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 19202048,
+          "notifications": [
+            {
+              "ms": 96.59029200000013,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "outer_edit",
+          "version": 2,
+          "dot_ms": 101.0247919999987,
+          "final_ms": 101.0247919999987,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 19202048,
+          "notifications": [
+            {
+              "ms": 101.0247919999987,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 3,
+          "dot_ms": 107.133708000001,
+          "final_ms": 107.133708000001,
+          "errors": 1,
+          "incomplete": false,
+          "settled_rss_bytes": 6881280,
+          "notifications": [
+            {
+              "ms": 107.133708000001,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 384614,
+                      "character": 4
+                    },
+                    "end": {
+                      "line": 384614,
+                      "character": 5
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Byte.003",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "Invalid byte 0x40 in DOT syntax.\nremove the byte, or put the text inside a double-quoted identifier"
+                }
+              ],
+              "wire_bytes": 429
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 4,
+          "dot_ms": 82.74345899999958,
+          "final_ms": 82.74345899999958,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 19202048,
+          "notifications": [
+            {
+              "ms": 82.74345899999958,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 5,
+          "dot_ms": 114.79129200000138,
+          "final_ms": 114.79129200000138,
+          "errors": 1,
+          "incomplete": false,
+          "settled_rss_bytes": 6881280,
+          "notifications": [
+            {
+              "ms": 114.79129200000138,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 384614,
+                      "character": 4
+                    },
+                    "end": {
+                      "line": 384614,
+                      "character": 5
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Byte.003",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "Invalid byte 0x40 in DOT syntax.\nremove the byte, or put the text inside a double-quoted identifier"
+                }
+              ],
+              "wire_bytes": 429
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 6,
+          "dot_ms": 90.19337500000013,
+          "final_ms": 90.19337500000013,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 19202048,
+          "notifications": [
+            {
+              "ms": 90.19337500000013,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        }
+      ],
+      "startup_ms": 3.200292000000715,
+      "idle": {
+        "t": 9.163722,
+        "rss_bytes": 2162688,
+        "footprint_bytes": 1360208,
+        "cpu_seconds": 0.0018215416666666668,
+        "start_ticks": 1369677624491
+      },
+      "resources": {
+        "exit_code": 0,
+        "actual_peak_rss_bytes": 63766528,
+        "sampled_peak_rss_bytes": 59850752,
+        "sampled_peak_footprint_bytes": 59015600,
+        "cpu_user_seconds": 0.969181,
+        "cpu_system_seconds": 0.061649999999999996,
+        "safety_stop": null,
+        "stderr": ""
+      }
+    },
+    {
+      "build": "after",
+      "kind": "plain",
+      "mb": 20,
+      "trial": 2,
+      "labels": 0,
+      "source_sha256": "711152c28e4378ea857a186d9f2f502a19e173a872069975a92f2573783d96f4",
+      "phases": [
+        {
+          "phase": "open",
+          "version": 1,
+          "dot_ms": 104.2867919999999,
+          "final_ms": 104.2867919999999,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 19202048,
+          "notifications": [
+            {
+              "ms": 104.2867919999999,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "outer_edit",
+          "version": 2,
+          "dot_ms": 105.61916699999863,
+          "final_ms": 105.61916699999863,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 19202048,
+          "notifications": [
+            {
+              "ms": 105.61916699999863,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 3,
+          "dot_ms": 117.45237499999917,
+          "final_ms": 117.45237499999917,
+          "errors": 1,
+          "incomplete": false,
+          "settled_rss_bytes": 6881280,
+          "notifications": [
+            {
+              "ms": 117.45237499999917,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 384614,
+                      "character": 4
+                    },
+                    "end": {
+                      "line": 384614,
+                      "character": 5
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Byte.003",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "Invalid byte 0x40 in DOT syntax.\nremove the byte, or put the text inside a double-quoted identifier"
+                }
+              ],
+              "wire_bytes": 429
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 4,
+          "dot_ms": 90.64562499999873,
+          "final_ms": 90.64562499999873,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 19202048,
+          "notifications": [
+            {
+              "ms": 90.64562499999873,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 5,
+          "dot_ms": 122.54262499999946,
+          "final_ms": 122.54262499999946,
+          "errors": 1,
+          "incomplete": false,
+          "settled_rss_bytes": 6881280,
+          "notifications": [
+            {
+              "ms": 122.54262499999946,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 384614,
+                      "character": 4
+                    },
+                    "end": {
+                      "line": 384614,
+                      "character": 5
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Byte.003",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "Invalid byte 0x40 in DOT syntax.\nremove the byte, or put the text inside a double-quoted identifier"
+                }
+              ],
+              "wire_bytes": 429
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 6,
+          "dot_ms": 88.10583300000019,
+          "final_ms": 88.10583300000019,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 19202048,
+          "notifications": [
+            {
+              "ms": 88.10583300000019,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        }
+      ],
+      "startup_ms": 6.387416000000812,
+      "idle": {
+        "t": 12.658505833,
+        "rss_bytes": 2162688,
+        "footprint_bytes": 1360208,
+        "cpu_seconds": 0.003764,
+        "start_ticks": 1369761367583
+      },
+      "resources": {
+        "exit_code": 0,
+        "actual_peak_rss_bytes": 63963136,
+        "sampled_peak_rss_bytes": 58097664,
+        "sampled_peak_footprint_bytes": 57262512,
+        "cpu_user_seconds": 0.999979,
+        "cpu_system_seconds": 0.070328,
+        "safety_stop": null,
+        "stderr": ""
+      }
+    },
+    {
+      "build": "after",
+      "kind": "plain",
+      "mb": 20,
+      "trial": 3,
+      "labels": 0,
+      "source_sha256": "711152c28e4378ea857a186d9f2f502a19e173a872069975a92f2573783d96f4",
+      "phases": [
+        {
+          "phase": "open",
+          "version": 1,
+          "dot_ms": 106.59512499999835,
+          "final_ms": 106.59512499999835,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 19202048,
+          "notifications": [
+            {
+              "ms": 106.59512499999835,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "outer_edit",
+          "version": 2,
+          "dot_ms": 105.16720800000101,
+          "final_ms": 105.16720800000101,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 19202048,
+          "notifications": [
+            {
+              "ms": 105.16720800000101,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 3,
+          "dot_ms": 116.64912499999858,
+          "final_ms": 116.64912499999858,
+          "errors": 1,
+          "incomplete": false,
+          "settled_rss_bytes": 6881280,
+          "notifications": [
+            {
+              "ms": 116.64912499999858,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 384614,
+                      "character": 4
+                    },
+                    "end": {
+                      "line": 384614,
+                      "character": 5
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Byte.003",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "Invalid byte 0x40 in DOT syntax.\nremove the byte, or put the text inside a double-quoted identifier"
+                }
+              ],
+              "wire_bytes": 429
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 4,
+          "dot_ms": 93.81504099999916,
+          "final_ms": 93.81504099999916,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 19202048,
+          "notifications": [
+            {
+              "ms": 93.81504099999916,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 5,
+          "dot_ms": 117.11583299999972,
+          "final_ms": 117.11583299999972,
+          "errors": 1,
+          "incomplete": false,
+          "settled_rss_bytes": 6881280,
+          "notifications": [
+            {
+              "ms": 117.11583299999972,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 384614,
+                      "character": 4
+                    },
+                    "end": {
+                      "line": 384614,
+                      "character": 5
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Byte.003",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "Invalid byte 0x40 in DOT syntax.\nremove the byte, or put the text inside a double-quoted identifier"
+                }
+              ],
+              "wire_bytes": 429
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 6,
+          "dot_ms": 95.50150000000102,
+          "final_ms": 95.50150000000102,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 19202048,
+          "notifications": [
+            {
+              "ms": 95.50150000000102,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        }
+      ],
+      "startup_ms": 4.966916999999071,
+      "idle": {
+        "t": 16.167896958,
+        "rss_bytes": 2162688,
+        "footprint_bytes": 1360208,
+        "cpu_seconds": 0.0030121666666666665,
+        "start_ticks": 1369845623459
+      },
+      "resources": {
+        "exit_code": 0,
+        "actual_peak_rss_bytes": 63979520,
+        "sampled_peak_rss_bytes": 54165504,
+        "sampled_peak_footprint_bytes": 53330352,
+        "cpu_user_seconds": 1.002558,
+        "cpu_system_seconds": 0.07090199999999999,
+        "safety_stop": null,
+        "stderr": ""
+      }
+    },
+    {
+      "build": "after",
+      "kind": "plain",
+      "mb": 40,
+      "trial": 1,
+      "labels": 0,
+      "source_sha256": "a036d9507f9ec57b17278661d893dcbb2ebfd563c1b963c022be04fd52a06020",
+      "phases": [
+        {
+          "phase": "open",
+          "version": 1,
+          "dot_ms": 183.97487500000054,
+          "final_ms": 183.97487500000054,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 35930112,
+          "notifications": [
+            {
+              "ms": 183.97487500000054,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "outer_edit",
+          "version": 2,
+          "dot_ms": 185.59929099999906,
+          "final_ms": 185.59929099999906,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 35930112,
+          "notifications": [
+            {
+              "ms": 185.59929099999906,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 3,
+          "dot_ms": 205.07654200000047,
+          "final_ms": 205.07654200000047,
+          "errors": 1,
+          "incomplete": false,
+          "settled_rss_bytes": 11304960,
+          "notifications": [
+            {
+              "ms": 205.07654200000047,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 769230,
+                      "character": 4
+                    },
+                    "end": {
+                      "line": 769230,
+                      "character": 5
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Byte.003",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "Invalid byte 0x40 in DOT syntax.\nremove the byte, or put the text inside a double-quoted identifier"
+                }
+              ],
+              "wire_bytes": 429
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 4,
+          "dot_ms": 150.33141600000022,
+          "final_ms": 150.33141600000022,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 35930112,
+          "notifications": [
+            {
+              "ms": 150.33141600000022,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 5,
+          "dot_ms": 189.4947500000015,
+          "final_ms": 189.4947500000015,
+          "errors": 1,
+          "incomplete": false,
+          "settled_rss_bytes": 11304960,
+          "notifications": [
+            {
+              "ms": 189.4947500000015,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 769230,
+                      "character": 4
+                    },
+                    "end": {
+                      "line": 769230,
+                      "character": 5
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Byte.003",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "Invalid byte 0x40 in DOT syntax.\nremove the byte, or put the text inside a double-quoted identifier"
+                }
+              ],
+              "wire_bytes": 429
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 6,
+          "dot_ms": 154.8668339999999,
+          "final_ms": 154.8668339999999,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 35930112,
+          "notifications": [
+            {
+              "ms": 154.8668339999999,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        }
+      ],
+      "startup_ms": 4.553209000000891,
+      "idle": {
+        "t": 20.604536916,
+        "rss_bytes": 2162688,
+        "footprint_bytes": 1360208,
+        "cpu_seconds": 0.002163125,
+        "start_ticks": 1369952048830
+      },
+      "resources": {
+        "exit_code": 0,
+        "actual_peak_rss_bytes": 125157376,
+        "sampled_peak_rss_bytes": 117997568,
+        "sampled_peak_footprint_bytes": 117195232,
+        "cpu_user_seconds": 1.8690499999999999,
+        "cpu_system_seconds": 0.126171,
+        "safety_stop": null,
+        "stderr": ""
+      }
+    },
+    {
+      "build": "after",
+      "kind": "plain",
+      "mb": 40,
+      "trial": 2,
+      "labels": 0,
+      "source_sha256": "a036d9507f9ec57b17278661d893dcbb2ebfd563c1b963c022be04fd52a06020",
+      "phases": [
+        {
+          "phase": "open",
+          "version": 1,
+          "dot_ms": 188.91687500000032,
+          "final_ms": 188.91687500000032,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 35913728,
+          "notifications": [
+            {
+              "ms": 188.91687500000032,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "outer_edit",
+          "version": 2,
+          "dot_ms": 168.12808399999923,
+          "final_ms": 168.12808399999923,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 35913728,
+          "notifications": [
+            {
+              "ms": 168.12808399999923,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 3,
+          "dot_ms": 203.24616699999964,
+          "final_ms": 203.24616699999964,
+          "errors": 1,
+          "incomplete": false,
+          "settled_rss_bytes": 11288576,
+          "notifications": [
+            {
+              "ms": 203.24616699999964,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 769230,
+                      "character": 4
+                    },
+                    "end": {
+                      "line": 769230,
+                      "character": 5
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Byte.003",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "Invalid byte 0x40 in DOT syntax.\nremove the byte, or put the text inside a double-quoted identifier"
+                }
+              ],
+              "wire_bytes": 429
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 4,
+          "dot_ms": 153.36679199999992,
+          "final_ms": 153.36679199999992,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 35913728,
+          "notifications": [
+            {
+              "ms": 153.36679199999992,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 5,
+          "dot_ms": 199.40008300000045,
+          "final_ms": 199.40008300000045,
+          "errors": 1,
+          "incomplete": false,
+          "settled_rss_bytes": 11288576,
+          "notifications": [
+            {
+              "ms": 199.40008300000045,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 769230,
+                      "character": 4
+                    },
+                    "end": {
+                      "line": 769230,
+                      "character": 5
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Byte.003",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "Invalid byte 0x40 in DOT syntax.\nremove the byte, or put the text inside a double-quoted identifier"
+                }
+              ],
+              "wire_bytes": 429
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 6,
+          "dot_ms": 160.70929099999987,
+          "final_ms": 160.70929099999987,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 35913728,
+          "notifications": [
+            {
+              "ms": 160.70929099999987,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        }
+      ],
+      "startup_ms": 4.372041999999965,
+      "idle": {
+        "t": 25.005338541,
+        "rss_bytes": 2162688,
+        "footprint_bytes": 1360208,
+        "cpu_seconds": 0.0025172916666666664,
+        "start_ticks": 1370057735147
+      },
+      "resources": {
+        "exit_code": 0,
+        "actual_peak_rss_bytes": 125124608,
+        "sampled_peak_rss_bytes": 124796928,
+        "sampled_peak_footprint_bytes": 123994592,
+        "cpu_user_seconds": 1.877245,
+        "cpu_system_seconds": 0.129306,
+        "safety_stop": null,
+        "stderr": ""
+      }
+    },
+    {
+      "build": "after",
+      "kind": "plain",
+      "mb": 40,
+      "trial": 3,
+      "labels": 0,
+      "source_sha256": "a036d9507f9ec57b17278661d893dcbb2ebfd563c1b963c022be04fd52a06020",
+      "phases": [
+        {
+          "phase": "open",
+          "version": 1,
+          "dot_ms": 179.8545830000009,
+          "final_ms": 179.8545830000009,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 35913728,
+          "notifications": [
+            {
+              "ms": 179.8545830000009,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "outer_edit",
+          "version": 2,
+          "dot_ms": 183.88604200000103,
+          "final_ms": 183.88604200000103,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 35913728,
+          "notifications": [
+            {
+              "ms": 183.88604200000103,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 3,
+          "dot_ms": 209.22366599999975,
+          "final_ms": 209.22366599999975,
+          "errors": 1,
+          "incomplete": false,
+          "settled_rss_bytes": 11288576,
+          "notifications": [
+            {
+              "ms": 209.22366599999975,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 769230,
+                      "character": 4
+                    },
+                    "end": {
+                      "line": 769230,
+                      "character": 5
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Byte.003",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "Invalid byte 0x40 in DOT syntax.\nremove the byte, or put the text inside a double-quoted identifier"
+                }
+              ],
+              "wire_bytes": 429
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 4,
+          "dot_ms": 157.84029200000305,
+          "final_ms": 157.84029200000305,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 35913728,
+          "notifications": [
+            {
+              "ms": 157.84029200000305,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 5,
+          "dot_ms": 198.84287500000397,
+          "final_ms": 198.84287500000397,
+          "errors": 1,
+          "incomplete": false,
+          "settled_rss_bytes": 11288576,
+          "notifications": [
+            {
+              "ms": 198.84287500000397,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 769230,
+                      "character": 4
+                    },
+                    "end": {
+                      "line": 769230,
+                      "character": 5
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Byte.003",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "Invalid byte 0x40 in DOT syntax.\nremove the byte, or put the text inside a double-quoted identifier"
+                }
+              ],
+              "wire_bytes": 429
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 6,
+          "dot_ms": 167.216499999995,
+          "final_ms": 167.216499999995,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 35913728,
+          "notifications": [
+            {
+              "ms": 167.216499999995,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        }
+      ],
+      "startup_ms": 5.658290999999593,
+      "idle": {
+        "t": 29.418733833,
+        "rss_bytes": 2162688,
+        "footprint_bytes": 1360208,
+        "cpu_seconds": 0.0031610416666666666,
+        "start_ticks": 1370163586283
+      },
+      "resources": {
+        "exit_code": 0,
+        "actual_peak_rss_bytes": 125272064,
+        "sampled_peak_rss_bytes": 112099328,
+        "sampled_peak_footprint_bytes": 111296992,
+        "cpu_user_seconds": 1.886825,
+        "cpu_system_seconds": 0.133792,
+        "safety_stop": null,
+        "stderr": ""
+      }
+    }
+  ]
+}

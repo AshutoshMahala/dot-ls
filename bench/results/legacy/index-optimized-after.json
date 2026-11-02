@@ -1,0 +1,266 @@
+{
+  "label": "after",
+  "binary_bytes": 679096,
+  "binary_sha256": "0155ef553f735b505cee9e1f7c9bfa5416093d562e9b1928e0e1f70e701d2f2e",
+  "runs": [
+    {
+      "mb": 5,
+      "source_bytes": 4999953,
+      "startup_ms": 246.51266700000002,
+      "idle_rss_bytes": 2129920,
+      "peak_rss_bytes": 19824640,
+      "samples": [
+        {
+          "phase": "open",
+          "ms": 23.513083
+        },
+        {
+          "phase": "error",
+          "ms": 23.65675
+        },
+        {
+          "phase": "repair",
+          "ms": 19.829542
+        },
+        {
+          "phase": "error",
+          "ms": 22.587583
+        },
+        {
+          "phase": "repair",
+          "ms": 19.837917
+        },
+        {
+          "phase": "error",
+          "ms": 21.590292
+        },
+        {
+          "phase": "repair",
+          "ms": 18.757042
+        }
+      ],
+      "completion_ms": [
+        0.102541,
+        0.048667,
+        0.043042,
+        0.048666,
+        0.046625,
+        0.03475,
+        0.032375,
+        0.034208,
+        0.030625,
+        0.034042,
+        0.0315,
+        0.040625,
+        0.037708,
+        0.031667,
+        0.031583,
+        0.030708,
+        0.031208,
+        0.030375,
+        0.030084,
+        0.029792
+      ],
+      "reference_ms": [
+        0.126334,
+        0.112417,
+        0.100625,
+        0.094125,
+        0.10375,
+        0.084083,
+        0.082,
+        0.080666,
+        0.086875,
+        0.080334,
+        0.078917,
+        0.078208,
+        0.078083,
+        0.078375,
+        0.084375,
+        0.084917,
+        0.089375,
+        0.09175,
+        0.082917,
+        0.084625
+      ],
+      "index_wait_after_diagnostics_ms": 7.015292,
+      "settled_rss_bytes": 5652480,
+      "closed_rss_bytes": 2359296,
+      "fixture_index_bytes": 3265152,
+      "time_output": "        0.43 real         0.14 user         0.01 sys\n            19824640  maximum resident set size\n                   0  average shared memory size\n                   0  average unshared data size\n                   0  average unshared stack size\n               11134  page reclaims\n                   0  page faults\n                   0  swaps\n                   0  block input operations\n                   0  block output operations\n                   0  messages sent\n                   0  messages received\n                   0  signals received\n                 612  voluntary context switches\n                  15  involuntary context switches\n          4101896014  instructions retired\n           656640505  cycles elapsed\n            19038568  peak memory footprint\n"
+    },
+    {
+      "mb": 20,
+      "source_bytes": 19999979,
+      "startup_ms": 5.222250000000095,
+      "idle_rss_bytes": 2129920,
+      "peak_rss_bytes": 70762496,
+      "samples": [
+        {
+          "phase": "open",
+          "ms": 80.105583
+        },
+        {
+          "phase": "error",
+          "ms": 90.642917
+        },
+        {
+          "phase": "repair",
+          "ms": 75.564792
+        },
+        {
+          "phase": "error",
+          "ms": 89.774458
+        },
+        {
+          "phase": "repair",
+          "ms": 77.499333
+        },
+        {
+          "phase": "error",
+          "ms": 86.264375
+        },
+        {
+          "phase": "repair",
+          "ms": 75.676375
+        }
+      ],
+      "completion_ms": [
+        0.104375,
+        0.045666,
+        0.0415,
+        0.04225,
+        0.037584,
+        0.033542,
+        0.039125,
+        0.036,
+        0.034209,
+        0.035917,
+        0.035792,
+        0.03375,
+        0.033209,
+        0.033541,
+        0.032875,
+        0.033,
+        0.033375,
+        0.034916,
+        0.034667,
+        0.036458
+      ],
+      "reference_ms": [
+        0.653041,
+        0.32525,
+        0.235208,
+        0.241916,
+        0.237917,
+        0.234209,
+        0.227042,
+        0.2195,
+        0.221917,
+        0.219083,
+        0.218625,
+        0.220459,
+        0.218834,
+        0.21775,
+        0.218667,
+        0.226125,
+        0.219792,
+        0.214458,
+        0.217833,
+        0.223958
+      ],
+      "index_wait_after_diagnostics_ms": 32.237208,
+      "settled_rss_bytes": 15450112,
+      "closed_rss_bytes": 2359296,
+      "fixture_index_bytes": 13061088,
+      "time_output": "        0.64 real         0.55 user         0.05 sys\n            70762496  maximum resident set size\n                   0  average shared memory size\n                   0  average unshared data size\n                   0  average unshared stack size\n               40779  page reclaims\n                   0  page faults\n                   0  swaps\n                   0  block input operations\n                   0  block output operations\n                   0  messages sent\n                   0  messages received\n                   0  signals received\n                2313  voluntary context switches\n                  41  involuntary context switches\n         16353989767  instructions retired\n          2647753781  cycles elapsed\n            70025648  peak memory footprint\n"
+    },
+    {
+      "mb": 40,
+      "source_bytes": 40000000,
+      "startup_ms": 5.676208999999988,
+      "idle_rss_bytes": 2129920,
+      "peak_rss_bytes": 141017088,
+      "samples": [
+        {
+          "phase": "open",
+          "ms": 154.603458
+        },
+        {
+          "phase": "error",
+          "ms": 175.224958
+        },
+        {
+          "phase": "repair",
+          "ms": 155.531
+        },
+        {
+          "phase": "error",
+          "ms": 168.937958
+        },
+        {
+          "phase": "repair",
+          "ms": 145.651708
+        },
+        {
+          "phase": "error",
+          "ms": 168.4255
+        },
+        {
+          "phase": "repair",
+          "ms": 152.175
+        }
+      ],
+      "completion_ms": [
+        0.10075,
+        0.049333,
+        0.043458,
+        0.051083,
+        0.049458,
+        0.03875,
+        0.040542,
+        0.036542,
+        0.036834,
+        0.0355,
+        0.035542,
+        0.035417,
+        0.034958,
+        0.035167,
+        0.035875,
+        0.035,
+        0.035792,
+        0.034541,
+        0.03525,
+        0.03375
+      ],
+      "reference_ms": [
+        1.025791,
+        0.431375,
+        0.420958,
+        0.431375,
+        0.4215,
+        0.419583,
+        0.416958,
+        0.414375,
+        0.415667,
+        0.451333,
+        0.433166,
+        0.613375,
+        0.602375,
+        0.555917,
+        0.568875,
+        0.546292,
+        0.49325,
+        0.499041,
+        0.457125,
+        0.466375
+      ],
+      "index_wait_after_diagnostics_ms": 70.0135,
+      "settled_rss_bytes": 28508160,
+      "closed_rss_bytes": 2359296,
+      "fixture_index_bytes": 26122304,
+      "time_output": "        1.22 real         1.08 user         0.10 sys\n           141017088  maximum resident set size\n                   0  average shared memory size\n                   0  average unshared data size\n                   0  average unshared stack size\n               83510  page reclaims\n                   0  page faults\n                   0  swaps\n                   0  block input operations\n                   0  block output operations\n                   0  messages sent\n                   0  messages received\n                   0  signals received\n                4581  voluntary context switches\n                  68  involuntary context switches\n         32742728944  instructions retired\n          5191000797  cycles elapsed\n           140329464  peak memory footprint\n"
+    }
+  ],
+  "notes": "Zig 0.16 ReleaseSafe. Pre-encoded full-sync request through diagnostics. Single fresh process per size, three error/repair pairs. Actual macOS time -l peak RSS; idle ps sample before requests. Completion includes small Python encoding. Editor timing is excluded; no concurrent builds or other benchmarks. References query a node with two occurrences; retained index uses 20 bytes before and 16 bytes after for single-line IDs. First request measures index wait after diagnostics; next 20 measure ready lookups. Close RSS follows didClose acknowledgement."
+}

@@ -1,0 +1,73 @@
+{
+  "label": "before",
+  "binary_bytes": 678024,
+  "binary_sha256": "1f0fc2bb63c4cd5de1a4fe3079b664e0c4f4d7fe01e65e1dfef715bb9fe8e9da",
+  "runs": [
+    {
+      "mb": 100,
+      "source_bytes": 99999947,
+      "startup_ms": 6.675125000000004,
+      "idle_rss_bytes": 2129920,
+      "peak_rss_bytes": 368377856,
+      "samples": [
+        {
+          "phase": "open",
+          "ms": 653.973292
+        },
+        {
+          "phase": "error",
+          "ms": 606.099375
+        },
+        {
+          "phase": "repair",
+          "ms": 665.691209
+        },
+        {
+          "phase": "error",
+          "ms": 720.476833
+        },
+        {
+          "phase": "repair",
+          "ms": 668.708208
+        },
+        {
+          "phase": "error",
+          "ms": 606.827791
+        },
+        {
+          "phase": "repair",
+          "ms": 663.165458
+        }
+      ],
+      "completion_ms": [],
+      "reference_ms": [
+        1.155334,
+        6.06925,
+        1.114875,
+        1.052,
+        1.036167,
+        1.05125,
+        1.03175,
+        1.024375,
+        1.030584,
+        1.024083,
+        1.054042,
+        1.045875,
+        1.047041,
+        1.036375,
+        1.037416,
+        1.03325,
+        1.035584,
+        1.022334,
+        1.068375,
+        1.034584
+      ],
+      "index_wait_after_diagnostics_ms": 2.004166,
+      "settled_rss_bytes": 84033536,
+      "closed_rss_bytes": 2375680,
+      "fixture_index_bytes": 81632400,
+      "time_output": "        4.63 real         4.15 user         0.44 sys\n           368377856  maximum resident set size\n                   0  average shared memory size\n                   0  average unshared data size\n                   0  average unshared stack size\n              298453  page reclaims\n                   2  page faults\n                   0  swaps\n                   0  block input operations\n                   0  block output operations\n                   0  messages sent\n                   0  messages received\n                   0  signals received\n               11352  voluntary context switches\n                 760  involuntary context switches\n        102443833153  instructions retired\n         19933495558  cycles elapsed\n           367788680  peak memory footprint\n"
+    }
+  ],
+  "notes": "Zig 0.16 ReleaseSafe. Pre-encoded full-sync request through diagnostics. Single fresh process per size, three error/repair pairs. Actual macOS time -l peak RSS; idle ps sample before requests. Completion includes small Python encoding. Editor timing is excluded; no concurrent builds or other benchmarks. References query a node with two occurrences; retained index uses 20 bytes before and 16 bytes after for single-line IDs. First request measures index wait after diagnostics; next 20 measure ready lookups. Close RSS follows didClose acknowledgement."
+}

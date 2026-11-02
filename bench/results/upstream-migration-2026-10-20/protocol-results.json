@@ -1,0 +1,50 @@
+[
+  {
+    "test": "lsp",
+    "exit_code": 0,
+    "stdout": "{\n  \"checks\": \"passed\",\n  \"binary_bytes\": 908552,\n  \"startup_ms_median\": 2.5978749999999717,\n  \"startup_ms_max\": 3.074667000000031,\n  \"edit_bytes\": 800012,\n  \"edit_ms_median\": 8.974687499999995,\n  \"edit_ms_max\": 10.12345800000003\n}\n",
+    "stderr": ""
+  },
+  {
+    "test": "completion",
+    "exit_code": 0,
+    "stdout": "Completion: contexts, partial input, UTF-8/16/32, line endings, limits and deferred lifecycle passed\n",
+    "stderr": ""
+  },
+  {
+    "test": "references",
+    "exit_code": 0,
+    "stdout": "Node references: identities, chains, scopes, encodings, limits, invalid syntax and lifecycle passed\n",
+    "stderr": ""
+  },
+  {
+    "test": "validation",
+    "exit_code": 0,
+    "stdout": "DOT policy protocol checks passed (UTF-8/16/32, limits, repair, HTML merge).\n",
+    "stderr": ""
+  },
+  {
+    "test": "html",
+    "exit_code": 0,
+    "stdout": "HTML: staged merge, selection, UTF-8/16/32, moved labels, repairs, limits, 70,000-label tail coverage and obsolete generations passed\n",
+    "stderr": ""
+  },
+  {
+    "test": "code_actions",
+    "exit_code": 0,
+    "stdout": "Code actions: parser edits apply cleanly; UTF-8/16/32, HTML rebase, filters, stale generations and versioned edits passed.\n",
+    "stderr": ""
+  },
+  {
+    "test": "outline",
+    "exit_code": 1,
+    "stdout": "",
+    "stderr": "Traceback (most recent call last):\n  File \"/private/tmp/dot-ls-upstream-24le4yx2/tests/outline.py\", line 37, in <module>\n    check('digraph G { a; subgraph cluster_x { b; c; } d [sha; e; f; }',[('G',[('a',[]),('cluster_x',[('b',[]),('c',[])]),('d',[]),('e',[]),('f',[])])])\n  File \"/private/tmp/dot-ls-upstream-24le4yx2/tests/outline.py\", line 23, in check\n    assert tree(r['result'])==expected,(source,tree(r['result']))\nAssertionError: ('digraph G { a; subgraph cluster_x { b; c; } d [sha; e; f; }', [('G', [('a', []), ('cluster_x', [('b', []), ('c', [])]), ('e', []), ('f', [])])])\n"
+  },
+  {
+    "test": "outline_remaining",
+    "exit_code": 0,
+    "stdout": "document outline protocol checks passed\n",
+    "stderr": ""
+  }
+]

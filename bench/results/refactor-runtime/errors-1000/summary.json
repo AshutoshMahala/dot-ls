@@ -1,0 +1,73 @@
+{
+  "platform": "macOS-27.0.1-arm64-arm-64bit",
+  "build": "5 MB with 1000 syntax errors in the broken edit; both Zig 0.17.0 safe and parser 75ce950. Same binaries as parent comparison.",
+  "method": "Three fresh processes per size/layout/build, alternating order. Pre-encoded open/broken/repair. Readiness includes the completion reply after diagnostics. Settled RSS waits for all background work. Actual peak RSS uses wait4; editor and harness memory excluded. No concurrent builds/tests/UI actions during measurement. Check each run for feature support; unsupported-method error timing is not a hover baseline.",
+  "builds": {
+    "before": {
+      "binary": "/private/tmp/dot-ls-refactor-runtime-pwn7fh_6/dot-ls",
+      "sha256": "213cc6303622c6759969464354e0f21c040a115e7e326cd30e57b24815a8bbb8"
+    },
+    "after": {
+      "binary": "/Users/ash/dev/dotls/dotls/zig-out/bin/dot-ls",
+      "sha256": "4c81c53b5127f3d1e7275a24664f8094314b8d26c117d71fc38f4485f0de6ce2"
+    }
+  },
+  "rows": [
+    {
+      "mb": 5,
+      "kind": "plain",
+      "before": {
+        "open_diagnostics_ms": 40.319333000000015,
+        "edit_diagnostics_ms": 44.60427099999986,
+        "broken_diagnostics_ms": 46.357415999999986,
+        "repair_diagnostics_ms": 38.091666999999774,
+        "open_completion_ready_ms": 65.24929100000004,
+        "settled_rss_bytes": 7471104,
+        "peak_rss_bytes": 18006016,
+        "idle_rss_bytes": 2293760,
+        "startup_ms": 7.8629159999996645,
+        "hover_ms": 0.05570900000062551
+      },
+      "after": {
+        "open_diagnostics_ms": 43.61858399999985,
+        "edit_diagnostics_ms": 44.507292000000035,
+        "broken_diagnostics_ms": 45.69879200000004,
+        "repair_diagnostics_ms": 43.24412500000019,
+        "open_completion_ready_ms": 67.07962499999987,
+        "settled_rss_bytes": 7471104,
+        "peak_rss_bytes": 18006016,
+        "idle_rss_bytes": 2277376,
+        "startup_ms": 8.892291999999635,
+        "hover_ms": 0.05383299999994762
+      }
+    },
+    {
+      "mb": 5,
+      "kind": "html",
+      "before": {
+        "open_diagnostics_ms": 39.0891249999985,
+        "edit_diagnostics_ms": 43.70143800000026,
+        "broken_diagnostics_ms": 46.95620799999922,
+        "repair_diagnostics_ms": 40.14283400000096,
+        "open_completion_ready_ms": 63.50237499999878,
+        "settled_rss_bytes": 7323648,
+        "peak_rss_bytes": 18186240,
+        "idle_rss_bytes": 2293760,
+        "startup_ms": 7.6997079999987506,
+        "hover_ms": 0.051666999999255836
+      },
+      "after": {
+        "open_diagnostics_ms": 39.42924999999775,
+        "edit_diagnostics_ms": 41.679458000000835,
+        "broken_diagnostics_ms": 46.05391599999997,
+        "repair_diagnostics_ms": 36.6670830000011,
+        "open_completion_ready_ms": 64.19958300000062,
+        "settled_rss_bytes": 7307264,
+        "peak_rss_bytes": 18137088,
+        "idle_rss_bytes": 2277376,
+        "startup_ms": 7.783625000000072,
+        "hover_ms": 0.06737500000042473
+      }
+    }
+  ]
+}

@@ -1,0 +1,187 @@
+{
+  "label": "after",
+  "binary_bytes": 659592,
+  "runs": [
+    {
+      "mb": 5,
+      "source_bytes": 4999953,
+      "startup_ms": 4.673416999999999,
+      "idle_rss_bytes": 2129920,
+      "peak_rss_bytes": 17711104,
+      "samples": [
+        {
+          "phase": "open",
+          "ms": 19.250125
+        },
+        {
+          "phase": "error",
+          "ms": 22.670375
+        },
+        {
+          "phase": "repair",
+          "ms": 18.856584
+        },
+        {
+          "phase": "error",
+          "ms": 22.058667
+        },
+        {
+          "phase": "repair",
+          "ms": 19.380833
+        },
+        {
+          "phase": "error",
+          "ms": 22.352333
+        },
+        {
+          "phase": "repair",
+          "ms": 19.367583
+        }
+      ],
+      "completion_ms": [
+        0.111375,
+        0.049,
+        0.051834,
+        0.045417,
+        0.050917,
+        0.046625,
+        0.05075,
+        0.039291,
+        0.052459,
+        0.056875,
+        0.051167,
+        0.050125,
+        0.043459,
+        0.042416,
+        0.03925,
+        0.038792,
+        0.039167,
+        0.045958,
+        0.034459,
+        0.03675
+      ],
+      "time_output": "        0.16 real         0.13 user         0.01 sys\n            17711104  maximum resident set size\n                   0  average shared memory size\n                   0  average unshared data size\n                   0  average unshared stack size\n                7313  page reclaims\n                   0  page faults\n                   0  swaps\n                   0  block input operations\n                   0  block output operations\n                   0  messages sent\n                   0  messages received\n                   0  signals received\n                 590  voluntary context switches\n                  40  involuntary context switches\n          3776669774  instructions retired\n           613147990  cycles elapsed\n            16925032  peak memory footprint\n"
+    },
+    {
+      "mb": 20,
+      "source_bytes": 19999979,
+      "startup_ms": 5.183125000000011,
+      "idle_rss_bytes": 2129920,
+      "peak_rss_bytes": 63619072,
+      "samples": [
+        {
+          "phase": "open",
+          "ms": 78.467417
+        },
+        {
+          "phase": "error",
+          "ms": 87.931084
+        },
+        {
+          "phase": "repair",
+          "ms": 77.506125
+        },
+        {
+          "phase": "error",
+          "ms": 85.826
+        },
+        {
+          "phase": "repair",
+          "ms": 74.282334
+        },
+        {
+          "phase": "error",
+          "ms": 89.392125
+        },
+        {
+          "phase": "repair",
+          "ms": 75.0015
+        }
+      ],
+      "completion_ms": [
+        0.271459,
+        0.051917,
+        0.046125,
+        0.056917,
+        0.055625,
+        0.0495,
+        0.056709,
+        0.050958,
+        0.04675,
+        0.045875,
+        0.035125,
+        0.031625,
+        0.030625,
+        0.0355,
+        0.030708,
+        0.030292,
+        0.030375,
+        0.037708,
+        0.036708,
+        0.031292
+      ],
+      "time_output": "        0.58 real         0.51 user         0.04 sys\n            63619072  maximum resident set size\n                   0  average shared memory size\n                   0  average unshared data size\n                   0  average unshared stack size\n               27698  page reclaims\n                   0  page faults\n                   0  swaps\n                   0  block input operations\n                   0  block output operations\n                   0  messages sent\n                   0  messages received\n                   0  signals received\n                2291  voluntary context switches\n                  33  involuntary context switches\n         15072705606  instructions retired\n          2420067373  cycles elapsed\n            62865816  peak memory footprint\n"
+    },
+    {
+      "mb": 40,
+      "source_bytes": 40000000,
+      "startup_ms": 5.618708000000083,
+      "idle_rss_bytes": 2129920,
+      "peak_rss_bytes": 124846080,
+      "samples": [
+        {
+          "phase": "open",
+          "ms": 148.225333
+        },
+        {
+          "phase": "error",
+          "ms": 177.742917
+        },
+        {
+          "phase": "repair",
+          "ms": 159.13025
+        },
+        {
+          "phase": "error",
+          "ms": 165.0595
+        },
+        {
+          "phase": "repair",
+          "ms": 158.007166
+        },
+        {
+          "phase": "error",
+          "ms": 175.072541
+        },
+        {
+          "phase": "repair",
+          "ms": 145.179042
+        }
+      ],
+      "completion_ms": [
+        0.52425,
+        0.053459,
+        0.052167,
+        0.035875,
+        0.034125,
+        0.033,
+        0.037833,
+        0.04175,
+        0.036709,
+        0.033,
+        0.034125,
+        0.031667,
+        0.031708,
+        0.030709,
+        0.031458,
+        0.044417,
+        0.043791,
+        0.045458,
+        0.042667,
+        0.042333
+      ],
+      "time_output": "        1.14 real         1.03 user         0.08 sys\n           124846080  maximum resident set size\n                   0  average shared memory size\n                   0  average unshared data size\n                   0  average unshared stack size\n               55222  page reclaims\n                   0  page faults\n                   0  swaps\n                   0  block input operations\n                   0  block output operations\n                   0  messages sent\n                   0  messages received\n                   0  signals received\n                4558  voluntary context switches\n                  25  involuntary context switches\n         30131483580  instructions retired\n          4806675841  cycles elapsed\n           124125640  peak memory footprint\n"
+    }
+  ],
+  "notes": "Zig 0.16 ReleaseSafe. Pre-encoded full-sync request through diagnostics. Single fresh process per size, three error/repair pairs. Actual macOS time -l peak RSS; idle ps sample before requests. Completion includes small Python encoding. No editor, builds or background benchmarking during runs."
+}

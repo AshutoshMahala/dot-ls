@@ -1,0 +1,366 @@
+//! Policy-bound facade. One resolution/check per operation or session init/reset.
+const std = @import("std");
+const policy = @import("policy.zig");
+const validation = @import("validate.zig");
+const engine = @import("parse_engine.zig");
+
+/// Shared option shape; composition binds its own capability-aware policies,
+/// not an ordinary DOT profile which cannot execute a child processor.
+pub fn CheckOptionsFor(comptime api: type, comptime Binding: type) type {
+    const Hook = if (Binding.runtime_policy or Binding.baseline.execution.cancellation) ?api.Cancellation else void;
+    const no_hook: Hook = if (Hook == void) {} else null;
+    return if (Binding.runtime_policy) struct {
+        policy: policy.Policy = .{},
+        parse: api.ParseResources = .{},
+        validation: api.ValidationScratch = .{},
+        cancellation: Hook = no_hook,
+    } else struct {
+        parse: api.ParseResources = .{},
+        validation: api.ValidationScratch = .{},
+        cancellation: Hook = no_hook,
+    };
+}
+
+pub fn Profile(comptime api: type, comptime config: policy.Config) type {
+    const enc = @import("parser_support").encoding;
+    const caps = enc.Capabilities.bound(enc.Capabilities.from(config.source_encodings), if (config.processors.markup) |Child| (if (@hasDecl(Child, "declared_source_encodings")) Child.declared_source_encodings else null) else null);
+    if (@as(u4, @bitCast(caps)) == 2) return ProfileForEncoding(.utf8, api, config);
+    return @import("source_profile.zig").Profile(api, config, caps);
+}
+
+pub fn ProfileForEncoding(comptime actual: @import("parser_support").encoding.Actual, comptime api: type, comptime config: policy.Config) type {
+    if (config.processors.markup) |Child| {
+        const encodings = @import("parser_support").encoding;
+        const capabilities = encodings.Capabilities.bound(encodings.Capabilities.from(config.source_encodings), if (@hasDecl(Child, "declared_source_encodings")) Child.declared_source_encodings else null);
+        const rebind = @hasDecl(Child, "withSourceEncodings") and
+            (!@hasDecl(Child, "source_capabilities") or @as(u4, @bitCast(Child.source_capabilities)) != @as(u4, @bitCast(capabilities)));
+        const Bound = if (rebind) Child.withSourceEncodings(capabilities) else Child;
+        const EncodedChild = if (@hasDecl(Bound, "forSourceEncoding")) Bound.forSourceEncoding(actual) else if (actual == .utf8) Bound else @compileError("bound processor does not support native source encoding");
+        const CanonicalChild = if (actual == .utf8) void else Bound.forSourceEncoding(.utf8);
+        return @import("composition.zig").ProfileForEncoding(actual, api, config, EncodedChild, CanonicalChild);
+    }
+    const Binding = @import("parser_support").processor.PolicyBinding(policy, .{ .policy = config.policy, .runtime_policy = config.runtime_policy });
+    return struct {
+        pub const declared_source_encodings = config.source_encodings;
+        pub const source_capabilities = @import("parser_support").encoding.Capabilities.from(config.source_encodings);
+        pub const inspectSource = @import("parser_support").encoding.Inspector(source_capabilities).inspect;
+        pub const Policies = Binding;
+        pub const baseline = Binding.baseline;
+        pub const runtime_policy = config.runtime_policy;
+        /// Consumer-defined streaming output instead of library document pools.
+        pub fn Events(comptime Sink: type) type {
+            return @import("event_profile.zig").Bound(actual, api, config, Sink);
+        }
+        const State = if (runtime_policy) policy.Effective else void;
+        const ValidationState = if (runtime_policy) policy.ValidationSettings else void;
+        const Hook = if (runtime_policy or baseline.execution.cancellation) ?api.Cancellation else void;
+        const no_hook: Hook = if (Hook == void) {} else null;
+
+        pub const Options = if (runtime_policy) struct { policy: policy.Policy = .{} } else struct {};
+        pub const ValidationOptions = if (runtime_policy) struct {
+            policy: policy.Policy = .{},
+            scratch: api.ValidationScratch = .{},
+        } else struct { scratch: api.ValidationScratch = .{} };
+        pub const FixedParseOptions = if (runtime_policy) struct {
+            policy: policy.Policy = .{},
+            cancellation: Hook = no_hook,
+        } else struct { cancellation: Hook = no_hook };
+        pub const ParseOptions = if (runtime_policy) struct {
+            policy: policy.Policy = .{},
+            scratch_allocator: ?std.mem.Allocator = null,
+            document_capacities: api.DocumentCapacities = .{},
+            cancellation: Hook = no_hook,
+        } else struct {
+            scratch_allocator: ?std.mem.Allocator = null,
+            document_capacities: api.DocumentCapacities = .{},
+            cancellation: Hook = no_hook,
+        };
+        pub const CheckOptions = CheckOptionsFor(api, Binding);
+
+        pub const validatePolicy = Binding.validatePolicy;
+        fn Checked(comptime T: type) type {
+            return if (runtime_policy) policy.Error!T else T;
+        }
+        fn settings(options: anytype) Checked(State) {
+            if (!runtime_policy) return {};
+            return Binding.prepare(.{ .policy = options.policy });
+        }
+        fn validationSettings(effective: State) ValidationState {
+            return if (runtime_policy) effective.validation else {};
+        }
+
+        const Variant = @import("execution_variant.zig").Variant;
+        const variantOf = Variant.from;
+        fn EngineFor(comptime variant: Variant) type {
+            return engine.EngineWithEncoding(actual, api, if (runtime_policy) null else baseline.parsing, variant.metered(), variant.cancellable(), variant.backend(), void, variant.singlePoll());
+        }
+        const FixedEngine = EngineFor(variantOf(baseline));
+
+        fn engineOptions(comptime Core: type, effective: State, hook: Hook) Core.Options {
+            return .{
+                .parsing = if (runtime_policy) effective.parsing else {},
+                .cancellation = if (Core.cancellation_enabled) hook else {},
+            };
+        }
+        const Operation = enum { parseBorrowed, parseBorrowedIn, measure, measureIn };
+        fn parseResolved(comptime operation: Operation, comptime Result: type, arguments: anytype, effective: State, hook: Hook) Result {
+            if (runtime_policy) {
+                // Select once per operation, outside the scanner/grammar loop.
+                switch (variantOf(effective)) {
+                    inline else => |variant| {
+                        const Core = EngineFor(variant);
+                        return @call(.auto, @field(Core, @tagName(operation)), arguments ++ .{engineOptions(Core, effective, hook)});
+                    },
+                }
+            }
+            return @call(.auto, @field(FixedEngine, @tagName(operation)), arguments ++ .{engineOptions(FixedEngine, effective, hook)});
+        }
+
+        /// Retain syntax in allocator-owned pools, borrowing immutable source.
+        /// Source must outlive the document; release pools with result.deinit().
+        /// Runtime configuration errors precede allocation and input consumption.
+        pub fn parseBorrowed(allocator: std.mem.Allocator, source: []const u8, diagnostics: api.DiagnosticSink, options: ParseOptions) Checked(api.ParseResult) {
+            const effective = if (runtime_policy) try settings(options) else settings(options);
+            const resources: api.ParseResources = .{ .scratch_allocator = options.scratch_allocator, .document_capacities = options.document_capacities };
+            return parseResolved(.parseBorrowed, api.ParseResult, .{ allocator, source, diagnostics, resources }, effective, options.cancellation);
+        }
+        /// Allocation-free parsing into caller pools and nesting scratch. Nothing
+        /// grows; opt-in partial retention can publish a prefix after exhaustion.
+        pub fn parseBorrowedIn(source: []const u8, memory: api.ParseMemory, diagnostics: api.DiagnosticSink, options: FixedParseOptions) Checked(api.FixedParseResult) {
+            const effective = if (runtime_policy) try settings(options) else settings(options);
+            return parseResolved(.parseBorrowedIn, api.FixedParseResult, .{ source, memory, diagnostics }, effective, options.cancellation);
+        }
+        /// Count-only dry run under the same parsing policy. Allocator backs only
+        /// nesting scratch; document-capacity hints are ignored. No counts escape
+        /// on failure/cancellation. Retained parsing is a separate full pass.
+        pub fn measure(allocator: std.mem.Allocator, source: []const u8, diagnostics: api.DiagnosticSink, options: ParseOptions) Checked(api.MeasureResult) {
+            const effective = if (runtime_policy) try settings(options) else settings(options);
+            const resources: api.ParseResources = .{ .scratch_allocator = options.scratch_allocator, .document_capacities = options.document_capacities };
+            return parseResolved(.measure, api.MeasureResult, .{ allocator, source, diagnostics, resources }, effective, options.cancellation);
+        }
+        /// Allocation-free measurement using caller-owned nesting scratch.
+        pub fn measureIn(source: []const u8, scratch: api.ParseScratch, diagnostics: api.DiagnosticSink, options: FixedParseOptions) Checked(api.MeasureResult) {
+            const effective = if (runtime_policy) try settings(options) else settings(options);
+            return parseResolved(.measureIn, api.MeasureResult, .{ source, scratch, diagnostics }, effective, options.cancellation);
+        }
+        pub fn validate(document: *const api.Document, diagnostics: api.DiagnosticSink, options: ValidationOptions) Checked(api.ValidationResult) {
+            const effective = if (runtime_policy) try settings(options) else settings(options);
+            return validateResolved(document, diagnostics, validationSettings(effective), options.scratch);
+        }
+        fn validateResolved(document: *const api.Document, diagnostics: api.DiagnosticSink, effective: ValidationState, scratch: api.ValidationScratch) api.ValidationResult {
+            return validation.validateForEncoding(actual, if (runtime_policy) null else baseline.validation, document, diagnostics, effective, scratch);
+        }
+        pub fn parseAndValidate(allocator: std.mem.Allocator, source: []const u8, diagnostics: api.DiagnosticSink, options: CheckOptions) Checked(api.CheckResult) {
+            const effective = if (runtime_policy) try settings(options) else settings(options);
+            var parsed = parseResolved(.parseBorrowed, api.ParseResult, .{ allocator, source, diagnostics, options.parse }, effective, options.cancellation);
+            if (parsed.document == null or parsed.diagnostic_stop != null or parsed.diagnostic_delivery == .failed or
+                (parsed.outcome != .success and !(parsed.outcome == .invalid_syntax and (if (runtime_policy) effective.parsing.on_error else baseline.parsing.on_error) == .collect))) return .{
+                .document = parsed.document,
+                ._allocation_lengths = parsed._allocation_lengths,
+                .outcome = parsed.outcome,
+                .completion = parsed.completion,
+                .syntax_errors = parsed.syntax_errors,
+                .diagnostic_delivery = parsed.diagnostic_delivery,
+                .diagnostic_stop = parsed.diagnostic_stop,
+                .accepted_deviations = parsed.accepted_deviations,
+                .warnings = parsed.warnings,
+            };
+            const checked = validateResolved(&parsed.document.?, diagnostics, validationSettings(effective), options.validation);
+            return .{
+                .document = parsed.document,
+                ._allocation_lengths = parsed._allocation_lengths,
+                .outcome = parsed.outcome,
+                .completion = parsed.completion,
+                .syntax_errors = parsed.syntax_errors,
+                .validation = checked,
+                .diagnostic_stop = checked.diagnostic_stop orelse parsed.diagnostic_stop,
+                .accepted_deviations = parsed.accepted_deviations,
+                .warnings = @as(u64, parsed.warnings) + checked.warningCount(),
+                .diagnostic_delivery = if (parsed.diagnostic_delivery == .failed or checked.diagnostic_delivery == .failed) .failed else .complete,
+            };
+        }
+
+        /// Fixed-storage session. Policy is latched until reset. Runtime variants
+        /// use one tagged union (the largest driver, not one of each instance).
+        pub const Session = struct {
+            const Self = @This();
+            const Drivers = union(Variant) {
+                scalar_immediate: EngineFor(.scalar_immediate).Session,
+                scalar_cancellable: EngineFor(.scalar_cancellable).Session,
+                scalar_metered: EngineFor(.scalar_metered).Session,
+                scalar_metered_cancellable: EngineFor(.scalar_metered_cancellable).Session,
+                block_immediate: EngineFor(.block_immediate).Session,
+                block_cancellable: EngineFor(.block_cancellable).Session,
+                block_metered: EngineFor(.block_metered).Session,
+                block_metered_cancellable: EngineFor(.block_metered_cancellable).Session,
+                scalar_batched: EngineFor(.scalar_batched).Session,
+                scalar_metered_batched: EngineFor(.scalar_metered_batched).Session,
+                block_batched: EngineFor(.block_batched).Session,
+                block_metered_batched: EngineFor(.block_metered_batched).Session,
+            };
+            driver: if (runtime_policy) Drivers else FixedEngine.Session,
+            interpretation_policy: ValidationState,
+
+            pub const Options = FixedParseOptions;
+            pub const AdvanceError = error{MeteringDisabled};
+
+            pub fn init(source: []const u8, memory: api.ParseMemory, diagnostics: api.DiagnosticSink, options: FixedParseOptions) Checked(Self) {
+                const effective = if (runtime_policy) try settings(options) else settings(options);
+                return initResolved(source, memory, diagnostics, effective, options.cancellation);
+            }
+            fn initResolved(source: []const u8, memory: api.ParseMemory, diagnostics: api.DiagnosticSink, effective: State, hook: Hook) Self {
+                return .{
+                    .driver = if (runtime_policy) switch (variantOf(effective)) {
+                        inline else => |variant| @unionInit(Drivers, @tagName(variant), EngineFor(variant).Session.init(source, memory, diagnostics, engineOptions(EngineFor(variant), effective, hook))),
+                    } else FixedEngine.Session.init(source, memory, diagnostics, engineOptions(FixedEngine, effective, hook)),
+                    .interpretation_policy = validationSettings(effective),
+                };
+            }
+            pub inline fn advance(self: *Self, budget: usize) (if (runtime_policy) AdvanceError!api.SessionProgress else api.SessionProgress) {
+                @setEvalBranchQuota(10_000); // Inlined runtime-policy variant dispatch.
+                if (runtime_policy) {
+                    return switch (self.driver) {
+                        inline else => |*driver, variant| if (comptime variant.metered()) driver.advance(budget) else error.MeteringDisabled,
+                    };
+                }
+                if (!baseline.execution.metering) @compileError("metering is disabled; use run()");
+                return self.driver.advance(budget);
+            }
+            pub fn run(self: *Self) api.FixedParseResult {
+                if (runtime_policy) return switch (self.driver) {
+                    inline else => |*driver| driver.run(),
+                };
+                return self.driver.run();
+            }
+            pub fn result(self: *const Self) ?api.FixedParseResult {
+                if (runtime_policy) return switch (self.driver) {
+                    inline else => |*driver| driver.result(),
+                };
+                return self.driver.result();
+            }
+            pub fn cancel(self: *Self) api.FixedParseResult {
+                if (runtime_policy) return switch (self.driver) {
+                    inline else => |*driver| driver.cancel(),
+                };
+                return self.driver.cancel();
+            }
+            pub fn deinit(self: *Self) void {
+                _ = self.cancel();
+            }
+
+            /// Invalid runtime policy leaves the existing session and views intact.
+            /// Successful reset cancels old work and retires all previous pool views.
+            pub fn reset(self: *Self, source: []const u8, diagnostics: api.DiagnosticSink, options: FixedParseOptions) Checked(void) {
+                const effective = if (runtime_policy) try settings(options) else settings(options);
+                const memory: api.ParseMemory = if (runtime_policy) switch (self.driver) {
+                    inline else => |*driver| driver.parseMemory(),
+                } else self.driver.parseMemory();
+                _ = self.cancel();
+                self.* = initResolved(source, memory, diagnostics, effective, options.cancellation);
+            }
+
+            /// Separate, unbudgeted analysis using the latched validation policy.
+            /// No result until terminal. Opt-in retention can publish regions.
+            pub fn validate(self: *const Self, diagnostics: api.DiagnosticSink, scratch: api.ValidationScratch) ?api.ValidationResult {
+                const parsed = self.result() orelse return null;
+                const doc = &(parsed.document orelse return null);
+                return validateResolved(doc, diagnostics, self.interpretation_policy, scratch);
+            }
+            /// Separate, unbudgeted preparation; never scans during advance().
+            pub fn interpretation(self: *const Self) ?Interpretation {
+                const parsed = self.result() orelse return null;
+                const doc = &(parsed.document orelse return null);
+                return interpretationResolved(doc, self.interpretation_policy);
+            }
+        };
+
+        /// Prepared for one immutable document. Do not reuse it for another
+        /// document, especially with auto treatment. No source mutation or
+        /// per-edge policy state. Fixed concrete profiles need no instance state;
+        /// fixed auto retains one input-derived kind, not runtime policy.
+        pub const Interpretation = struct {
+            // One byte, including unknown; optional enums would use two bytes.
+            const Kind = enum(u2) {
+                undigraph,
+                digraph,
+                generic,
+                unknown,
+                fn from(value: ?policy.GraphKind) Kind {
+                    return if (value) |kind| switch (kind) {
+                        .undigraph => .undigraph,
+                        .digraph => .digraph,
+                        .generic => .generic,
+                    } else .unknown;
+                }
+                fn get(self: Kind) ?policy.GraphKind {
+                    return switch (self) {
+                        .undigraph => .undigraph,
+                        .digraph => .digraph,
+                        .generic => .generic,
+                        .unknown => null,
+                    };
+                }
+            };
+            const Reading = struct {
+                kind: Kind,
+                operator_reading: policy.OperatorReading,
+            };
+            reading: if (runtime_policy) Reading else void,
+            auto_kind: if (!runtime_policy and baseline.validation.graph.treated_as == .auto) Kind else void,
+
+            /// Null only for an unfinished automatic graph with no directed
+            /// edge retained yet. Concrete treatments remain determined.
+            pub fn effectiveKind(self: @This(), declared: api.DeclaredGraphKind) ?policy.GraphKind {
+                if (runtime_policy) return self.reading.kind.get();
+                if (declared == .digraph) return .digraph;
+                return switch (baseline.validation.graph.treated_as) {
+                    .undigraph => .undigraph,
+                    .digraph => .digraph,
+                    .generic => .generic,
+                    .auto => self.auto_kind.get(),
+                };
+            }
+
+            pub fn effectiveOperator(self: @This(), declared: api.DeclaredGraphKind, written: api.EdgeOperator) api.EdgeOperator {
+                const reading = if (runtime_policy) self.reading.operator_reading else if (declared == .digraph)
+                    baseline.validation.digraph.operator_reading
+                else if (baseline.validation.graph.treated_as == .auto or baseline.validation.graph.treated_as == .generic)
+                    .as_written
+                else
+                    baseline.validation.graph.operators.operator_reading;
+                if (reading == .as_written) return written;
+                // Automatic/generic reading returned as_written above; only
+                // concrete, determined treatments can conform an operator.
+                return switch (self.effectiveKind(declared).?) {
+                    .generic => written,
+                    .digraph => .directed,
+                    .undigraph => .undirected,
+                };
+            }
+        };
+
+        /// Auto scans syntax edges once (stopping at the first directed edge).
+        /// Subsequent kind/operator queries are O(1), with no allocation. Other
+        /// treatments require no scan. Parsing itself stays kind-agnostic.
+        pub fn interpretation(document: *const api.Document, options: Options) Checked(Interpretation) {
+            const effective = if (runtime_policy) try settings(options) else settings(options);
+            return interpretationResolved(document, validationSettings(effective));
+        }
+
+        fn interpretationResolved(document: *const api.Document, effective: ValidationState) Interpretation {
+            if (runtime_policy) {
+                const treatment = if (document.kind == .digraph) .digraph else effective.graph.treated_as;
+                return .{ .reading = .{
+                    .kind = Interpretation.Kind.from(kindFor(document, treatment)),
+                    .operator_reading = if (document.kind == .digraph) effective.digraph.operator_reading else if (treatment == .auto or treatment == .generic) .as_written else effective.graph.operators.operator_reading,
+                }, .auto_kind = {} };
+            }
+            return .{
+                .reading = {},
+                .auto_kind = if (baseline.validation.graph.treated_as == .auto) Interpretation.Kind.from(kindFor(document, .auto)) else {},
+            };
+        }
+
+        const kindFor = @import("validation_checks.zig").kindFor;
+    };
+}

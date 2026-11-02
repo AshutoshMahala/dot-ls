@@ -1,0 +1,22 @@
+{
+  "zed_running": "1.23.3+stable.371.96a1b1b5389efff473fc2306f7f8c690f2e1a417",
+  "graphviz_extension": "0.2.1",
+  "dot_language_server": "3.2.1",
+  "dot_language_support": "4.4.2",
+  "node": "26.11.1",
+  "dotls": "0.0.1-dev; dot-parser 0.5.0+count-session.1",
+  "dotls_build": "Zig 0.16.0 ReleaseSafe; page allocator; buffered JSON; block scanner; metering + cancellation",
+  "source_bytes": {
+    "5": 4999953,
+    "20": 20000000
+  },
+  "configuration_after_test": {
+    "languages": {
+      "DOT": {
+        "language_servers": [
+          "dotls"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,119 @@
+--- a/vendor/dot-parser/src/root.zig
++++ b/vendor/dot-parser/src/root.zig
+@@ -384,3 +384,6 @@
+     _ = @import("dot/lexer/lexer.zig");
+     _ = @import("dot/policy.zig");
+ }
++
++// Local recovery-safe structure bridge.
++pub const OutlineEvent = @import("dot/outline_event.zig").Event;
+--- a/vendor/dot-parser/src/dot/profile.zig
++++ b/vendor/dot-parser/src/dot/profile.zig
+@@ -241,6 +241,13 @@
+                         },
+                     }
+                 } else self.driver.counting.attribute_observer = .{ .context = context, .emit = emit };
++            }
++            pub fn observeOutline(self: *Self, context: *anyopaque, emit: *const fn (*anyopaque, api.OutlineEvent) void) void {
++                if (runtime_policy) {
++                    switch (self.driver) {
++                        inline else => |*driver| driver.machine.outline_observer = .{ .context = context, .emit = emit },
++                    }
++                } else self.driver.machine.outline_observer = .{ .context = context, .emit = emit };
+             }
+             pub fn observeNodes(self: *Self, context: *anyopaque, emit: *const fn (*anyopaque, api.Span) void) void {
+                 if (runtime_policy) {
+--- a/vendor/dot-parser/src/dot/parser.zig
++++ b/vendor/dot-parser/src/dot/parser.zig
+@@ -163,7 +163,6 @@
+     const comments_enabled = if (fixed) |value| value.retention.comments else true;
+     return struct {
+         const Self = @This();
+-
+         // Preserve commit's original ordinal before optional comment dispatch.
+         // This order affects generated hot-path code; benchmark before changing it.
+         const Action = enum { begin, begin_subgraph, end_subgraph, subgraph_statement, node, edge, edge_chain, edge_link, ported_reference, attribute_statement, assignment, attribute, commit, comment };
+@@ -180,6 +179,9 @@
+             dispatch: usize = 0,
+         };
+ 
++        // Local outline bridge. Stays active after recoverable errors.
++        // The consumer owns storage; ordinary syntax sinks still abort once.
++        outline_observer: ?struct { context: *anyopaque, emit: *const fn (*anyopaque, @import("outline_event.zig").Event) void } = null,
+         processor: Processor = if (Processor == void) {} else undefined,
+         tokens: ScannerOf(metered, audited, if (fixed) |value| value.ambiguous_numeral != .off else null),
+         work: if (metered or cancellable) Work else void = if (metered or cancellable) .{} else {},
+@@ -827,6 +829,10 @@
+         /// One token of resynchronization: a `;` at the current depth or a
+         /// `}` ends the skip; a skipped `{` is matched by counting so the
+         /// scope stack stays honest. Reaching end of input ends the parse.
++        fn outline(self: *Self, event: @import("outline_event.zig").Event) void {
++            if (self.outline_observer) |observer| observer.emit(observer.context, event);
++        }
++
+         fn recover(self: *Self, token: lex.Token) Done {
+             if (!recovery_enabled) unreachable;
+             switch (token.tag) {
+@@ -838,8 +844,10 @@
+                     if (self.skip_depth > 0) {
+                         self.skip_depth -= 1;
+                     } else if (self.nestingDepth() == 0) {
++                        self.outline(.{ .close_graph = token.span });
+                         self.state = .epilogue;
+                     } else {
++                        self.outline(.{ .close_scope = token.span });
+                         const stack = self.scratch.?;
+                         self.leaveScope(stack.pop());
+                         self.state = .statement;
+@@ -910,6 +918,7 @@
+                 .identifier => return self.beginStatement(token),
+                 .right_brace => {
+                     if (self.nestingDepth() == 0) {
++                        self.outline(.{ .close_graph = token.span });
+                         self.state = .epilogue;
+                     } else {
+                         self.state = .after_subgraph;
+@@ -1029,6 +1038,9 @@
+         }
+ 
+         fn finishPending(self: *Self, token: lex.Token, expected: std.enums.EnumFieldStruct(diagnostic.SyntaxItem, bool, false), context: diagnostic.ParseContext) Done {
++            // A complete node ID at EOF is useful even when its scope is open.
++            // Keep the normal missing-close diagnostic and syntax-sink contract.
++            if (token.tag == .eof and self.pending == .node) self.outline(.{ .node = .{ .name = self.left, .end = token.span.start } });
+             switch (token.tag) {
+                 .semicolon, .identifier, .right_brace, .left_brace, .keyword_graph, .keyword_node, .keyword_edge, .keyword_subgraph => {},
+                 else => return self.unexpected(expected, context, token),
+@@ -1062,6 +1074,7 @@
+         }
+ 
+         fn openAttributes(self: *Self, token: lex.Token) void {
++            if (self.pending == .node) self.outline(.{ .node = .{ .name = self.left, .end = self.left.endOffset() } });
+             self.open_bracket_span = token.span;
+             self.state = .attribute_key_or_close;
+         }
+@@ -1102,6 +1115,13 @@
+         /// of a source-sized collection. Callback execution is a callout.
+         fn dispatch(self: *Self, action: Action, token: lex.Token) Done {
+             if (audited) self.audit.dispatch += 1;
++            switch (action) {
++                .begin => self.outline(.{ .graph = .{ .start = self.keyword_span, .name = self.name_span } }),
++                .begin_subgraph => self.outline(.{ .scope = .{ .start = self.scratch.?.frames[self.scratch.?.len - 1].start, .name = self.subgraph_name } }),
++                .end_subgraph => self.outline(.{ .close_scope = token.span }),
++                .node => self.outline(.{ .node = .{ .name = self.left, .end = token.span.start } }),
++                else => {},
++            }
+             if (self.aborted) {
+                 // Recovery: the sink is terminal, so no event is attempted;
+                 // only the grammar's own scope and port bookkeeping continues.
+--- /dev/null
++++ b/vendor/dot-parser/src/dot/outline_event.zig
+@@ -0,0 +1,9 @@
++//! Local dot-ls structure observation. No retained syntax or recovery tokens.
++const Span = @import("parser_support").location.Span;
++pub const Event = union(enum) {
++    graph: struct { start: Span, name: ?Span },
++    scope: struct { start: Span, name: ?Span },
++    close_scope: Span,
++    close_graph: Span,
++    node: struct { name: Span, end: u64 },
++};

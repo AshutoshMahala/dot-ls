@@ -1,0 +1,72 @@
+[
+  {
+    "storage": "inplace",
+    "suite": "lsp",
+    "sha256": "b4867644c96c2ce519b715c046f29931534cd94cbeb3c2888301e98870a1cdb9",
+    "code": 0,
+    "output": "{\n  \"checks\": \"passed\",\n  \"binary_bytes\": 945560,\n  \"startup_ms_median\": 2.2334999999999994,\n  \"startup_ms_max\": 2.4349580000000426,\n  \"edit_bytes\": 800012,\n  \"edit_ms_median\": 7.606354000000037,\n  \"edit_ms_max\": 8.122874999999974\n}\n"
+  },
+  {
+    "storage": "inplace",
+    "suite": "protocol",
+    "sha256": "b4867644c96c2ce519b715c046f29931534cd94cbeb3c2888301e98870a1cdb9",
+    "code": 0,
+    "output": "Protocol boundaries passed: framing, lifecycle/error order, IDs, source updates and 26 captured replies/findings.\n"
+  },
+  {
+    "storage": "inplace",
+    "suite": "attributes",
+    "sha256": "b4867644c96c2ce519b715c046f29931534cd94cbeb3c2888301e98870a1cdb9",
+    "code": 1,
+    "output": "Traceback (most recent call last):\n  File \"/Users/ash/dev/dotls/dotls/tests/attributes.py\", line 61, in <module>\n    c.stop()\n  File \"/Users/ash/dev/dotls/dotls/tests/lsp.py\", line 49, in stop\n    self.send('exit'); self.p.stdin.close(); assert self.p.wait(timeout=10)==0,self.p.stderr.read().decode()\nAssertionError: error(DebugAllocator): memory address 0x102aa0500 leaked: \n(empty stack trace)\n\nerror(DebugAllocator): memory address 0x102aa1b00 leaked: \n(empty stack trace)\n\nerror(DebugAllocator): memory address 0x102aa3000 leaked: \n(empty stack trace)\n\nerror(DebugAllocator): memory address 0x102aa4100 leaked: \n(empty stack trace)\n\nerror(DebugAllocator): memory address 0x102aa5700 leaked: \n(empty stack trace)\n\nerror(DebugAllocator): memory address 0x102aa6600 leaked: \n(empty stack trace)\n\nerror(DebugAllocator): memory address 0x102aa7a00 leaked: \n(empty stack trace)\n\nerror(DebugAllocator): memory address 0x102aa9200 leaked: \n(empty stack trace)\n\nerror(DebugAllocator): memory address 0x102aaa200 leaked: \n(empty stack trace)\n\nerror(DebugAllocator): memory address 0x102aab800 leaked: \n(empty stack trace)\n\nerror(DebugAllocator): memory address 0x102aacb00 leaked: \n(empty stack trace)\n\nerror(DebugAllocator): memory address 0x102aadc00 leaked: \n(empty stack trace)\n\nerror(DebugAllocator): memory address 0x102aaf300 leaked: \n(empty stack trace)\n\nerror(DebugAllocator): memory address 0x102ab0200 leaked: \n(empty stack trace)\n\nerror(DebugAllocator): memory address 0x102ab1400 leaked: \n(empty stack trace)\n\nerror(DebugAllocator): memory address 0x102ab2a00 leaked: \n(empty stack trace)\n\nerror(DebugAllocator): memory address 0x102ab3b00 leaked: \n(empty stack trace)\n\nerror(DebugAllocator): memory address 0x102ab4f00 leaked: \n(empty stack trace)\n\nerror(DebugAllocator): memory address 0x102ab5f00 leaked: \n(empty stack trace)\n\nthread 4235754 panic: reached unreachable code\n/opt/homebrew/Cellar/zig/0.17.0/lib/zig/std/array_hash_map.zig:1669:32: 0x1028efb6f in callMainWithArgs (dot-ls)\n        return index_capacities[self.bit_index];\n                               ^\n???:?:?: 0x18a4b3e7f in start (/usr/lib/dyld)\n\n"
+  },
+  {
+    "storage": "inplace",
+    "suite": "code_actions",
+    "sha256": "b4867644c96c2ce519b715c046f29931534cd94cbeb3c2888301e98870a1cdb9",
+    "code": 0,
+    "output": "Code actions: parser edits apply cleanly; UTF-8/16/32, HTML rebase, filters, stale generations and versioned edits passed.\n"
+  },
+  {
+    "storage": "inplace",
+    "suite": "html",
+    "sha256": "b4867644c96c2ce519b715c046f29931534cd94cbeb3c2888301e98870a1cdb9",
+    "code": 0,
+    "output": "HTML: staged merge, selection, UTF-8/16/32, moved labels, repairs, limits, 70,000-label tail coverage and obsolete generations passed\n"
+  },
+  {
+    "storage": "arena",
+    "suite": "lsp",
+    "sha256": "71270052e80422e2b2697b8e404fce33726153f547fc02e5c868b3e5b275ffc5",
+    "code": 0,
+    "output": "{\n  \"checks\": \"passed\",\n  \"binary_bytes\": 945384,\n  \"startup_ms_median\": 2.48525000000005,\n  \"startup_ms_max\": 2.7129590000000148,\n  \"edit_bytes\": 800012,\n  \"edit_ms_median\": 8.146207999999987,\n  \"edit_ms_max\": 8.97300000000001\n}\n"
+  },
+  {
+    "storage": "arena",
+    "suite": "protocol",
+    "sha256": "71270052e80422e2b2697b8e404fce33726153f547fc02e5c868b3e5b275ffc5",
+    "code": 0,
+    "output": "Protocol boundaries passed: framing, lifecycle/error order, IDs, source updates and 26 captured replies/findings.\n"
+  },
+  {
+    "storage": "arena",
+    "suite": "attributes",
+    "sha256": "71270052e80422e2b2697b8e404fce33726153f547fc02e5c868b3e5b275ffc5",
+    "code": 1,
+    "output": "Traceback (most recent call last):\n  File \"/Users/ash/dev/dotls/dotls/tests/attributes.py\", line 61, in <module>\n    c.stop()\n  File \"/Users/ash/dev/dotls/dotls/tests/lsp.py\", line 49, in stop\n    self.send('exit'); self.p.stdin.close(); assert self.p.wait(timeout=10)==0,self.p.stderr.read().decode()\nAssertionError: error(DebugAllocator): memory address 0x104360500 leaked: \n(empty stack trace)\n\nerror(DebugAllocator): memory address 0x104361900 leaked: \n(empty stack trace)\n\nerror(DebugAllocator): memory address 0x104362c00 leaked: \n(empty stack trace)\n\nerror(DebugAllocator): memory address 0x104364100 leaked: \n(empty stack trace)\n\nerror(DebugAllocator): memory address 0x104365100 leaked: \n(empty stack trace)\n\nerror(DebugAllocator): memory address 0x104366600 leaked: \n(empty stack trace)\n\nerror(DebugAllocator): memory address 0x104367d00 leaked: \n(empty stack trace)\n\nerror(DebugAllocator): memory address 0x104368f00 leaked: \n(empty stack trace)\n\nerror(DebugAllocator): memory address 0x10436a000 leaked: \n(empty stack trace)\n\nerror(DebugAllocator): memory address 0x10436b400 leaked: \n(empty stack trace)\n\nerror(DebugAllocator): memory address 0x10436c900 leaked: \n(empty stack trace)\n\nerror(DebugAllocator): memory address 0x10436e100 leaked: \n(empty stack trace)\n\nerror(DebugAllocator): memory address 0x10436f300 leaked: \n(empty stack trace)\n\nerror(DebugAllocator): memory address 0x104370300 leaked: \n(empty stack trace)\n\nerror(DebugAllocator): memory address 0x104371300 leaked: \n(empty stack trace)\n\nerror(DebugAllocator): memory address 0x104372300 leaked: \n(empty stack trace)\n\nerror(DebugAllocator): memory address 0x104373800 leaked: \n(empty stack trace)\n\nerror(DebugAllocator): memory address 0x104375100 leaked: \n(empty stack trace)\n\nerror(DebugAllocator): memory address 0x104375e00 leaked: \n(empty stack trace)\n\nthread 4236207 panic: reached unreachable code\n/opt/homebrew/Cellar/zig/0.17.0/lib/zig/std/array_hash_map.zig:1669:32: 0x1041a3ac3 in callMainWithArgs (dot-ls)\n        return index_capacities[self.bit_index];\n                               ^\n???:?:?: 0x18a4b3e7f in start (/usr/lib/dyld)\n\n"
+  },
+  {
+    "storage": "arena",
+    "suite": "code_actions",
+    "sha256": "71270052e80422e2b2697b8e404fce33726153f547fc02e5c868b3e5b275ffc5",
+    "code": 0,
+    "output": "Code actions: parser edits apply cleanly; UTF-8/16/32, HTML rebase, filters, stale generations and versioned edits passed.\n"
+  },
+  {
+    "storage": "arena",
+    "suite": "html",
+    "sha256": "71270052e80422e2b2697b8e404fce33726153f547fc02e5c868b3e5b275ffc5",
+    "code": 0,
+    "output": "HTML: staged merge, selection, UTF-8/16/32, moved labels, repairs, limits, 70,000-label tail coverage and obsolete generations passed\n"
+  }
+]

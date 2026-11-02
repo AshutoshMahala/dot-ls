@@ -1,0 +1,5262 @@
+{
+  "binary": "/Users/ash/dev/dotls/dotls/zig-out/bin/dot-ls",
+  "binary_sha256": "042d3982618c9283f649391c940c09b1cecf4ce62bc5ea0cc52ab9c4f17e8e40",
+  "runs": [
+    {
+      "build": "after",
+      "kind": "repeated",
+      "mb": 5,
+      "trial": 1,
+      "labels": 29411,
+      "source_sha256": "a4447aa7804372b958d5d7c761366fae1d644e85d862f303bdcfd9e77b4f7b1f",
+      "phases": [
+        {
+          "phase": "open",
+          "version": 1,
+          "dot_ms": 37.89633300000006,
+          "final_ms": 38.4158750000001,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 5013504,
+          "notifications": [
+            {
+              "ms": 37.89633300000006,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 38.4158750000001,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "outer_edit",
+          "version": 2,
+          "dot_ms": 24.824709,
+          "final_ms": 25.254499999999958,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 5013504,
+          "notifications": [
+            {
+              "ms": 24.824709,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 25.254499999999958,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 3,
+          "dot_ms": 36.4644999999999,
+          "final_ms": 42.116083000000025,
+          "errors": 2,
+          "incomplete": false,
+          "settled_rss_bytes": 5013504,
+          "notifications": [
+            {
+              "ms": 36.4644999999999,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 42.116083000000025,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 176463,
+                      "character": 22
+                    },
+                    "end": {
+                      "line": 176463,
+                      "character": 23
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 176463,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 176463,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</I>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 176464,
+                      "character": 10
+                    },
+                    "end": {
+                      "line": 176464,
+                      "character": 12
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 176463,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 176463,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</TD>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                }
+              ],
+              "wire_bytes": 1137
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 4,
+          "dot_ms": 31.67470799999994,
+          "final_ms": 32.12854099999984,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 5013504,
+          "notifications": [
+            {
+              "ms": 31.67470799999994,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 32.12854099999984,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 5,
+          "dot_ms": 35.586125000000024,
+          "final_ms": 41.09629100000012,
+          "errors": 2,
+          "incomplete": false,
+          "settled_rss_bytes": 5013504,
+          "notifications": [
+            {
+              "ms": 35.586125000000024,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 41.09629100000012,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 176463,
+                      "character": 22
+                    },
+                    "end": {
+                      "line": 176463,
+                      "character": 23
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 176463,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 176463,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</I>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 176464,
+                      "character": 10
+                    },
+                    "end": {
+                      "line": 176464,
+                      "character": 12
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 176463,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 176463,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</TD>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                }
+              ],
+              "wire_bytes": 1137
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 6,
+          "dot_ms": 33.42466600000016,
+          "final_ms": 33.91750000000027,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 5013504,
+          "notifications": [
+            {
+              "ms": 33.42466600000016,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 33.91750000000027,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        }
+      ],
+      "startup_ms": 265.025833,
+      "idle": {
+        "t": 0.711811,
+        "rss_bytes": 2162688,
+        "footprint_bytes": 1360208,
+        "cpu_seconds": 0.004233333333333333,
+        "start_ticks": 1360891126830
+      },
+      "resources": {
+        "exit_code": 0,
+        "actual_peak_rss_bytes": 17973248,
+        "sampled_peak_rss_bytes": 14729216,
+        "sampled_peak_footprint_bytes": 13877656,
+        "cpu_user_seconds": 0.293927,
+        "cpu_system_seconds": 0.027878,
+        "safety_stop": null,
+        "stderr": ""
+      }
+    },
+    {
+      "build": "after",
+      "kind": "repeated",
+      "mb": 5,
+      "trial": 2,
+      "labels": 29411,
+      "source_sha256": "a4447aa7804372b958d5d7c761366fae1d644e85d862f303bdcfd9e77b4f7b1f",
+      "phases": [
+        {
+          "phase": "open",
+          "version": 1,
+          "dot_ms": 31.28470899999991,
+          "final_ms": 31.762791999999873,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 5013504,
+          "notifications": [
+            {
+              "ms": 31.28470899999991,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 31.762791999999873,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "outer_edit",
+          "version": 2,
+          "dot_ms": 34.10158299999999,
+          "final_ms": 34.574375000000046,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 5013504,
+          "notifications": [
+            {
+              "ms": 34.10158299999999,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 34.574375000000046,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 3,
+          "dot_ms": 37.90270800000029,
+          "final_ms": 43.34187500000031,
+          "errors": 2,
+          "incomplete": false,
+          "settled_rss_bytes": 5013504,
+          "notifications": [
+            {
+              "ms": 37.90270800000029,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 43.34187500000031,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 176463,
+                      "character": 22
+                    },
+                    "end": {
+                      "line": 176463,
+                      "character": 23
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 176463,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 176463,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</I>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 176464,
+                      "character": 10
+                    },
+                    "end": {
+                      "line": 176464,
+                      "character": 12
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 176463,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 176463,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</TD>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                }
+              ],
+              "wire_bytes": 1137
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 4,
+          "dot_ms": 16.829332999999558,
+          "final_ms": 17.159249999999737,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 5013504,
+          "notifications": [
+            {
+              "ms": 16.829332999999558,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 17.159249999999737,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 5,
+          "dot_ms": 38.164292000000266,
+          "final_ms": 43.68224999999981,
+          "errors": 2,
+          "incomplete": false,
+          "settled_rss_bytes": 5013504,
+          "notifications": [
+            {
+              "ms": 38.164292000000266,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 43.68224999999981,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 176463,
+                      "character": 22
+                    },
+                    "end": {
+                      "line": 176463,
+                      "character": 23
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 176463,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 176463,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</I>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 176464,
+                      "character": 10
+                    },
+                    "end": {
+                      "line": 176464,
+                      "character": 12
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 176463,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 176463,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</TD>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                }
+              ],
+              "wire_bytes": 1137
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 6,
+          "dot_ms": 30.482291000000217,
+          "final_ms": 31.030624999999645,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 5013504,
+          "notifications": [
+            {
+              "ms": 30.482291000000217,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 31.030624999999645,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        }
+      ],
+      "startup_ms": 4.066667000000024,
+      "idle": {
+        "t": 3.257588375,
+        "rss_bytes": 2162688,
+        "footprint_bytes": 1360208,
+        "cpu_seconds": 0.00253925,
+        "start_ticks": 1360958454418
+      },
+      "resources": {
+        "exit_code": 0,
+        "actual_peak_rss_bytes": 17940480,
+        "sampled_peak_rss_bytes": 13107200,
+        "sampled_peak_footprint_bytes": 12239232,
+        "cpu_user_seconds": 0.280501,
+        "cpu_system_seconds": 0.022046,
+        "safety_stop": null,
+        "stderr": ""
+      }
+    },
+    {
+      "build": "after",
+      "kind": "repeated",
+      "mb": 5,
+      "trial": 3,
+      "labels": 29411,
+      "source_sha256": "a4447aa7804372b958d5d7c761366fae1d644e85d862f303bdcfd9e77b4f7b1f",
+      "phases": [
+        {
+          "phase": "open",
+          "version": 1,
+          "dot_ms": 38.26520799999944,
+          "final_ms": 38.77970799999986,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 5013504,
+          "notifications": [
+            {
+              "ms": 38.26520799999944,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 38.77970799999986,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "outer_edit",
+          "version": 2,
+          "dot_ms": 37.29220799999933,
+          "final_ms": 37.816083000000056,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 5013504,
+          "notifications": [
+            {
+              "ms": 37.29220799999933,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 37.816083000000056,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 3,
+          "dot_ms": 33.4339589999999,
+          "final_ms": 38.639166999999475,
+          "errors": 2,
+          "incomplete": false,
+          "settled_rss_bytes": 5013504,
+          "notifications": [
+            {
+              "ms": 33.4339589999999,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 38.639166999999475,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 176463,
+                      "character": 22
+                    },
+                    "end": {
+                      "line": 176463,
+                      "character": 23
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 176463,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 176463,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</I>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 176464,
+                      "character": 10
+                    },
+                    "end": {
+                      "line": 176464,
+                      "character": 12
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 176463,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 176463,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</TD>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                }
+              ],
+              "wire_bytes": 1137
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 4,
+          "dot_ms": 23.48445800000043,
+          "final_ms": 23.894708000000264,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 5013504,
+          "notifications": [
+            {
+              "ms": 23.48445800000043,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 23.894708000000264,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 5,
+          "dot_ms": 36.34270799999939,
+          "final_ms": 41.845999999999606,
+          "errors": 2,
+          "incomplete": false,
+          "settled_rss_bytes": 5013504,
+          "notifications": [
+            {
+              "ms": 36.34270799999939,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 41.845999999999606,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 176463,
+                      "character": 22
+                    },
+                    "end": {
+                      "line": 176463,
+                      "character": 23
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 176463,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 176463,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</I>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 176464,
+                      "character": 10
+                    },
+                    "end": {
+                      "line": 176464,
+                      "character": 12
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 176463,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 176463,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</TD>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                }
+              ],
+              "wire_bytes": 1137
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 6,
+          "dot_ms": 31.659707999999398,
+          "final_ms": 32.148207999999734,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 5013504,
+          "notifications": [
+            {
+              "ms": 31.659707999999398,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 32.148207999999734,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        }
+      ],
+      "startup_ms": 6.746915999999992,
+      "idle": {
+        "t": 5.685952875,
+        "rss_bytes": 2162688,
+        "footprint_bytes": 1360208,
+        "cpu_seconds": 0.004481125,
+        "start_ticks": 1361016648294
+      },
+      "resources": {
+        "exit_code": 0,
+        "actual_peak_rss_bytes": 17940480,
+        "sampled_peak_rss_bytes": 13107200,
+        "sampled_peak_footprint_bytes": 12239232,
+        "cpu_user_seconds": 0.285956,
+        "cpu_system_seconds": 0.028228,
+        "safety_stop": null,
+        "stderr": ""
+      }
+    },
+    {
+      "build": "after",
+      "kind": "repeated",
+      "mb": 20,
+      "trial": 1,
+      "labels": 117646,
+      "source_sha256": "8d3b808b90f67ddaf96ee13b46f7685b14b3ec915ff022c994c65c7e17c1ad41",
+      "phases": [
+        {
+          "phase": "open",
+          "version": 1,
+          "dot_ms": 95.98724999999853,
+          "final_ms": 97.33391599999841,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 12288000,
+          "notifications": [
+            {
+              "ms": 95.98724999999853,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 97.33391599999841,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "outer_edit",
+          "version": 2,
+          "dot_ms": 90.5131249999993,
+          "final_ms": 91.88325000000042,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 12288000,
+          "notifications": [
+            {
+              "ms": 90.5131249999993,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 91.88325000000042,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 3,
+          "dot_ms": 89.84087499999838,
+          "final_ms": 104.82479199999872,
+          "errors": 2,
+          "incomplete": false,
+          "settled_rss_bytes": 12288000,
+          "notifications": [
+            {
+              "ms": 89.84087499999838,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 104.82479199999872,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 705873,
+                      "character": 22
+                    },
+                    "end": {
+                      "line": 705873,
+                      "character": 23
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 705873,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 705873,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</I>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 705874,
+                      "character": 10
+                    },
+                    "end": {
+                      "line": 705874,
+                      "character": 12
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 705873,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 705873,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</TD>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                }
+              ],
+              "wire_bytes": 1137
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 4,
+          "dot_ms": 79.753457999999,
+          "final_ms": 80.98150000000004,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 12288000,
+          "notifications": [
+            {
+              "ms": 79.753457999999,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 80.98150000000004,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 5,
+          "dot_ms": 95.5285840000002,
+          "final_ms": 110.01579200000045,
+          "errors": 2,
+          "incomplete": false,
+          "settled_rss_bytes": 12288000,
+          "notifications": [
+            {
+              "ms": 95.5285840000002,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 110.01579200000045,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 705873,
+                      "character": 22
+                    },
+                    "end": {
+                      "line": 705873,
+                      "character": 23
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 705873,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 705873,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</I>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 705874,
+                      "character": 10
+                    },
+                    "end": {
+                      "line": 705874,
+                      "character": 12
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 705873,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 705873,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</TD>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                }
+              ],
+              "wire_bytes": 1137
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 6,
+          "dot_ms": 80.10583300000107,
+          "final_ms": 81.3553330000012,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 12288000,
+          "notifications": [
+            {
+              "ms": 80.10583300000107,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 81.3553330000012,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        }
+      ],
+      "startup_ms": 3.5295419999989974,
+      "idle": {
+        "t": 8.478705791,
+        "rss_bytes": 2162688,
+        "footprint_bytes": 1360208,
+        "cpu_seconds": 0.002017,
+        "start_ticks": 1361083875380
+      },
+      "resources": {
+        "exit_code": 0,
+        "actual_peak_rss_bytes": 63864832,
+        "sampled_peak_rss_bytes": 63750144,
+        "sampled_peak_footprint_bytes": 62947808,
+        "cpu_user_seconds": 0.820055,
+        "cpu_system_seconds": 0.061084,
+        "safety_stop": null,
+        "stderr": ""
+      }
+    },
+    {
+      "build": "after",
+      "kind": "repeated",
+      "mb": 20,
+      "trial": 2,
+      "labels": 117646,
+      "source_sha256": "8d3b808b90f67ddaf96ee13b46f7685b14b3ec915ff022c994c65c7e17c1ad41",
+      "phases": [
+        {
+          "phase": "open",
+          "version": 1,
+          "dot_ms": 82.54349999999988,
+          "final_ms": 83.89708400000018,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 12288000,
+          "notifications": [
+            {
+              "ms": 82.54349999999988,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 83.89708400000018,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "outer_edit",
+          "version": 2,
+          "dot_ms": 92.44483400000014,
+          "final_ms": 93.7925840000009,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 12288000,
+          "notifications": [
+            {
+              "ms": 92.44483400000014,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 93.7925840000009,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 3,
+          "dot_ms": 88.01608400000127,
+          "final_ms": 102.999917,
+          "errors": 2,
+          "incomplete": false,
+          "settled_rss_bytes": 12288000,
+          "notifications": [
+            {
+              "ms": 88.01608400000127,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 102.999917,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 705873,
+                      "character": 22
+                    },
+                    "end": {
+                      "line": 705873,
+                      "character": 23
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 705873,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 705873,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</I>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 705874,
+                      "character": 10
+                    },
+                    "end": {
+                      "line": 705874,
+                      "character": 12
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 705873,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 705873,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</TD>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                }
+              ],
+              "wire_bytes": 1137
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 4,
+          "dot_ms": 76.84429100000045,
+          "final_ms": 78.18212499999966,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 12288000,
+          "notifications": [
+            {
+              "ms": 76.84429100000045,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 78.18212499999966,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 5,
+          "dot_ms": 95.24100000000146,
+          "final_ms": 110.02954200000126,
+          "errors": 2,
+          "incomplete": false,
+          "settled_rss_bytes": 12288000,
+          "notifications": [
+            {
+              "ms": 95.24100000000146,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 110.02954200000126,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 705873,
+                      "character": 22
+                    },
+                    "end": {
+                      "line": 705873,
+                      "character": 23
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 705873,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 705873,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</I>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 705874,
+                      "character": 10
+                    },
+                    "end": {
+                      "line": 705874,
+                      "character": 12
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 705873,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 705873,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</TD>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                }
+              ],
+              "wire_bytes": 1137
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 6,
+          "dot_ms": 80.53179200000038,
+          "final_ms": 81.86650000000029,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 12288000,
+          "notifications": [
+            {
+              "ms": 80.53179200000038,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 81.86650000000029,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        }
+      ],
+      "startup_ms": 4.290749999999122,
+      "idle": {
+        "t": 11.941954916,
+        "rss_bytes": 2162688,
+        "footprint_bytes": 1360208,
+        "cpu_seconds": 0.002670875,
+        "start_ticks": 1361166784104
+      },
+      "resources": {
+        "exit_code": 0,
+        "actual_peak_rss_bytes": 63897600,
+        "sampled_peak_rss_bytes": 63750144,
+        "sampled_peak_footprint_bytes": 62931400,
+        "cpu_user_seconds": 0.817901,
+        "cpu_system_seconds": 0.059816999999999995,
+        "safety_stop": null,
+        "stderr": ""
+      }
+    },
+    {
+      "build": "after",
+      "kind": "repeated",
+      "mb": 20,
+      "trial": 3,
+      "labels": 117646,
+      "source_sha256": "8d3b808b90f67ddaf96ee13b46f7685b14b3ec915ff022c994c65c7e17c1ad41",
+      "phases": [
+        {
+          "phase": "open",
+          "version": 1,
+          "dot_ms": 90.55595799999949,
+          "final_ms": 91.88766699999995,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 12288000,
+          "notifications": [
+            {
+              "ms": 90.55595799999949,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 91.88766699999995,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "outer_edit",
+          "version": 2,
+          "dot_ms": 90.78358400000042,
+          "final_ms": 92.10649999999987,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 12288000,
+          "notifications": [
+            {
+              "ms": 90.78358400000042,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 92.10649999999987,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 3,
+          "dot_ms": 97.93091699999934,
+          "final_ms": 111.99050000000099,
+          "errors": 2,
+          "incomplete": false,
+          "settled_rss_bytes": 12288000,
+          "notifications": [
+            {
+              "ms": 97.93091699999934,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 111.99050000000099,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 705873,
+                      "character": 22
+                    },
+                    "end": {
+                      "line": 705873,
+                      "character": 23
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 705873,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 705873,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</I>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 705874,
+                      "character": 10
+                    },
+                    "end": {
+                      "line": 705874,
+                      "character": 12
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 705873,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 705873,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</TD>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                }
+              ],
+              "wire_bytes": 1137
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 4,
+          "dot_ms": 76.76524999999756,
+          "final_ms": 78.07483299999873,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 12288000,
+          "notifications": [
+            {
+              "ms": 76.76524999999756,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 78.07483299999873,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 5,
+          "dot_ms": 91.71337499999765,
+          "final_ms": 106.21212499999899,
+          "errors": 2,
+          "incomplete": false,
+          "settled_rss_bytes": 12288000,
+          "notifications": [
+            {
+              "ms": 91.71337499999765,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 106.21212499999899,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 705873,
+                      "character": 22
+                    },
+                    "end": {
+                      "line": 705873,
+                      "character": 23
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 705873,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 705873,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</I>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 705874,
+                      "character": 10
+                    },
+                    "end": {
+                      "line": 705874,
+                      "character": 12
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 705873,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 705873,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</TD>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                }
+              ],
+              "wire_bytes": 1137
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 6,
+          "dot_ms": 80.89700000000022,
+          "final_ms": 82.25320800000091,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 12288000,
+          "notifications": [
+            {
+              "ms": 80.89700000000022,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 82.25320800000091,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        }
+      ],
+      "startup_ms": 5.9372910000004,
+      "idle": {
+        "t": 15.391082791,
+        "rss_bytes": 2162688,
+        "footprint_bytes": 1360208,
+        "cpu_seconds": 0.0035732916666666665,
+        "start_ticks": 1361249586127
+      },
+      "resources": {
+        "exit_code": 0,
+        "actual_peak_rss_bytes": 63897600,
+        "sampled_peak_rss_bytes": 46219264,
+        "sampled_peak_footprint_bytes": 45384112,
+        "cpu_user_seconds": 0.824453,
+        "cpu_system_seconds": 0.06387999999999999,
+        "safety_stop": null,
+        "stderr": ""
+      }
+    },
+    {
+      "build": "after",
+      "kind": "repeated",
+      "mb": 40,
+      "trial": 1,
+      "labels": 235293,
+      "source_sha256": "2826d8f9a267ef19c4f0fb1287c18613522b3797cc997fe78fc3c7dd6f8140c0",
+      "phases": [
+        {
+          "phase": "open",
+          "version": 1,
+          "dot_ms": 147.44666699999698,
+          "final_ms": 150.0863329999973,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 22020096,
+          "notifications": [
+            {
+              "ms": 147.44666699999698,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 150.0863329999973,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "outer_edit",
+          "version": 2,
+          "dot_ms": 150.7282080000003,
+          "final_ms": 153.36991699999913,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 22020096,
+          "notifications": [
+            {
+              "ms": 150.7282080000003,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 153.36991699999913,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 3,
+          "dot_ms": 161.46529199999904,
+          "final_ms": 189.14012500000155,
+          "errors": 2,
+          "incomplete": false,
+          "settled_rss_bytes": 22020096,
+          "notifications": [
+            {
+              "ms": 161.46529199999904,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 189.14012500000155,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 1411755,
+                      "character": 22
+                    },
+                    "end": {
+                      "line": 1411755,
+                      "character": 23
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 1411755,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 1411755,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</I>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 1411756,
+                      "character": 10
+                    },
+                    "end": {
+                      "line": 1411756,
+                      "character": 12
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 1411755,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 1411755,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</TD>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                }
+              ],
+              "wire_bytes": 1145
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 4,
+          "dot_ms": 130.55762500000156,
+          "final_ms": 133.1653750000008,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 22020096,
+          "notifications": [
+            {
+              "ms": 130.55762500000156,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 133.1653750000008,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 5,
+          "dot_ms": 157.94533299999713,
+          "final_ms": 185.6054159999978,
+          "errors": 2,
+          "incomplete": false,
+          "settled_rss_bytes": 22020096,
+          "notifications": [
+            {
+              "ms": 157.94533299999713,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 185.6054159999978,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 1411755,
+                      "character": 22
+                    },
+                    "end": {
+                      "line": 1411755,
+                      "character": 23
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 1411755,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 1411755,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</I>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 1411756,
+                      "character": 10
+                    },
+                    "end": {
+                      "line": 1411756,
+                      "character": 12
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 1411755,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 1411755,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</TD>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                }
+              ],
+              "wire_bytes": 1145
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 6,
+          "dot_ms": 139.1143750000019,
+          "final_ms": 141.7574590000008,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 22020096,
+          "notifications": [
+            {
+              "ms": 139.1143750000019,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 141.7574590000008,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        }
+      ],
+      "startup_ms": 4.228375000000284,
+      "idle": {
+        "t": 19.548202708,
+        "rss_bytes": 2162688,
+        "footprint_bytes": 1360208,
+        "cpu_seconds": 0.0019160416666666668,
+        "start_ticks": 1361349413480
+      },
+      "resources": {
+        "exit_code": 0,
+        "actual_peak_rss_bytes": 125124608,
+        "sampled_peak_rss_bytes": 117866496,
+        "sampled_peak_footprint_bytes": 117080568,
+        "cpu_user_seconds": 1.537796,
+        "cpu_system_seconds": 0.10374799999999999,
+        "safety_stop": null,
+        "stderr": ""
+      }
+    },
+    {
+      "build": "after",
+      "kind": "repeated",
+      "mb": 40,
+      "trial": 2,
+      "labels": 235293,
+      "source_sha256": "2826d8f9a267ef19c4f0fb1287c18613522b3797cc997fe78fc3c7dd6f8140c0",
+      "phases": [
+        {
+          "phase": "open",
+          "version": 1,
+          "dot_ms": 153.37433300000214,
+          "final_ms": 155.9153749999993,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 22020096,
+          "notifications": [
+            {
+              "ms": 153.37433300000214,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 155.9153749999993,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "outer_edit",
+          "version": 2,
+          "dot_ms": 156.35429200000317,
+          "final_ms": 159.0059590000017,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 22020096,
+          "notifications": [
+            {
+              "ms": 156.35429200000317,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 159.0059590000017,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 3,
+          "dot_ms": 154.10416699999985,
+          "final_ms": 183.19699999999983,
+          "errors": 2,
+          "incomplete": false,
+          "settled_rss_bytes": 22020096,
+          "notifications": [
+            {
+              "ms": 154.10416699999985,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 183.19699999999983,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 1411755,
+                      "character": 22
+                    },
+                    "end": {
+                      "line": 1411755,
+                      "character": 23
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 1411755,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 1411755,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</I>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 1411756,
+                      "character": 10
+                    },
+                    "end": {
+                      "line": 1411756,
+                      "character": 12
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 1411755,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 1411755,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</TD>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                }
+              ],
+              "wire_bytes": 1145
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 4,
+          "dot_ms": 128.51187500000094,
+          "final_ms": 131.0652910000023,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 22020096,
+          "notifications": [
+            {
+              "ms": 128.51187500000094,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 131.0652910000023,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 5,
+          "dot_ms": 146.582875,
+          "final_ms": 174.51087500000284,
+          "errors": 2,
+          "incomplete": false,
+          "settled_rss_bytes": 22020096,
+          "notifications": [
+            {
+              "ms": 146.582875,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 174.51087500000284,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 1411755,
+                      "character": 22
+                    },
+                    "end": {
+                      "line": 1411755,
+                      "character": 23
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 1411755,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 1411755,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</I>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 1411756,
+                      "character": 10
+                    },
+                    "end": {
+                      "line": 1411756,
+                      "character": 12
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 1411755,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 1411755,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</TD>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                }
+              ],
+              "wire_bytes": 1145
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 6,
+          "dot_ms": 131.14554199999873,
+          "final_ms": 133.80329199999963,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 22020096,
+          "notifications": [
+            {
+              "ms": 131.14554199999873,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 133.80329199999963,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        }
+      ],
+      "startup_ms": 6.201708999999056,
+      "idle": {
+        "t": 23.456619541,
+        "rss_bytes": 2162688,
+        "footprint_bytes": 1360208,
+        "cpu_seconds": 0.003446125,
+        "start_ticks": 1361443201534
+      },
+      "resources": {
+        "exit_code": 0,
+        "actual_peak_rss_bytes": 125124608,
+        "sampled_peak_rss_bytes": 102596608,
+        "sampled_peak_footprint_bytes": 101777864,
+        "cpu_user_seconds": 1.536047,
+        "cpu_system_seconds": 0.099698,
+        "safety_stop": null,
+        "stderr": ""
+      }
+    },
+    {
+      "build": "after",
+      "kind": "repeated",
+      "mb": 40,
+      "trial": 3,
+      "labels": 235293,
+      "source_sha256": "2826d8f9a267ef19c4f0fb1287c18613522b3797cc997fe78fc3c7dd6f8140c0",
+      "phases": [
+        {
+          "phase": "open",
+          "version": 1,
+          "dot_ms": 156.02629199999996,
+          "final_ms": 158.66512499999885,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 22020096,
+          "notifications": [
+            {
+              "ms": 156.02629199999996,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 158.66512499999885,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "outer_edit",
+          "version": 2,
+          "dot_ms": 160.27066699999892,
+          "final_ms": 163.02416699999966,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 22020096,
+          "notifications": [
+            {
+              "ms": 160.27066699999892,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 163.02416699999966,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 3,
+          "dot_ms": 154.19874999999905,
+          "final_ms": 181.70741699999837,
+          "errors": 2,
+          "incomplete": false,
+          "settled_rss_bytes": 22020096,
+          "notifications": [
+            {
+              "ms": 154.19874999999905,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 181.70741699999837,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 1411755,
+                      "character": 22
+                    },
+                    "end": {
+                      "line": 1411755,
+                      "character": 23
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 1411755,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 1411755,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</I>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 1411756,
+                      "character": 10
+                    },
+                    "end": {
+                      "line": 1411756,
+                      "character": 12
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 1411755,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 1411755,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</TD>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                }
+              ],
+              "wire_bytes": 1145
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 4,
+          "dot_ms": 134.47254200000103,
+          "final_ms": 136.97574999999773,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 22020096,
+          "notifications": [
+            {
+              "ms": 134.47254200000103,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 136.97574999999773,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 5,
+          "dot_ms": 149.92620800000012,
+          "final_ms": 177.42620799999997,
+          "errors": 2,
+          "incomplete": false,
+          "settled_rss_bytes": 22020096,
+          "notifications": [
+            {
+              "ms": 149.92620800000012,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 177.42620799999997,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 1411755,
+                      "character": 22
+                    },
+                    "end": {
+                      "line": 1411755,
+                      "character": 23
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 1411755,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 1411755,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</I>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 1411756,
+                      "character": 10
+                    },
+                    "end": {
+                      "line": 1411756,
+                      "character": 12
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 1411755,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 1411755,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</TD>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                }
+              ],
+              "wire_bytes": 1145
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 6,
+          "dot_ms": 128.06266699999824,
+          "final_ms": 130.706,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 22020096,
+          "notifications": [
+            {
+              "ms": 128.06266699999824,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 130.706,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        }
+      ],
+      "startup_ms": 4.487791999999047,
+      "idle": {
+        "t": 27.345404333,
+        "rss_bytes": 2162688,
+        "footprint_bytes": 1360208,
+        "cpu_seconds": 0.0025774583333333335,
+        "start_ticks": 1361536486907
+      },
+      "resources": {
+        "exit_code": 0,
+        "actual_peak_rss_bytes": 125304832,
+        "sampled_peak_rss_bytes": 104267776,
+        "sampled_peak_footprint_bytes": 103465440,
+        "cpu_user_seconds": 1.544411,
+        "cpu_system_seconds": 0.102278,
+        "safety_stop": null,
+        "stderr": ""
+      }
+    },
+    {
+      "build": "after",
+      "kind": "unique",
+      "mb": 5,
+      "trial": 1,
+      "labels": 29411,
+      "source_sha256": "73b43a0c5bfadeeb5eb608e943be0d4b993fc605bb03ad115273efffc02c6784",
+      "phases": [
+        {
+          "phase": "open",
+          "version": 1,
+          "dot_ms": 30.09508300000263,
+          "final_ms": 122.35641700000244,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 6356992,
+          "notifications": [
+            {
+              "ms": 30.09508300000263,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 122.35641700000244,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "outer_edit",
+          "version": 2,
+          "dot_ms": 39.448958000001255,
+          "final_ms": 138.0257080000007,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 6356992,
+          "notifications": [
+            {
+              "ms": 39.448958000001255,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 138.0257080000007,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 3,
+          "dot_ms": 35.81595800000059,
+          "final_ms": 136.04241699999875,
+          "errors": 2,
+          "incomplete": false,
+          "settled_rss_bytes": 6356992,
+          "notifications": [
+            {
+              "ms": 35.81595800000059,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 136.04241699999875,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 176463,
+                      "character": 25
+                    },
+                    "end": {
+                      "line": 176463,
+                      "character": 26
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 176463,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 176463,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</I>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 176464,
+                      "character": 10
+                    },
+                    "end": {
+                      "line": 176464,
+                      "character": 12
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 176463,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 176463,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</TD>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                }
+              ],
+              "wire_bytes": 1137
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 4,
+          "dot_ms": 23.960292000005268,
+          "final_ms": 115.06904200000179,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 6356992,
+          "notifications": [
+            {
+              "ms": 23.960292000005268,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 115.06904200000179,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 5,
+          "dot_ms": 30.97949999999372,
+          "final_ms": 132.89066599999444,
+          "errors": 2,
+          "incomplete": false,
+          "settled_rss_bytes": 6356992,
+          "notifications": [
+            {
+              "ms": 30.97949999999372,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 132.89066599999444,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 176463,
+                      "character": 25
+                    },
+                    "end": {
+                      "line": 176463,
+                      "character": 26
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 176463,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 176463,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</I>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 176464,
+                      "character": 10
+                    },
+                    "end": {
+                      "line": 176464,
+                      "character": 12
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 176463,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 176463,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</TD>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                }
+              ],
+              "wire_bytes": 1137
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 6,
+          "dot_ms": 32.27654200000529,
+          "final_ms": 131.1011250000007,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 6356992,
+          "notifications": [
+            {
+              "ms": 32.27654200000529,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 131.1011250000007,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        }
+      ],
+      "startup_ms": 3.3786249999998574,
+      "idle": {
+        "t": 31.323530708,
+        "rss_bytes": 2162688,
+        "footprint_bytes": 1360208,
+        "cpu_seconds": 0.0018729166666666668,
+        "start_ticks": 1361631986815
+      },
+      "resources": {
+        "exit_code": 0,
+        "actual_peak_rss_bytes": 19283968,
+        "sampled_peak_rss_bytes": 13959168,
+        "sampled_peak_footprint_bytes": 13074792,
+        "cpu_user_seconds": 0.529451,
+        "cpu_system_seconds": 0.32217799999999996,
+        "safety_stop": null,
+        "stderr": ""
+      }
+    },
+    {
+      "build": "after",
+      "kind": "unique",
+      "mb": 5,
+      "trial": 2,
+      "labels": 29411,
+      "source_sha256": "73b43a0c5bfadeeb5eb608e943be0d4b993fc605bb03ad115273efffc02c6784",
+      "phases": [
+        {
+          "phase": "open",
+          "version": 1,
+          "dot_ms": 35.88762500000087,
+          "final_ms": 130.23416699999757,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 6356992,
+          "notifications": [
+            {
+              "ms": 35.88762500000087,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 130.23416699999757,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "outer_edit",
+          "version": 2,
+          "dot_ms": 33.156249999997556,
+          "final_ms": 126.8236250000001,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 6356992,
+          "notifications": [
+            {
+              "ms": 33.156249999997556,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 126.8236250000001,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 3,
+          "dot_ms": 38.28074999999842,
+          "final_ms": 139.30712499999487,
+          "errors": 2,
+          "incomplete": false,
+          "settled_rss_bytes": 6356992,
+          "notifications": [
+            {
+              "ms": 38.28074999999842,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 139.30712499999487,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 176463,
+                      "character": 25
+                    },
+                    "end": {
+                      "line": 176463,
+                      "character": 26
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 176463,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 176463,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</I>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 176464,
+                      "character": 10
+                    },
+                    "end": {
+                      "line": 176464,
+                      "character": 12
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 176463,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 176463,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</TD>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                }
+              ],
+              "wire_bytes": 1137
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 4,
+          "dot_ms": 32.740500000002726,
+          "final_ms": 127.31887500000028,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 6356992,
+          "notifications": [
+            {
+              "ms": 32.740500000002726,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 127.31887500000028,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 5,
+          "dot_ms": 37.26516700000104,
+          "final_ms": 137.4380839999958,
+          "errors": 2,
+          "incomplete": false,
+          "settled_rss_bytes": 6356992,
+          "notifications": [
+            {
+              "ms": 37.26516700000104,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 137.4380839999958,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 176463,
+                      "character": 25
+                    },
+                    "end": {
+                      "line": 176463,
+                      "character": 26
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 176463,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 176463,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</I>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 176464,
+                      "character": 10
+                    },
+                    "end": {
+                      "line": 176464,
+                      "character": 12
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 176463,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 176463,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</TD>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                }
+              ],
+              "wire_bytes": 1137
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 6,
+          "dot_ms": 32.5354999999945,
+          "final_ms": 128.88141699999522,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 6356992,
+          "notifications": [
+            {
+              "ms": 32.5354999999945,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 128.88141699999522,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        }
+      ],
+      "startup_ms": 4.845832999997413,
+      "idle": {
+        "t": 34.335624708,
+        "rss_bytes": 2162688,
+        "footprint_bytes": 1360208,
+        "cpu_seconds": 0.002819375,
+        "start_ticks": 1361704311421
+      },
+      "resources": {
+        "exit_code": 0,
+        "actual_peak_rss_bytes": 19283968,
+        "sampled_peak_rss_bytes": 13778944,
+        "sampled_peak_footprint_bytes": 12910976,
+        "cpu_user_seconds": 0.541051,
+        "cpu_system_seconds": 0.321001,
+        "safety_stop": null,
+        "stderr": ""
+      }
+    },
+    {
+      "build": "after",
+      "kind": "unique",
+      "mb": 5,
+      "trial": 3,
+      "labels": 29411,
+      "source_sha256": "73b43a0c5bfadeeb5eb608e943be0d4b993fc605bb03ad115273efffc02c6784",
+      "phases": [
+        {
+          "phase": "open",
+          "version": 1,
+          "dot_ms": 37.20741699999763,
+          "final_ms": 135.0367499999976,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 6356992,
+          "notifications": [
+            {
+              "ms": 37.20741699999763,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 135.0367499999976,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "outer_edit",
+          "version": 2,
+          "dot_ms": 31.272708000003036,
+          "final_ms": 126.79874999999896,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 6356992,
+          "notifications": [
+            {
+              "ms": 31.272708000003036,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 126.79874999999896,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 3,
+          "dot_ms": 38.415457999995795,
+          "final_ms": 138.80066699999816,
+          "errors": 2,
+          "incomplete": false,
+          "settled_rss_bytes": 6356992,
+          "notifications": [
+            {
+              "ms": 38.415457999995795,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 138.80066699999816,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 176463,
+                      "character": 25
+                    },
+                    "end": {
+                      "line": 176463,
+                      "character": 26
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 176463,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 176463,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</I>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 176464,
+                      "character": 10
+                    },
+                    "end": {
+                      "line": 176464,
+                      "character": 12
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 176463,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 176463,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</TD>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                }
+              ],
+              "wire_bytes": 1137
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 4,
+          "dot_ms": 32.73658300000193,
+          "final_ms": 128.00975000000392,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 6356992,
+          "notifications": [
+            {
+              "ms": 32.73658300000193,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 128.00975000000392,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 5,
+          "dot_ms": 35.763209000002405,
+          "final_ms": 136.51729200000062,
+          "errors": 2,
+          "incomplete": false,
+          "settled_rss_bytes": 6356992,
+          "notifications": [
+            {
+              "ms": 35.763209000002405,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 136.51729200000062,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 176463,
+                      "character": 25
+                    },
+                    "end": {
+                      "line": 176463,
+                      "character": 26
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 176463,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 176463,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</I>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 176464,
+                      "character": 10
+                    },
+                    "end": {
+                      "line": 176464,
+                      "character": 12
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 176463,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 176463,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</TD>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                }
+              ],
+              "wire_bytes": 1137
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 6,
+          "dot_ms": 30.973750000001132,
+          "final_ms": 124.88079099999538,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 6356992,
+          "notifications": [
+            {
+              "ms": 30.973750000001132,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 124.88079099999538,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        }
+      ],
+      "startup_ms": 6.726000000000454,
+      "idle": {
+        "t": 37.358116833,
+        "rss_bytes": 2162688,
+        "footprint_bytes": 1360208,
+        "cpu_seconds": 0.004281166666666667,
+        "start_ticks": 1361776770664
+      },
+      "resources": {
+        "exit_code": 0,
+        "actual_peak_rss_bytes": 19283968,
+        "sampled_peak_rss_bytes": 17612800,
+        "sampled_peak_footprint_bytes": 16744832,
+        "cpu_user_seconds": 0.5457799999999999,
+        "cpu_system_seconds": 0.321332,
+        "safety_stop": null,
+        "stderr": ""
+      }
+    },
+    {
+      "build": "after",
+      "kind": "unique",
+      "mb": 20,
+      "trial": 1,
+      "labels": 117646,
+      "source_sha256": "c4e622e569b37f8a56040f9ebcb2efee11c6caba49be6a79e6258000d91a12ee",
+      "phases": [
+        {
+          "phase": "open",
+          "version": 1,
+          "dot_ms": 92.28066700000426,
+          "final_ms": 459.13333300000403,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 13631488,
+          "notifications": [
+            {
+              "ms": 92.28066700000426,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 459.13333300000403,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "outer_edit",
+          "version": 2,
+          "dot_ms": 85.80741699999805,
+          "final_ms": 446.39074999999906,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 13631488,
+          "notifications": [
+            {
+              "ms": 85.80741699999805,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 446.39074999999906,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 3,
+          "dot_ms": 87.0065000000011,
+          "final_ms": 460.85387499999797,
+          "errors": 2,
+          "incomplete": false,
+          "settled_rss_bytes": 13631488,
+          "notifications": [
+            {
+              "ms": 87.0065000000011,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 460.85387499999797,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 705873,
+                      "character": 25
+                    },
+                    "end": {
+                      "line": 705873,
+                      "character": 26
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 705873,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 705873,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</I>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 705874,
+                      "character": 10
+                    },
+                    "end": {
+                      "line": 705874,
+                      "character": 12
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 705873,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 705873,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</TD>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                }
+              ],
+              "wire_bytes": 1137
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 4,
+          "dot_ms": 76.11337500000559,
+          "final_ms": 451.9777500000046,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 13631488,
+          "notifications": [
+            {
+              "ms": 76.11337500000559,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 451.9777500000046,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 5,
+          "dot_ms": 95.66758300000089,
+          "final_ms": 482.7896669999987,
+          "errors": 2,
+          "incomplete": false,
+          "settled_rss_bytes": 13631488,
+          "notifications": [
+            {
+              "ms": 95.66758300000089,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 482.7896669999987,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 705873,
+                      "character": 25
+                    },
+                    "end": {
+                      "line": 705873,
+                      "character": 26
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 705873,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 705873,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</I>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 705874,
+                      "character": 10
+                    },
+                    "end": {
+                      "line": 705874,
+                      "character": 12
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 705873,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 705873,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</TD>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                }
+              ],
+              "wire_bytes": 1137
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 6,
+          "dot_ms": 79.7958330000057,
+          "final_ms": 441.48320800000107,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 13631488,
+          "notifications": [
+            {
+              "ms": 79.7958330000057,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 441.48320800000107,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        }
+      ],
+      "startup_ms": 3.41879199999795,
+      "idle": {
+        "t": 40.758154458,
+        "rss_bytes": 2162688,
+        "footprint_bytes": 1360208,
+        "cpu_seconds": 0.0018831666666666667,
+        "start_ticks": 1361858417649
+      },
+      "resources": {
+        "exit_code": 0,
+        "actual_peak_rss_bytes": 65208320,
+        "sampled_peak_rss_bytes": 54804480,
+        "sampled_peak_footprint_bytes": 54002144,
+        "cpu_user_seconds": 1.87754,
+        "cpu_system_seconds": 1.190274,
+        "safety_stop": null,
+        "stderr": ""
+      }
+    },
+    {
+      "build": "after",
+      "kind": "unique",
+      "mb": 20,
+      "trial": 2,
+      "labels": 117646,
+      "source_sha256": "c4e622e569b37f8a56040f9ebcb2efee11c6caba49be6a79e6258000d91a12ee",
+      "phases": [
+        {
+          "phase": "open",
+          "version": 1,
+          "dot_ms": 85.30795800000135,
+          "final_ms": 440.4153750000006,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 13631488,
+          "notifications": [
+            {
+              "ms": 85.30795800000135,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 440.4153750000006,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "outer_edit",
+          "version": 2,
+          "dot_ms": 89.06079200000505,
+          "final_ms": 441.00679200000314,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 13631488,
+          "notifications": [
+            {
+              "ms": 89.06079200000505,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 441.00679200000314,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 3,
+          "dot_ms": 90.55249999999404,
+          "final_ms": 503.74266699999737,
+          "errors": 2,
+          "incomplete": false,
+          "settled_rss_bytes": 13631488,
+          "notifications": [
+            {
+              "ms": 90.55249999999404,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 503.74266699999737,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 705873,
+                      "character": 25
+                    },
+                    "end": {
+                      "line": 705873,
+                      "character": 26
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 705873,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 705873,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</I>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 705874,
+                      "character": 10
+                    },
+                    "end": {
+                      "line": 705874,
+                      "character": 12
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 705873,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 705873,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</TD>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                }
+              ],
+              "wire_bytes": 1137
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 4,
+          "dot_ms": 77.64237500000348,
+          "final_ms": 464.3339170000047,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 13631488,
+          "notifications": [
+            {
+              "ms": 77.64237500000348,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 464.3339170000047,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 5,
+          "dot_ms": 97.03387500000105,
+          "final_ms": 490.28979199999867,
+          "errors": 2,
+          "incomplete": false,
+          "settled_rss_bytes": 13631488,
+          "notifications": [
+            {
+              "ms": 97.03387500000105,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 490.28979199999867,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 705873,
+                      "character": 25
+                    },
+                    "end": {
+                      "line": 705873,
+                      "character": 26
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 705873,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 705873,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</I>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 705874,
+                      "character": 10
+                    },
+                    "end": {
+                      "line": 705874,
+                      "character": 12
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 705873,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 705873,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</TD>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                }
+              ],
+              "wire_bytes": 1137
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 6,
+          "dot_ms": 78.88175000000075,
+          "final_ms": 433.7769999999992,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 13631488,
+          "notifications": [
+            {
+              "ms": 78.88175000000075,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 433.7769999999992,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        }
+      ],
+      "startup_ms": 4.394208999997318,
+      "idle": {
+        "t": 46.397770708,
+        "rss_bytes": 2162688,
+        "footprint_bytes": 1360208,
+        "cpu_seconds": 0.0026710833333333335,
+        "start_ticks": 1361993791913
+      },
+      "resources": {
+        "exit_code": 0,
+        "actual_peak_rss_bytes": 65339392,
+        "sampled_peak_rss_bytes": 54280192,
+        "sampled_peak_footprint_bytes": 53445040,
+        "cpu_user_seconds": 1.889005,
+        "cpu_system_seconds": 1.218733,
+        "safety_stop": null,
+        "stderr": ""
+      }
+    },
+    {
+      "build": "after",
+      "kind": "unique",
+      "mb": 20,
+      "trial": 3,
+      "labels": 117646,
+      "source_sha256": "c4e622e569b37f8a56040f9ebcb2efee11c6caba49be6a79e6258000d91a12ee",
+      "phases": [
+        {
+          "phase": "open",
+          "version": 1,
+          "dot_ms": 83.48275000000172,
+          "final_ms": 441.6160419999997,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 13631488,
+          "notifications": [
+            {
+              "ms": 83.48275000000172,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 441.6160419999997,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "outer_edit",
+          "version": 2,
+          "dot_ms": 91.46695900000168,
+          "final_ms": 458.3450840000012,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 13631488,
+          "notifications": [
+            {
+              "ms": 91.46695900000168,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 458.3450840000012,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 3,
+          "dot_ms": 91.08987500000154,
+          "final_ms": 455.6705409999964,
+          "errors": 2,
+          "incomplete": false,
+          "settled_rss_bytes": 13631488,
+          "notifications": [
+            {
+              "ms": 91.08987500000154,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 455.6705409999964,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 705873,
+                      "character": 25
+                    },
+                    "end": {
+                      "line": 705873,
+                      "character": 26
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 705873,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 705873,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</I>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 705874,
+                      "character": 10
+                    },
+                    "end": {
+                      "line": 705874,
+                      "character": 12
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 705873,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 705873,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</TD>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                }
+              ],
+              "wire_bytes": 1137
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 4,
+          "dot_ms": 79.48429200000362,
+          "final_ms": 453.9847080000001,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 13631488,
+          "notifications": [
+            {
+              "ms": 79.48429200000362,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 453.9847080000001,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 5,
+          "dot_ms": 95.98608299999967,
+          "final_ms": 483.35695800000167,
+          "errors": 2,
+          "incomplete": false,
+          "settled_rss_bytes": 13631488,
+          "notifications": [
+            {
+              "ms": 95.98608299999967,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 483.35695800000167,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 705873,
+                      "character": 25
+                    },
+                    "end": {
+                      "line": 705873,
+                      "character": 26
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 705873,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 705873,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</I>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 705874,
+                      "character": 10
+                    },
+                    "end": {
+                      "line": 705874,
+                      "character": 12
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 705873,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 705873,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</TD>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                }
+              ],
+              "wire_bytes": 1137
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 6,
+          "dot_ms": 79.42554199999563,
+          "final_ms": 459.09312499999544,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 13631488,
+          "notifications": [
+            {
+              "ms": 79.42554199999563,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 459.09312499999544,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        }
+      ],
+      "startup_ms": 4.60545800000034,
+      "idle": {
+        "t": 52.065962666,
+        "rss_bytes": 2162688,
+        "footprint_bytes": 1360208,
+        "cpu_seconds": 0.002718875,
+        "start_ticks": 1362129963986
+      },
+      "resources": {
+        "exit_code": 0,
+        "actual_peak_rss_bytes": 65208320,
+        "sampled_peak_rss_bytes": 54444032,
+        "sampled_peak_footprint_bytes": 53608880,
+        "cpu_user_seconds": 1.889989,
+        "cpu_system_seconds": 1.196338,
+        "safety_stop": null,
+        "stderr": ""
+      }
+    },
+    {
+      "build": "after",
+      "kind": "unique",
+      "mb": 40,
+      "trial": 1,
+      "labels": 235293,
+      "source_sha256": "95cc1be12113149ad2f1433268038a1ea27e69606145cfb27071588b996854d4",
+      "phases": [
+        {
+          "phase": "open",
+          "version": 1,
+          "dot_ms": 162.70895800000318,
+          "final_ms": 888.3422080000046,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 23363584,
+          "notifications": [
+            {
+              "ms": 162.70895800000318,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 888.3422080000046,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "outer_edit",
+          "version": 2,
+          "dot_ms": 163.02120800000353,
+          "final_ms": 897.5650410000001,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 23363584,
+          "notifications": [
+            {
+              "ms": 163.02120800000353,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 897.5650410000001,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 3,
+          "dot_ms": 150.07416699999965,
+          "final_ms": 925.6667500000049,
+          "errors": 2,
+          "incomplete": false,
+          "settled_rss_bytes": 23363584,
+          "notifications": [
+            {
+              "ms": 150.07416699999965,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 925.6667500000049,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 1411755,
+                      "character": 25
+                    },
+                    "end": {
+                      "line": 1411755,
+                      "character": 26
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 1411755,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 1411755,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</I>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 1411756,
+                      "character": 10
+                    },
+                    "end": {
+                      "line": 1411756,
+                      "character": 12
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 1411755,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 1411755,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</TD>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                }
+              ],
+              "wire_bytes": 1145
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 4,
+          "dot_ms": 131.21549999999615,
+          "final_ms": 974.8557089999963,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 23363584,
+          "notifications": [
+            {
+              "ms": 131.21549999999615,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 974.8557089999963,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 5,
+          "dot_ms": 164.3108750000053,
+          "final_ms": 982.3582919999935,
+          "errors": 2,
+          "incomplete": false,
+          "settled_rss_bytes": 23363584,
+          "notifications": [
+            {
+              "ms": 164.3108750000053,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 982.3582919999935,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 1411755,
+                      "character": 25
+                    },
+                    "end": {
+                      "line": 1411755,
+                      "character": 26
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 1411755,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 1411755,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</I>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 1411756,
+                      "character": 10
+                    },
+                    "end": {
+                      "line": 1411756,
+                      "character": 12
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 1411755,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 1411755,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</TD>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                }
+              ],
+              "wire_bytes": 1145
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 6,
+          "dot_ms": 129.87341699999888,
+          "final_ms": 859.5129589999999,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 23363584,
+          "notifications": [
+            {
+              "ms": 129.87341699999888,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 859.5129589999999,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        }
+      ],
+      "startup_ms": 4.03970800000053,
+      "idle": {
+        "t": 58.479360416,
+        "rss_bytes": 2162688,
+        "footprint_bytes": 1360208,
+        "cpu_seconds": 0.0019518333333333332,
+        "start_ticks": 1362283710491
+      },
+      "resources": {
+        "exit_code": 0,
+        "actual_peak_rss_bytes": 126533632,
+        "sampled_peak_rss_bytes": 124616704,
+        "sampled_peak_footprint_bytes": 123879880,
+        "cpu_user_seconds": 3.721174,
+        "cpu_system_seconds": 2.504105,
+        "safety_stop": null,
+        "stderr": ""
+      }
+    },
+    {
+      "build": "after",
+      "kind": "unique",
+      "mb": 40,
+      "trial": 2,
+      "labels": 235293,
+      "source_sha256": "95cc1be12113149ad2f1433268038a1ea27e69606145cfb27071588b996854d4",
+      "phases": [
+        {
+          "phase": "open",
+          "version": 1,
+          "dot_ms": 154.4449170000064,
+          "final_ms": 875.5857500000133,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 23363584,
+          "notifications": [
+            {
+              "ms": 154.4449170000064,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 875.5857500000133,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "outer_edit",
+          "version": 2,
+          "dot_ms": 138.99941700000795,
+          "final_ms": 897.7381250000036,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 23363584,
+          "notifications": [
+            {
+              "ms": 138.99941700000795,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 897.7381250000036,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 3,
+          "dot_ms": 150.11445799999024,
+          "final_ms": 909.5904579999967,
+          "errors": 2,
+          "incomplete": false,
+          "settled_rss_bytes": 23363584,
+          "notifications": [
+            {
+              "ms": 150.11445799999024,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 909.5904579999967,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 1411755,
+                      "character": 25
+                    },
+                    "end": {
+                      "line": 1411755,
+                      "character": 26
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 1411755,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 1411755,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</I>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 1411756,
+                      "character": 10
+                    },
+                    "end": {
+                      "line": 1411756,
+                      "character": 12
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 1411755,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 1411755,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</TD>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                }
+              ],
+              "wire_bytes": 1145
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 4,
+          "dot_ms": 128.55420799999706,
+          "final_ms": 960.6565830000022,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 23363584,
+          "notifications": [
+            {
+              "ms": 128.55420799999706,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 960.6565830000022,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 5,
+          "dot_ms": 136.02604099999382,
+          "final_ms": 971.5719999999948,
+          "errors": 2,
+          "incomplete": false,
+          "settled_rss_bytes": 23363584,
+          "notifications": [
+            {
+              "ms": 136.02604099999382,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 971.5719999999948,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 1411755,
+                      "character": 25
+                    },
+                    "end": {
+                      "line": 1411755,
+                      "character": 26
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 1411755,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 1411755,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</I>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 1411756,
+                      "character": 10
+                    },
+                    "end": {
+                      "line": 1411756,
+                      "character": 12
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 1411755,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 1411755,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</TD>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                }
+              ],
+              "wire_bytes": 1145
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 6,
+          "dot_ms": 131.43058299999666,
+          "final_ms": 872.1013749999997,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 23363584,
+          "notifications": [
+            {
+              "ms": 131.43058299999666,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 872.1013749999997,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        }
+      ],
+      "startup_ms": 5.83650000000091,
+      "idle": {
+        "t": 67.160252541,
+        "rss_bytes": 2162688,
+        "footprint_bytes": 1360208,
+        "cpu_seconds": 0.0031565416666666664,
+        "start_ticks": 1362492106757
+      },
+      "resources": {
+        "exit_code": 0,
+        "actual_peak_rss_bytes": 126468096,
+        "sampled_peak_rss_bytes": 101122048,
+        "sampled_peak_footprint_bytes": 100303304,
+        "cpu_user_seconds": 3.70711,
+        "cpu_system_seconds": 2.481709,
+        "safety_stop": null,
+        "stderr": ""
+      }
+    },
+    {
+      "build": "after",
+      "kind": "unique",
+      "mb": 40,
+      "trial": 3,
+      "labels": 235293,
+      "source_sha256": "95cc1be12113149ad2f1433268038a1ea27e69606145cfb27071588b996854d4",
+      "phases": [
+        {
+          "phase": "open",
+          "version": 1,
+          "dot_ms": 157.90983399999448,
+          "final_ms": 903.9308339999934,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 23363584,
+          "notifications": [
+            {
+              "ms": 157.90983399999448,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 903.9308339999934,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "outer_edit",
+          "version": 2,
+          "dot_ms": 145.75741699999867,
+          "final_ms": 878.7145829999901,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 23363584,
+          "notifications": [
+            {
+              "ms": 145.75741699999867,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 878.7145829999901,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 3,
+          "dot_ms": 157.7365420000092,
+          "final_ms": 973.8733340000039,
+          "errors": 2,
+          "incomplete": false,
+          "settled_rss_bytes": 23363584,
+          "notifications": [
+            {
+              "ms": 157.7365420000092,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 973.8733340000039,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 1411755,
+                      "character": 25
+                    },
+                    "end": {
+                      "line": 1411755,
+                      "character": 26
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 1411755,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 1411755,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</I>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 1411756,
+                      "character": 10
+                    },
+                    "end": {
+                      "line": 1411756,
+                      "character": 12
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 1411755,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 1411755,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</TD>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                }
+              ],
+              "wire_bytes": 1145
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 4,
+          "dot_ms": 136.61120800000504,
+          "final_ms": 923.6326670000068,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 23363584,
+          "notifications": [
+            {
+              "ms": 136.61120800000504,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 923.6326670000068,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 5,
+          "dot_ms": 156.73137500000678,
+          "final_ms": 971.8773750000054,
+          "errors": 2,
+          "incomplete": false,
+          "settled_rss_bytes": 23363584,
+          "notifications": [
+            {
+              "ms": 156.73137500000678,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 971.8773750000054,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 1411755,
+                      "character": 25
+                    },
+                    "end": {
+                      "line": 1411755,
+                      "character": 26
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 1411755,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 1411755,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</I>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 1411756,
+                      "character": 10
+                    },
+                    "end": {
+                      "line": 1411756,
+                      "character": 12
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 1411755,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 1411755,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</TD>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                }
+              ],
+              "wire_bytes": 1145
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 6,
+          "dot_ms": 136.38529199999994,
+          "final_ms": 915.0254999999987,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 23363584,
+          "notifications": [
+            {
+              "ms": 136.38529199999994,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 915.0254999999987,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        }
+      ],
+      "startup_ms": 5.72995799998921,
+      "idle": {
+        "t": 75.585221083,
+        "rss_bytes": 2162688,
+        "footprint_bytes": 1360208,
+        "cpu_seconds": 0.0030320833333333337,
+        "start_ticks": 1362694263788
+      },
+      "resources": {
+        "exit_code": 0,
+        "actual_peak_rss_bytes": 126468096,
+        "sampled_peak_rss_bytes": 126287872,
+        "sampled_peak_footprint_bytes": 125518352,
+        "cpu_user_seconds": 3.763592,
+        "cpu_system_seconds": 2.509189,
+        "safety_stop": null,
+        "stderr": ""
+      }
+    }
+  ]
+}

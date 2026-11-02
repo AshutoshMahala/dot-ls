@@ -1,0 +1,215 @@
+--- before/src/analysis/diagnostic_text.zig
++++ after/src/analysis/diagnostic_text.zig
+@@ -75,18 +75,32 @@
+     var out = std.Io.Writer.fixed(buffer);
+     switch (d.details) {
+         .unexpected => |v| {
+-            try out.writeAll("Expected ");
+-            var iter = v.expected.iterator();
+-            var first = true;
+-            while (iter.next()) |expected| {
+-                if (!first) try out.writeAll(" or ");
+-                try out.writeAll(item(expected));
+-                first = false;
++            const missing_bracket = v.expected.contains(.right_bracket) and (v.found == .right_brace or v.found == .end_of_input);
++            const missing_brace = v.expected.contains(.right_brace) and v.found == .end_of_input;
++            if (missing_bracket) {
++                try out.print("Missing closing ']' before {s}.", .{item(v.found)});
++            } else if (missing_brace) {
++                try out.writeAll("Missing closing '}' at end of input.");
++            } else {
++                // Keep the first line useful in narrow inline diagnostics. Details
++                // and repairs remain plain text for every LSP client.
++                if (v.context == .edge_endpoint) {
++                    try out.writeAll("Expected a node name or subgraph");
++                } else {
++                    try out.writeAll("Expected ");
++                    var iter = v.expected.iterator();
++                    var first = true;
++                    while (iter.next()) |expected| {
++                        if (!first) try out.writeAll(" or ");
++                        try out.writeAll(item(expected));
++                        first = false;
++                    }
++                    if (first) try out.writeAll("valid DOT syntax");
++                }
++                try out.print("; found {s}.", .{item(v.found)});
+             }
+-            if (first) try out.writeAll("valid DOT syntax");
+-            try out.print("; found {s}.", .{item(v.found)});
+-            const help: []const u8 = switch (v.context) {
+-                .edge_endpoint => "Add a node ID or subgraph after the edge operator.",
++            const help: []const u8 = if (missing_bracket) "Close the attribute list with ']'." else if (missing_brace) "Close the graph or subgraph with '}'." else switch (v.context) {
++                .edge_endpoint => "Add a node name or subgraph after the edge operator.",
+                 .document_header => "Start a graph with 'graph' or 'digraph', followed by an optional name and '{'.",
+                 .attribute_value, .assignment_value => "Add a value after '='. Use double quotes for text with spaces.",
+                 .attribute_key => "Add an attribute name before '='.",
+--- before/src/app.zig
++++ after/src/app.zig
+@@ -33,6 +33,7 @@
+     initialized: bool = false,
+     versioned_edits: bool = false,
+     hierarchical_symbols: bool = false,
++    hover_markdown: bool = false,
+     shutdown: bool = false,
+     stopped: bool = false,
+ 
+@@ -150,6 +151,7 @@
+             const caps = command.body.initialize;
+             self.versioned_edits = caps.versioned_edits;
+             self.hierarchical_symbols = caps.hierarchical_symbols;
++            self.hover_markdown = caps.hover_markdown;
+             self.state.configure(caps.encoding, caps.related_information);
+             self.initialized = true;
+             try batch.add(id.?, .{ .initialized = caps.encoding });
+@@ -324,7 +326,7 @@
+             .null_result => try responses.result(a, control, id, @as(?u8, null)),
+             .view => |view| switch (view) {
+                 .completion => |v| try responses.completion(a, w, id, v.index.value, v.point),
+-                .hover => |v| try responses.hover(a, w, id, v.index.value, v.point),
++                .hover => |v| try responses.hover(a, w, id, v.index.value, v.point, self.server.hover_markdown),
+                 .references => |v| try responses.referencesReply(a, w, id, v.index.uri, v.index.value, v.point, v.include),
+                 .outline => |v| try responses.outlineReply(a, w, id, v.value, v.uri, self.server.hierarchical_symbols),
+                 .fixes => |v| try responses.codeActions(a, w, id, v.index.uri, v.index.version, v.index.value, v.range),
+--- before/src/features/attributes.zig
++++ after/src/features/attributes.zig
+@@ -19,13 +19,49 @@
+     };
+ }
+ pub fn help(buffer: []u8, entry: catalog.Entry) ![]const u8 {
+-    return std.fmt.bufPrint(buffer, "{s}\n\nType: {s}\n\nDefault: {s}{s}{s}\n\nApplies to: {s}{s}{s}{s}{s}", .{
+-        description(entry.name),                                                    entry.type_name,
+-        if (entry.default_value.len == 0) "not specified" else entry.default_value, if (entry.minimum.len == 0) "" else "\n\nMinimum: ",
+-        entry.minimum,                                                              if (entry.targets.graph) "graph " else "",
+-        if (entry.targets.node) "node " else "",                                    if (entry.targets.edge) "edge " else "",
+-        if (entry.targets.cluster) "cluster " else "",                              if (entry.targets.subgraph) "subgraph" else "",
+-    });
++    return helpFormatted(buffer, entry, false);
++}
++/// Catalog-only content, formatted on demand into bounded caller storage.
++/// No document text is interpreted as Markdown and no per-document data is added.
++pub fn helpFormatted(buffer: []u8, entry: catalog.Entry, markdown: bool) ![]const u8 {
++    var out = std.Io.Writer.fixed(buffer);
++    if (markdown) try out.print("**`{s}`**\n\n{s}\n\n", .{ entry.name, description(entry.name) }) else try out.print("{s}\n\n{s}\n\n", .{ entry.name, description(entry.name) });
++    try metadata(&out, "Type", entry.type_name, markdown);
++    try metadata(&out, "Default", if (entry.default_value.len == 0) "not specified" else entry.default_value, markdown);
++    if (entry.minimum.len > 0) try metadata(&out, "Minimum", entry.minimum, markdown);
++    try out.writeAll(if (markdown) "- **Applies to:** " else "Applies to: ");
++    var first = true;
++    inline for (.{ "graph", "node", "edge", "cluster", "subgraph" }) |target| {
++        if (@field(entry.targets, target)) {
++            if (!first) try out.writeAll(", ");
++            try out.writeAll(target);
++            first = false;
++        }
++    }
++    if (example(entry.name)) |sample| {
++        if (markdown) try out.print("\n\n```dot\n{s}\n```", .{sample}) else try out.print("\n\nExample:\n{s}", .{sample});
++    }
++    if (markdown) try out.print("\n\n[Graphviz reference](https://graphviz.org/docs/attrs/{s}/)", .{entry.name}) else try out.print("\n\nReference: https://graphviz.org/docs/attrs/{s}/", .{entry.name});
++    return out.buffered();
++}
++fn metadata(out: *std.Io.Writer, label: []const u8, value: []const u8, markdown: bool) !void {
++    if (markdown) try out.print("- **{s}:** `{s}`\n", .{ label, value }) else try out.print("{s}: {s}\n", .{ label, value });
++}
++fn example(name: []const u8) ?[]const u8 {
++    const samples = .{
++        .{ "shape", "start [shape=box];" },
++        .{ "label", "start [label=\"Start here\"];" },
++        .{ "color", "start [color=blue];" },
++        .{ "fillcolor", "start [style=filled, fillcolor=lightblue];" },
++        .{ "rankdir", "graph [rankdir=LR];" },
++        .{ "rank", "{ rank=same; start; finish; }" },
++        .{ "fontsize", "start [fontsize=14];" },
++        .{ "fontname", "start [fontname=\"Helvetica\"];" },
++        .{ "arrowhead", "start -> finish [arrowhead=vee];" },
++        .{ "weight", "start -> finish [weight=2];" },
++    };
++    inline for (samples) |sample| if (std.mem.eql(u8, name, sample[0])) return sample[1];
++    return null;
+ }
+ fn description(name: []const u8) []const u8 {
+     const descriptions = .{
+@@ -185,6 +221,13 @@
+         const text = try help(&buffer, entry);
+         try std.testing.expect(std.mem.indexOf(u8, text, "Type:") != null);
+         try std.testing.expect(std.mem.indexOf(u8, text, "Applies to:") != null);
++        const markdown = try helpFormatted(&buffer, entry, true);
++        try std.testing.expect(std.mem.startsWith(u8, markdown, "**`"));
++        try std.testing.expect(std.mem.indexOf(u8, markdown, "[Graphviz reference]") != null);
++        // Catalog metadata is the only Markdown input. Reject markup delimiters
++        // here if the dependency adds a value that needs an escaping strategy.
++        for ([_][]const u8{ entry.name, entry.type_name, entry.default_value, entry.minimum }) |value|
++            try std.testing.expect(std.mem.indexOfAny(u8, value, "`\r\n") == null);
+     }
+     try std.testing.expect(applies(catalog.lookup("shape").?.*, .node));
+     try std.testing.expect(!applies(catalog.lookup("shape").?.*, .edge));
+--- before/src/features/code_actions.zig
++++ after/src/features/code_actions.zig
+@@ -68,9 +68,14 @@
+     }
+     pub fn title(self: Fix, allocator: std.mem.Allocator) ![]const u8 {
+         return switch (self.kind) {
+-            .delete => "Remove this text",
+-            .quote => "Quote this identifier",
+-            .insert => try std.fmt.allocPrint(allocator, "Insert '{s}'", .{self.replacement.text()}),
++            .delete => "Remove unexpected text",
++            .quote => "Put double quotes around this name",
++            .insert => switch (self.replacement) {
++                .right_bracket => "Insert closing ']'",
++                .right_brace => "Insert closing '}'",
++                .comment_close => "Close the block comment with '*/'",
++                else => try std.fmt.allocPrint(allocator, "Insert '{s}'", .{self.replacement.text()}),
++            },
+             .replace => try std.fmt.allocPrint(allocator, "Replace with '{s}'", .{self.replacement.text()}),
+         };
+     }
+--- before/src/protocol/requests.zig
++++ after/src/protocol/requests.zig
+@@ -3,7 +3,7 @@
+ const std = @import("std");
+ const lsp = @import("lsp.zig");
+ const text = @import("../text/types.zig");
+-pub const Capabilities = struct { versioned_edits: bool = false, hierarchical_symbols: bool = false, related_information: bool = false, encoding: text.Encoding = .utf16 };
++pub const Capabilities = struct { versioned_edits: bool = false, hierarchical_symbols: bool = false, related_information: bool = false, hover_markdown: bool = false, encoding: text.Encoding = .utf16 };
+ pub const Positioned = struct { uri: []const u8, point: text.Position };
+ pub const References = struct { uri: []const u8, point: text.Position, include: bool };
+ pub const Update = struct { uri: []const u8, text: []const u8, version: i64, opening: bool };
+@@ -68,6 +68,16 @@
+ fn capabilities(params: std.json.Value) Capabilities {
+     var result: Capabilities = .{};
+     const caps = field(params, "capabilities") orelse .null;
++    const hover = field(field(caps, "textDocument") orelse .null, "hover") orelse .null;
++    if (field(hover, "contentFormat")) |formats| if (formats == .array) {
++        for (formats.array.items) |value| {
++            const format = string(value) orelse continue;
++            if (std.mem.eql(u8, format, "markdown") or std.mem.eql(u8, format, "plaintext")) {
++                result.hover_markdown = std.mem.eql(u8, format, "markdown");
++                break;
++            }
++        }
++    };
+     const workspace_edit = field(field(caps, "workspace") orelse .null, "workspaceEdit") orelse .null;
+     const document_changes = field(workspace_edit, "documentChanges") orelse .null;
+     result.versioned_edits = document_changes == .bool and document_changes.bool;
+--- before/src/protocol/responses.zig
++++ after/src/protocol/responses.zig
+@@ -80,15 +80,15 @@
+ pub fn completion(allocator: std.mem.Allocator, writer: Destination, id: lsp.Id, index: context.Index, point: pos.Position) !void {
+     try send(allocator, writer, .{ .jsonrpc = "2.0", .id = id, .result = CompletionList{ .kind = index.at(point) } });
+ }
+-pub fn hover(allocator: std.mem.Allocator, writer: Destination, id: lsp.Id, index: context.Index, point: pos.Position) !void {
++pub fn hover(allocator: std.mem.Allocator, writer: Destination, id: lsp.Id, index: context.Index, point: pos.Position, markdown: bool) !void {
+     if (!index.attributes.available) return failure(allocator, writer, id, lsp.ErrorCode.request_failed, "Attribute hover exceeded its memory limit.");
+     const byte = index.coordinates.byteAt(point);
+     const match = if (byte) |b| index.attributes.at(b) else null;
+     if (match) |key| {
+         const entry = attributes.catalog.entries[key.id];
+         var buffer: [2048]u8 = undefined;
+-        const text = try attributes.help(&buffer, entry);
+-        try send(allocator, writer, .{ .jsonrpc = "2.0", .id = id, .result = .{ .contents = .{ .kind = "plaintext", .value = text }, .range = .{ .start = index.coordinates.positionAt(key.span.start), .end = index.coordinates.positionAt(@intCast(key.span.endOffset())) } } });
++        const text = try attributes.helpFormatted(&buffer, entry, markdown);
++        try send(allocator, writer, .{ .jsonrpc = "2.0", .id = id, .result = .{ .contents = .{ .kind = if (markdown) "markdown" else "plaintext", .value = text }, .range = .{ .start = index.coordinates.positionAt(key.span.start), .end = index.coordinates.positionAt(@intCast(key.span.endOffset())) } } });
+     } else try send(allocator, writer, .{ .jsonrpc = "2.0", .id = id, .result = @as(?u8, null) });
+ }
+ pub fn referencesReply(allocator: std.mem.Allocator, writer: Destination, request: lsp.Id, uri: []const u8, index: references.Index, point: pos.Position, include: bool) !void {

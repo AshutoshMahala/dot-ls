@@ -1,0 +1,111 @@
+[
+  {
+    "suite": "lsp",
+    "command": [
+      "/Library/Developer/CommandLineTools/usr/bin/python3",
+      "tests/lsp.py",
+      "/private/tmp/dot-ls-parser-c936fd1-f_l8p0ux/after/bin/dot-ls"
+    ],
+    "exit": 0,
+    "output": "{\n  \"checks\": \"passed\",\n  \"binary_bytes\": 967896,\n  \"startup_ms_median\": 2.2829580000000016,\n  \"startup_ms_max\": 2.829540999999991,\n  \"edit_bytes\": 800012,\n  \"edit_ms_median\": 7.95241699999999,\n  \"edit_ms_max\": 8.300499999999989\n}\n"
+  },
+  {
+    "suite": "protocol",
+    "exit": 0,
+    "output": "26 captured replies/findings match after excluding only the expected serverInfo.version change.",
+    "versions": {
+      "after": "0.0.1-dev; dot-parser 0.5.0+outline-hook.4 (c936fd1)",
+      "before": "0.0.1-dev; dot-parser 0.5.0+outline-hook.3 (8615e9f)"
+    }
+  },
+  {
+    "suite": "validation",
+    "command": [
+      "/Library/Developer/CommandLineTools/usr/bin/python3",
+      "tests/validation.py",
+      "/private/tmp/dot-ls-parser-c936fd1-f_l8p0ux/after/bin/dot-ls"
+    ],
+    "exit": 0,
+    "output": "DOT policy protocol checks passed (UTF-8/16/32, limits, repair, HTML merge).\n"
+  },
+  {
+    "suite": "completion",
+    "command": [
+      "/Library/Developer/CommandLineTools/usr/bin/python3",
+      "tests/completion.py",
+      "/private/tmp/dot-ls-parser-c936fd1-f_l8p0ux/after/bin/dot-ls"
+    ],
+    "exit": 0,
+    "output": "Completion: contexts, partial input, UTF-8/16/32, line endings, limits and deferred lifecycle passed\n"
+  },
+  {
+    "suite": "attributes",
+    "command": [
+      "/Library/Developer/CommandLineTools/usr/bin/python3",
+      "tests/attributes.py",
+      "/private/tmp/dot-ls-parser-c936fd1-f_l8p0ux/after/bin/dot-ls"
+    ],
+    "exit": 0,
+    "output": "Attributes: owner filtering, quoted names, UTF-8/16/32, hover exclusions and stale/cancelled requests passed\n"
+  },
+  {
+    "suite": "references",
+    "command": [
+      "/Library/Developer/CommandLineTools/usr/bin/python3",
+      "tests/references.py",
+      "/private/tmp/dot-ls-parser-c936fd1-f_l8p0ux/after/bin/dot-ls"
+    ],
+    "exit": 0,
+    "output": "Node references: identities, chains, scopes, encodings, limits, invalid syntax and lifecycle passed\n"
+  },
+  {
+    "suite": "html",
+    "command": [
+      "/Library/Developer/CommandLineTools/usr/bin/python3",
+      "tests/html.py",
+      "/private/tmp/dot-ls-parser-c936fd1-f_l8p0ux/after/bin/dot-ls"
+    ],
+    "exit": 0,
+    "output": "HTML: staged merge, selection, UTF-8/16/32, moved labels, repairs, limits, 70,000-label tail coverage and obsolete generations passed\n"
+  },
+  {
+    "suite": "code_actions",
+    "command": [
+      "/Library/Developer/CommandLineTools/usr/bin/python3",
+      "tests/code_actions.py",
+      "/private/tmp/dot-ls-parser-c936fd1-f_l8p0ux/after/bin/dot-ls"
+    ],
+    "exit": 0,
+    "output": "Code actions: parser edits apply cleanly; UTF-8/16/32, HTML rebase, filters, stale generations and versioned edits passed.\n"
+  },
+  {
+    "suite": "outline",
+    "command": [
+      "/Library/Developer/CommandLineTools/usr/bin/python3",
+      "tests/outline.py",
+      "/private/tmp/dot-ls-parser-c936fd1-f_l8p0ux/after/bin/dot-ls"
+    ],
+    "exit": 0,
+    "output": "document outline protocol checks passed\n"
+  },
+  {
+    "suite": "output",
+    "command": [
+      "/Library/Developer/CommandLineTools/usr/bin/python3",
+      "tests/output.py",
+      "/private/tmp/dot-ls-parser-c936fd1-f_l8p0ux/after/bin/dot-ls"
+    ],
+    "exit": 0,
+    "output": "Output: partial intake, paused/resumed reader, intact large reply, close/cancel input, bounded exit and broken pipe passed.\n"
+  },
+  {
+    "suite": "templates",
+    "command": [
+      "/Library/Developer/CommandLineTools/usr/bin/python3",
+      "tests/templates.py",
+      "/private/tmp/dot-ls-parser-c936fd1-f_l8p0ux/after/bin/dot-ls"
+    ],
+    "exit": 0,
+    "output": "Templates: Markdown/plaintext preference, malformed capabilities, example, link and plain diagnostic passed.\n"
+  }
+]

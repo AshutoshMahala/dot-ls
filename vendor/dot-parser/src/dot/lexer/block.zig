@@ -1,0 +1,920 @@
+//! The block scanner: classifies the source 64 bytes at a time into bit
+//! masks (one `u64` per byte class), then extracts tokens from the masks
+//! with count-trailing-zeros instead of examining bytes one at a time.
+//!
+//! Same tokens, spans, diagnostics, fixes and warnings as the scalar
+//! scanner — the differential tests in `lexer.zig` hold the two to
+//! equality on every fixture, random input and truncation — but line
+//! tracking is a popcount per block and the per-byte state dispatch is gone.
+//! DOT's own rules (keywords, numerals, operators, `+` concatenation, the
+//! comment forms, escapes) are decided over the short runs the masks
+//! delimit, which is where a byte-oriented grammar belongs.
+//!
+//! Work credits (execution contract): one credit classifies one block, one
+//! credit advances the token machine within the classified block. Both are
+//! bounded by the block size, so a budget of one always makes progress and
+//! cancellation latency is at most one block. The block's masks are part
+//! of the saved state, so a yield never re-classifies; only a few
+//! two-or-three-byte lookaheads (`-->`, `-.5`) may straddle a boundary and
+//! read a byte of the next block directly.
+//!
+//! No allocation, no OS, instance-owned state (R-MEM-001, R-ROB-003). The
+//! vector operations lower to scalar code on targets without SIMD; `lexer.zig`
+//! chooses the scalar scanner there by default.
+
+const std = @import("std");
+const encoding = @import("parser_support").encoding;
+const location = @import("parser_support").location;
+const diagnostic = @import("../diagnostic.zig");
+const types = @import("token.zig");
+
+pub const Token = types.Token;
+pub const Result = types.Result;
+const Advance = types.Advance;
+const Terminal = types.Terminal;
+const isIdentifierByte = types.isIdentifierByte;
+
+pub const block_len = 64;
+
+/// Classification compares the block in chunks of the target's natural u8
+/// lane count, so each compare-to-mask step is one native movemask where
+/// the target has one and plain scalar code where it does not. (A single
+/// 64-lane bool vector bitcast miscompiles on wasm32 simd128 with Zig
+/// 0.16; chunks of the native width do not.)
+const chunk_len = @min(std.simd.suggestVectorLength(u8) orelse 16, block_len);
+const Chunk = @Vector(chunk_len, u8);
+const ChunkMask = @Int(.unsigned, chunk_len);
+const Block = [block_len]u8;
+
+pub const Lexer = Scanner(false, false, true);
+
+/// Byte-class bit masks of one block: bit i describes byte `block_start + i`.
+const Masks = struct {
+    /// Space, tab, CR, LF.
+    ws: u64,
+    /// Space and tab only.
+    blank: u64,
+    /// LF or CR bytes.
+    newline_byte: u64,
+    /// [A-Za-z0-9_] and bytes >= 0x80.
+    ident: u64,
+    digit: u64,
+    quote: u64,
+    /// Quotes escaped by an odd run of backslashes.
+    escaped: u64,
+    star: u64,
+    slash: u64,
+    nul: u64,
+};
+
+inline fn compare(bytes: *const Block, comptime op: std.math.CompareOperator, c: u8) u64 {
+    var mask: u64 = 0;
+    inline for (0..block_len / chunk_len) |i| {
+        const chunk: Chunk = bytes[i * chunk_len ..][0..chunk_len].*;
+        const hits: @Vector(chunk_len, bool) = switch (op) {
+            .eq => chunk == @as(Chunk, @splat(c)),
+            .gte => chunk >= @as(Chunk, @splat(c)),
+            .lte => chunk <= @as(Chunk, @splat(c)),
+            else => comptime unreachable,
+        };
+        mask |= @as(u64, @as(ChunkMask, @bitCast(hits))) << @as(u6, @intCast(i * chunk_len));
+    }
+    return mask;
+}
+inline fn eq(bytes: *const Block, c: u8) u64 {
+    return compare(bytes, .eq, c);
+}
+inline fn ge(bytes: *const Block, c: u8) u64 {
+    return compare(bytes, .gte, c);
+}
+inline fn le(bytes: *const Block, c: u8) u64 {
+    return compare(bytes, .lte, c);
+}
+
+/// Bytes escaped by an odd-length run of backslashes, with the run parity
+/// carried across blocks (the simdjson formulation).
+fn findEscaped(backslash_in: u64, prev_escaped: *bool) u64 {
+    const prev: u64 = @intFromBool(prev_escaped.*);
+    if (backslash_in == 0) {
+        prev_escaped.* = false;
+        return prev;
+    }
+    const backslash = backslash_in & ~prev;
+    const follows_escape = (backslash << 1) | prev;
+    const even_bits: u64 = 0x5555555555555555;
+    const odd_sequence_starts = backslash & ~even_bits & ~follows_escape;
+    const sum = @addWithOverflow(odd_sequence_starts, backslash);
+    prev_escaped.* = sum[1] == 1;
+    const invert_mask = sum[0] << 1;
+    return (even_bits ^ invert_mask) & follows_escape;
+}
+
+pub fn Scanner(comptime metered: bool, comptime audited: bool, comptime numeral_check: ?bool) type {
+    return ScannerWithComments(metered, audited, numeral_check, false);
+}
+
+pub fn ScannerWithComments(comptime metered: bool, comptime audited: bool, comptime numeral_check: ?bool, comptime comments: ?bool) type {
+    return ScannerWithEncoding(.utf8, metered, audited, numeral_check, comments);
+}
+
+pub fn ScannerWithEncoding(comptime actual: encoding.Actual, comptime metered: bool, comptime audited: bool, comptime numeral_check: ?bool, comptime comments: ?bool) type {
+    return ScannerConfigured(actual, metered, audited, numeral_check, comments, false);
+}
+
+fn ScannerConfigured(comptime actual: encoding.Actual, comptime metered: bool, comptime audited: bool, comptime numeral_check: ?bool, comptime comments: ?bool, comptime preview_boundaries: bool) type {
+    const enc = encoding.Reader(actual);
+    return struct {
+        const Self = @This();
+        pub const source_encoding = actual;
+
+        /// Internal parser specialization; no state or work is added when unused.
+        pub fn WithPreviews() type {
+            return ScannerConfigured(actual, metered, audited, numeral_check, comments, true);
+        }
+        const Mode = enum { trivia, line_comment, block_comment, quoted, html, ident, numeral, dash_gap, triple_dash };
+        const TriviaMode = enum { ordinary, after_part, after_plus };
+        const NumeralPart = enum { integral, fraction };
+
+        source: []const u8,
+        /// Next byte to consider.
+        cursor: u32 = 0,
+        /// The classified block, when `classified`; always 64-aligned.
+        block_start: u32 = 0,
+        masks: Masks = undefined,
+        classified: bool = false,
+        /// Backslash-run parity carried into the next block.
+        prev_escaped: bool = false,
+        mode: Mode = .trivia,
+        trivia: TriviaMode = .ordinary,
+        part: NumeralPart = .integral,
+        /// Start of the token being built (or the failing token).
+        anchor: u32 = 0,
+        /// Failure span start: a quote or comment opener, or the bad byte.
+        opener: u32 = 0,
+        /// One past the last closing quote of the current quoted token.
+        part_end: u32 = 0,
+        /// First byte of a block comment's body (after `/*`).
+        content: union { body_start: u32, html_depth: u32 } = .{ .body_start = 0 },
+        flags: Token.Flags = .{},
+        /// The most recently completed token.
+        ready: Token = undefined,
+        comment_frontier: if (comments == false) void else u32 = if (comments == false) {} else 0,
+        retain_comments: if (comments == null) bool else void = if (comments == null) false else {},
+        terminal: Terminal = .none,
+        terminal_len: u32 = 0,
+        found: ?u8 = null,
+        /// See `takeWarning`.
+        ambiguous_numeral: if (numeral_check == false) void else ?u8 = if (numeral_check == false) {} else null,
+        check_numerals: if (numeral_check == null) bool else void = if (numeral_check == null) true else {},
+
+        source_frontier: if (metered) usize else void = if (metered) 0 else {},
+        examinations: if (audited) usize else void = if (audited) 0 else {},
+
+        pub fn init(source: []const u8) Self {
+            var self = initRaw(source);
+            if (self.terminal != .none) return self;
+            // Only a leading byte order mark is framing; its original bytes
+            // remain part of the source offsets.
+            self.cursor = enc.bomLength(source) / enc.width;
+            return self;
+        }
+
+        pub fn setNumeralCheck(self: *Self, enabled: bool) void {
+            if (numeral_check == null) self.check_numerals = enabled;
+        }
+
+        pub fn setRetainComments(self: *Self, enabled: bool) void {
+            if (comments == null) self.retain_comments = enabled;
+        }
+
+        fn finishComment(self: *Self, end: u32) ?Result {
+            if (comptime comments == false) return null;
+            if (!(comments orelse self.retain_comments) or end <= self.comment_frontier) return null;
+            self.comment_frontier = end;
+            const tag: Token.Tag = if (enc.scanByte(self.source, self.opener) == '#') .comment_hash_line else if (enc.scanByte(self.source, self.opener + 1) == '/') .comment_slash_line else .comment_block;
+            self.ready = .{ .tag = tag, .span = .{ .start = self.opener, .len = end - self.opener } };
+            return .{ .token = enc.scaled(Token, self.ready) };
+        }
+
+        fn checksNumerals(self: *const Self) bool {
+            return numeral_check orelse self.check_numerals;
+        }
+
+        /// Scan raw token bytes without document-level BOM handling; see
+        /// the scalar scanner's `initRaw` and identifier decoding.
+        pub fn initRaw(source: []const u8) Self {
+            var self: Self = .{ .source = source };
+            if (source.len > location.max_source_len) self.terminal = .oversize;
+            return self;
+        }
+
+        /// `next`, `drive` and `microstep` are forced inline: the parser's
+        /// ordinary driver calls `next` once per token, and in the one
+        /// instantiation where LLVM declined to inline the chain (fixed
+        /// builder, unmetered) that path ran 20% slower than the same
+        /// scanner behind the allocating builder.
+        pub inline fn next(self: *Self) Result {
+            return self.drive(false, 0).result.?;
+        }
+
+        // null means yield, never EOF. EOF remains an ordinary terminal token.
+        pub fn nextBounded(self: *Self, budget: usize) Advance {
+            return self.drive(true, budget);
+        }
+
+        /// One existing block/token microstep, with identical audit accounting
+        /// to drive(true, 1). A cached terminal result costs no further work.
+        pub inline fn nextStep(self: *Self) Advance {
+            // This backend's driver already inlines completely at budget 1.
+            // Keep terminal handling and audit increments in that shared body.
+            return self.drive(true, 1);
+        }
+
+        /// One credit per microstep: a block classification or one bounded
+        /// advance of the token machine inside the classified block.
+        pub inline fn drive(self: *Self, comptime bounded: bool, budget: usize) Advance {
+            if (self.terminal != .none) return .{ .result = self.terminalResult(), .work_used = 0 };
+            var used: usize = 0;
+            while (true) {
+                if (bounded and used == budget) return .{ .result = null, .work_used = used };
+                used += 1;
+                if (audited) self.examinations += 1;
+                if (self.microstep()) |result| return .{ .result = result, .work_used = used };
+            }
+        }
+
+        /// The byte offset the scanner is at.
+        pub fn here(self: *const Self) u32 {
+            return self.cursor * enc.width;
+        }
+
+        /// The diagnostic for the latched failure; see the scalar scanner.
+        pub fn failureDiagnostic(self: *const Self) diagnostic.Diagnostic {
+            std.debug.assert(self.terminal != .none and self.terminal != .eof);
+            if (self.terminal == .oversize) return .{
+                .code = .resource_capacity_exhausted,
+                .span = .{ .start = 0, .len = 0 },
+                .details = .{ .capacity = .{ .resource = .source_range, .limit = location.max_source_len } },
+            };
+            const span: location.Span = .{ .start = self.opener, .len = self.terminal_len };
+            return enc.scaled(diagnostic.Diagnostic, .{
+                .code = switch (self.terminal) {
+                    .invalid => .syntax_invalid_byte,
+                    .operator, .operator_long, .operator_spaced => .syntax_invalid_operator,
+                    .numeral => .syntax_incomplete_numeral,
+                    .block, .quote, .html_unterminated => .syntax_unterminated_construct,
+                    .concat => .syntax_invalid_concatenation,
+                    .none, .eof, .oversize => unreachable,
+                },
+                .span = span,
+                .details = switch (self.terminal) {
+                    .invalid => .{ .invalid_byte = self.found.? },
+                    .operator => .{ .invalid_operator = .{ .found = self.found, .shape = .lone } },
+                    .operator_long => .{ .invalid_operator = .{ .found = self.found, .shape = .long } },
+                    .operator_spaced => .{ .invalid_operator = .{ .found = self.found, .shape = .spaced } },
+                    .numeral => .{ .incomplete_numeral = self.found },
+                    .block => .{ .unterminated = .block_comment },
+                    .quote => .{ .unterminated = .quoted_identifier },
+                    .concat => .{ .expected_string_part = self.found },
+                    .html_unterminated => .{ .unterminated = .html_identifier },
+                    .none, .eof, .oversize => unreachable,
+                },
+                .fix = switch (self.terminal) {
+                    .html_unterminated => if (self.content.html_depth == 1) .{
+                        .span = .{ .start = @intCast(enc.units(self.source)), .len = 0 },
+                        .edit = .{ .insert_before = .html_close },
+                        .applicability = .maybe,
+                    } else null,
+                    .operator_long, .operator_spaced => .{
+                        .span = span,
+                        .edit = .{ .replace = if (self.found == '>') .directed_operator else .undirected_operator },
+                        .applicability = .machine_applicable,
+                    },
+                    else => null,
+                },
+            });
+        }
+
+        /// The warning attached to the most recently produced token, if any,
+        /// clearing it (a numeral running into a letter or dot).
+        pub fn takeWarning(self: *Self) ?diagnostic.Diagnostic {
+            if (comptime numeral_check == false) return null;
+            const byte = self.ambiguous_numeral orelse return null;
+            self.ambiguous_numeral = null;
+            return .{
+                .code = .syntax_ambiguous_numeral,
+                .span = enc.scaled(location.Span, self.ready.span),
+                .details = .{ .ambiguous_numeral = byte },
+            };
+        }
+
+        /// Error-recovery support; same policy as the scalar scanner.
+        pub fn resumeAfterFailure(self: *Self) void {
+            const anchor = self.anchor;
+            const start = self.opener;
+            const target: u32 = switch (self.terminal) {
+                .block, .quote, .html_unterminated => @intCast(enc.units(self.source)),
+                .concat => start,
+                .invalid, .operator, .operator_long, .operator_spaced, .numeral => if (start == anchor) start + self.terminal_len else @intCast(enc.units(self.source)),
+                .none, .eof, .oversize => unreachable,
+            };
+            std.debug.assert(self.cursor == anchor and target >= anchor);
+            self.skipTo(target);
+            self.terminal = .none;
+            self.terminal_len = 0;
+            self.found = null;
+            self.mode = .trivia;
+            self.trivia = .ordinary;
+        }
+
+        // --- block classification ---------------------------------------
+
+        fn classify(self: *Self, block_start: u32) void {
+            const start: usize = block_start;
+            const n: usize = @min(enc.units(self.source) - start, block_len);
+            var bytes: Block = @splat(0);
+            if (enc.width == 1) @memcpy(bytes[0..n], self.source[start..][0..n]) else {
+                for (bytes[0..n], 0..) |*value, i| value.* = enc.scanByte(self.source, start + i);
+            }
+            const v = &bytes;
+            const valid: u64 = if (n == block_len) std.math.maxInt(u64) else (@as(u64, 1) << @intCast(n)) - 1;
+
+            const lf = eq(v, '\n') & valid;
+            const cr = eq(v, '\r') & valid;
+            const blank = (eq(v, ' ') | eq(v, '\t')) & valid;
+            const digit = ge(v, '0') & le(v, '9') & valid;
+            const high = ge(v, 0x80) & valid;
+            const alpha = (ge(v, 'a') & le(v, 'z')) | (ge(v, 'A') & le(v, 'Z'));
+            const backslash = eq(v, '\\') & valid;
+
+            self.masks = .{
+                .ws = blank | lf | cr,
+                .blank = blank,
+                .newline_byte = lf | cr,
+                .ident = (alpha | digit | eq(v, '_') | high) & valid,
+                .digit = digit,
+                .quote = eq(v, '"') & valid,
+                .escaped = findEscaped(backslash, &self.prev_escaped),
+                .star = eq(v, '*') & valid,
+                .slash = eq(v, '/') & valid,
+                .nul = eq(v, 0) & valid,
+            };
+            self.block_start = block_start;
+            self.classified = true;
+            if (metered) self.source_frontier = @max(self.source_frontier, (start + n) * enc.width);
+        }
+
+        fn blockEnd(self: *const Self) u32 {
+            return @intCast(@min(@as(usize, self.block_start) + block_len, enc.units(self.source)));
+        }
+
+        /// The block's mask with bit 0 at the cursor.
+        inline fn rest(self: *const Self, mask: u64) u64 {
+            return mask >> @intCast(self.cursor - self.block_start);
+        }
+
+        /// How many consecutive bytes from the cursor are in `mask`
+        /// (stops at the block end, since padding bits are never set).
+        inline fn runLen(self: *const Self, mask: u64) u32 {
+            return @ctz(~self.rest(mask));
+        }
+
+        /// The first byte at or after the cursor in `mask`, in this block.
+        inline fn findFirst(self: *const Self, mask: u64) ?u32 {
+            const r = self.rest(mask);
+            if (r == 0) return null;
+            return self.cursor + @ctz(r);
+        }
+
+        /// Move forward within the block.
+        fn advanceTo(self: *Self, target: u32) void {
+            std.debug.assert(target >= self.cursor and target <= self.blockEnd());
+            self.cursor = target;
+        }
+
+        /// Skip forward across blocks (recovery).
+        fn skipTo(self: *Self, target: u32) void {
+            while (self.cursor < target) {
+                if (!self.classified or self.cursor >= self.block_start + block_len) {
+                    self.classify(self.cursor - self.cursor % block_len);
+                }
+                self.advanceTo(@min(target, self.blockEnd()));
+            }
+        }
+
+        /// Move to a saved offset (backwards or forwards within the source
+        /// already seen). The saved offset follows a closing quote or is a
+        /// token start, so no escape or comment state crosses it. Within the
+        /// classified block nothing else changes: the backslash parity the
+        /// block left behind still describes its last byte and must reach
+        /// the next block's classification. Outside it the classification is
+        /// dropped and re-derived; the parity restarts at zero, which is
+        /// exact for every byte the scanner can still visit (a byte at a
+        /// token start or after a closing quote is never escaped).
+        fn restore(self: *Self, offset: u32) void {
+            self.cursor = offset;
+            if (!self.classified or self.cursor < self.block_start or self.cursor >= self.block_start + block_len) {
+                self.classified = false;
+                self.prev_escaped = false;
+            }
+        }
+
+        /// A byte `k` past the cursor, read directly: the token machine's
+        /// bounded lookahead of at most two bytes for operator and numeral
+        /// shapes, which may reach past the block and counts as examined.
+        inline fn peek(self: *Self, k: u32) ?u8 {
+            const at = @as(usize, self.cursor) + k;
+            if (at >= enc.units(self.source)) return null;
+            if (metered) self.source_frontier = @max(self.source_frontier, (at + 1) * enc.width);
+            return enc.scanByte(self.source, at);
+        }
+
+        /// Consume `k` bytes that contain no newline; may leave the block.
+        fn jump(self: *Self, k: u32) void {
+            self.cursor += k;
+            if (self.cursor >= self.block_start + block_len) self.classified = false;
+        }
+
+        // --- the token machine ------------------------------------------
+
+        inline fn microstep(self: *Self) ?Result {
+            if (self.cursor == enc.units(self.source)) return self.atEnd();
+            if (!self.classified or self.cursor >= self.block_start + block_len) {
+                if (self.mode == .html) return self.stepHtml();
+                self.classify(self.cursor - self.cursor % block_len);
+                return null;
+            }
+            return switch (self.mode) {
+                .trivia => self.stepTrivia(),
+                .line_comment => self.stepLineComment(),
+                .block_comment => self.stepBlockComment(),
+                .quoted => self.stepQuoted(),
+                .html => self.stepHtml(),
+                .ident => self.stepIdent(),
+                .numeral => self.stepNumeral(),
+                .dash_gap => self.stepDashGap(),
+                .triple_dash => self.stepTripleDash(),
+            };
+        }
+
+        fn atEnd(self: *Self) ?Result {
+            if (comments != false and self.mode == .line_comment) {
+                self.mode = .trivia;
+                if (self.finishComment(self.cursor)) |result| return result;
+            }
+            switch (self.mode) {
+                .trivia, .line_comment => switch (self.trivia) {
+                    .after_part => return self.finishString(),
+                    .after_plus => return self.fail(.concat, self.cursor, 0, null),
+                    .ordinary => {
+                        self.terminal = .eof;
+                        return self.terminalResult();
+                    },
+                },
+                .block_comment => {
+                    // Malformed trailing trivia belongs to the next token
+                    // unless '+' has committed us to another quoted part.
+                    if (self.trivia == .after_part) return self.finishString();
+                    return self.fail(.block, self.opener, 2, null);
+                },
+                .quoted => return self.fail(.quote, self.opener, 1, null),
+                .html => return self.fail(.html_unterminated, self.opener, 1, null),
+                .ident => return self.finishIdent(),
+                .numeral => return self.emit(.identifier),
+                .dash_gap => return self.fail(.operator, self.anchor, 1, self.found),
+                .triple_dash => return self.fail(.operator_long, self.anchor, 3, '-'),
+            }
+        }
+
+        fn stepTrivia(self: *Self) ?Result {
+            self.advanceTo(self.cursor + self.runLen(self.masks.ws));
+            if (self.cursor == self.blockEnd()) return null;
+            const b = enc.scanByte(self.source, self.cursor);
+            // Comments are trivia in every mode, including between the parts
+            // of a quoted concatenation. In ordinary mode the comment opener
+            // is also the anchor, so an unterminated comment rests there.
+            if (b == '#') {
+                if (comptime comments != false) self.opener = self.cursor;
+                if (self.trivia == .ordinary) self.anchor = self.cursor;
+                self.advanceTo(self.cursor + 1);
+                self.mode = .line_comment;
+                return null;
+            }
+            if (b == '/') {
+                const n1 = self.peek(1);
+                if (n1 == '/' or n1 == '*') {
+                    self.opener = self.cursor;
+                    if (self.trivia == .ordinary) self.anchor = self.cursor;
+                    if (n1 == '*') {
+                        self.content = .{ .body_start = self.cursor + 2 };
+                        self.mode = .block_comment;
+                    } else {
+                        self.mode = .line_comment;
+                    }
+                    self.advanceTo(self.cursor + 1);
+                    return null;
+                }
+            }
+            switch (self.trivia) {
+                .after_part => {
+                    if (b != '+') return self.finishString();
+                    self.advanceTo(self.cursor + 1);
+                    // Prefix observations stop at '+', not trailing trivia.
+                    if (preview_boundaries) self.part_end = self.cursor;
+                    self.trivia = .after_plus;
+                    self.flags.concatenated = true;
+                    return null;
+                },
+                .after_plus => {
+                    if (b != '"' and b != '<') return self.fail(.concat, self.cursor, 1, b);
+                    if (b == '<') return self.startHtml();
+                    self.opener = self.cursor;
+                    self.advanceTo(self.cursor + 1);
+                    self.mode = .quoted;
+                    return null;
+                },
+                .ordinary => {},
+            }
+            self.anchor = self.cursor;
+            self.flags = .{};
+            switch (b) {
+                '{', '}', ';', ':', '[', ']', '=', ',' => {
+                    self.advanceTo(self.cursor + 1);
+                    return self.emit(switch (b) {
+                        '{' => .left_brace,
+                        '}' => .right_brace,
+                        ';' => .semicolon,
+                        ':' => .colon,
+                        '[' => .left_bracket,
+                        ']' => .right_bracket,
+                        '=' => .equals,
+                        ',' => .comma,
+                        else => unreachable,
+                    });
+                },
+                '/' => return self.fail(.invalid, self.anchor, 1, '/'),
+                '"' => {
+                    self.opener = self.anchor;
+                    self.advanceTo(self.cursor + 1);
+                    self.mode = .quoted;
+                    return null;
+                },
+                'A'...'Z', 'a'...'z', '_', 0x80...0xff => {
+                    self.mode = .ident;
+                    return self.stepIdent();
+                },
+                '0'...'9' => {
+                    self.mode = .numeral;
+                    self.part = .integral;
+                    return self.stepNumeral();
+                },
+                '-' => return self.dash(),
+                '.' => {
+                    const n1 = self.peek(1);
+                    if (n1 != null and std.ascii.isDigit(n1.?)) {
+                        self.mode = .numeral;
+                        self.part = .fraction;
+                        self.jump(1);
+                        return null;
+                    }
+                    return self.fail(.numeral, self.anchor, 1, n1);
+                },
+                '<' => return self.startHtml(),
+                else => return self.fail(.invalid, self.anchor, 1, b),
+            }
+        }
+
+        // A separate token step keeps lookahead within the existing two-byte
+        // bound even when the signed numeral starts across a block boundary.
+        fn stepTripleDash(self: *Self) ?Result {
+            const byte = self.peek(0).?;
+            const after_dot = if (byte == '.') self.peek(1) else null;
+            if (std.ascii.isDigit(byte) or (after_dot != null and std.ascii.isDigit(after_dot.?))) {
+                self.restore(self.anchor + 2);
+                return self.emit(.edge_undirected);
+            }
+            return self.fail(.operator_long, self.anchor, 3, '-');
+        }
+
+        fn dash(self: *Self) ?Result {
+            const n1 = self.peek(1) orelse return self.fail(.operator, self.anchor, 1, null);
+            switch (n1) {
+                '-' => {
+                    const n2 = self.peek(2);
+                    if (n2 == '>') return self.fail(.operator_long, self.anchor, 3, n2);
+                    if (n2 == '-') {
+                        self.jump(3);
+                        self.mode = .triple_dash;
+                        return null;
+                    }
+                    self.jump(2);
+                    return self.emit(.edge_undirected);
+                },
+                '>' => {
+                    self.jump(2);
+                    return self.emit(.edge_directed);
+                },
+                '0'...'9' => {
+                    self.mode = .numeral;
+                    self.part = .integral;
+                    self.jump(1);
+                    return null;
+                },
+                '.' => {
+                    const n2 = self.peek(2);
+                    if (n2 != null and std.ascii.isDigit(n2.?)) {
+                        self.mode = .numeral;
+                        self.part = .fraction;
+                        self.jump(2);
+                        return null;
+                    }
+                    return self.fail(.numeral, self.anchor, 2, n2);
+                },
+                ' ', '\t' => {
+                    // Look past the gap: `- >` is a spaced operator.
+                    self.found = n1;
+                    self.advanceTo(self.cursor + 1);
+                    self.mode = .dash_gap;
+                    return null;
+                },
+                else => return self.fail(.operator, self.anchor, 1, n1),
+            }
+        }
+
+        fn stepDashGap(self: *Self) ?Result {
+            self.advanceTo(self.cursor + self.runLen(self.masks.blank));
+            if (self.cursor == self.blockEnd()) return null;
+            const b = enc.scanByte(self.source, self.cursor);
+            if (b == '>' or b == '-') {
+                const len = self.cursor + 1 - self.anchor;
+                return self.fail(.operator_spaced, self.anchor, len, b);
+            }
+            return self.fail(.operator, self.anchor, 1, self.found);
+        }
+
+        fn stepIdent(self: *Self) ?Result {
+            self.advanceTo(self.cursor + self.runLen(self.masks.ident));
+            if (self.cursor == self.blockEnd()) return null;
+            return self.finishIdent();
+        }
+
+        fn finishIdent(self: *Self) ?Result {
+            const len = self.cursor - self.anchor;
+            var tag: Token.Tag = .identifier;
+            if (len <= 8) {
+                var word: u64 = 0;
+                if (enc.width == 1) {
+                    for (self.source[self.anchor..self.cursor]) |byte| word = types.foldKeywordByte(word, byte);
+                } else {
+                    var at = self.anchor;
+                    while (at < self.cursor) : (at += 1) word = types.foldKeywordByte(word, enc.scanByte(self.source, at));
+                }
+                tag = types.keywordTag(word, len);
+            }
+            return self.emit(tag);
+        }
+
+        fn stepNumeral(self: *Self) ?Result {
+            while (true) {
+                self.advanceTo(self.cursor + self.runLen(self.masks.digit));
+                if (self.cursor == self.blockEnd()) return null;
+                const b = enc.scanByte(self.source, self.cursor);
+                if (self.part == .integral and b == '.') {
+                    self.advanceTo(self.cursor + 1);
+                    self.part = .fraction;
+                    if (self.cursor == self.blockEnd()) return null;
+                    continue;
+                }
+                // Maximal munch ends the numeral here, exactly as Graphviz
+                // does — and Graphviz warns when the next byte could have
+                // been meant as part of it.
+                if (comptime numeral_check != false) {
+                    if (self.checksNumerals() and (isIdentifierByte(b) or b == '.')) self.ambiguous_numeral = b;
+                }
+                return self.emit(.identifier);
+            }
+        }
+
+        fn stepLineComment(self: *Self) ?Result {
+            if (self.findFirst(self.masks.newline_byte)) |p| {
+                // Consume the terminator, but exclude it from a retained span.
+                // A CRLF's LF is then plain whitespace, as in the scalar scanner.
+                self.advanceTo(p + 1);
+                self.mode = .trivia;
+                return self.finishComment(p);
+            }
+            self.advanceTo(self.blockEnd());
+            return null;
+        }
+
+        fn stepBlockComment(self: *Self) ?Result {
+            // A '*' in the previous block's last cell closes with a '/' in
+            // this block's first cell, unless that '*' is the opener's own.
+            if (self.cursor == self.block_start and self.block_start > 0 and (self.masks.slash & 1) != 0 and
+                enc.scanByte(self.source, self.block_start - 1) == '*' and self.block_start - 1 >= self.content.body_start)
+            {
+                self.advanceTo(self.cursor + 1);
+                self.mode = .trivia;
+                return self.finishComment(self.cursor);
+            }
+            var close = self.masks.star & (self.masks.slash >> 1);
+            // The opener's '*' can never close the comment (`/*/`); when the
+            // body starts at or past this block's end (the `*` sits in the
+            // last cell) nothing in this block can close it.
+            if (self.content.body_start > self.block_start) {
+                const below = self.content.body_start - self.block_start;
+                close = if (below >= block_len) 0 else close & ~((@as(u64, 1) << @intCast(below)) - 1);
+            }
+            if (self.findFirst(close)) |p| {
+                self.advanceTo(p + 2);
+                self.mode = .trivia;
+                return self.finishComment(self.cursor);
+            }
+            self.advanceTo(self.blockEnd());
+            return null;
+        }
+
+        fn startHtml(self: *Self) ?Result {
+            self.opener = self.cursor;
+            self.cursor += 1;
+            self.content = .{ .html_depth = 1 };
+            self.flags.has_html = true;
+            self.mode = .html;
+            return null;
+        }
+
+        /// Only HTML bodies pay for angle masks. Each credit reads at most
+        /// 64 bytes and walks at most 64 set bits; no quote/comment shielding.
+        // Keep the angle walk out of the aggressively inlined DOT driver:
+        // inlining it regressed ordinary parse throughput in the slice bench.
+        noinline fn stepHtml(self: *Self) ?Result {
+            const start = self.cursor;
+            const n: u32 = @intCast(@min(enc.units(self.source) - start, block_len));
+            var bytes: Block = @splat(0);
+            if (enc.width == 1) @memcpy(bytes[0..n], self.source[start..][0..n]) else {
+                for (bytes[0..n], 0..) |*value, i| value.* = enc.scanByte(self.source, start + i);
+            }
+            if (metered) self.source_frontier = @max(self.source_frontier, (@as(usize, start) + n) * enc.width);
+            const opens = eq(&bytes, '<');
+            var angles = opens | eq(&bytes, '>');
+            self.classified = false;
+            self.prev_escaped = false;
+            while (angles != 0) {
+                const bit: u6 = @intCast(@ctz(angles));
+                const mask = @as(u64, 1) << bit;
+                angles &= angles - 1;
+                if (opens & mask != 0) {
+                    self.content.html_depth += 1;
+                } else {
+                    self.content.html_depth -= 1;
+                    if (self.content.html_depth == 0) {
+                        self.cursor = start + @as(u32, bit) + 1;
+                        self.part_end = self.cursor;
+                        self.trivia = .after_part;
+                        self.mode = .trivia;
+                        return null;
+                    }
+                }
+            }
+            self.cursor = start + n;
+            return null;
+        }
+
+        fn stepQuoted(self: *Self) ?Result {
+            const candidates = (self.masks.quote & ~self.masks.escaped) | self.masks.nul;
+            if (self.findFirst(candidates)) |p| {
+                self.advanceTo(p);
+                if (enc.scanByte(self.source, p) == 0) return self.fail(.invalid, self.cursor, 1, enc.scanByte(self.source, p));
+                self.advanceTo(p + 1);
+                self.part_end = self.cursor;
+                self.trivia = .after_part;
+                self.mode = .trivia;
+                return null;
+            }
+            self.advanceTo(self.blockEnd());
+            return null;
+        }
+
+        /// The quoted token, including every `+`-joined part; trailing trivia
+        /// is examined speculatively but excluded, and revisited once by the
+        /// next call.
+        fn finishString(self: *Self) ?Result {
+            const end = self.part_end;
+            self.restore(end);
+            self.trivia = .ordinary;
+            self.mode = .trivia;
+            self.ready = .{ .tag = .identifier, .span = .{ .start = self.anchor, .len = end - self.anchor }, .flags = self.flags };
+            return .{ .token = enc.scaled(Token, self.ready) };
+        }
+
+        fn emit(self: *Self, tag: Token.Tag) ?Result {
+            self.ready = .{ .tag = tag, .span = .{ .start = self.anchor, .len = self.cursor - self.anchor }, .flags = self.flags };
+            self.mode = .trivia;
+            self.trivia = .ordinary;
+            return .{ .token = enc.scaled(Token, self.ready) };
+        }
+
+        fn fail(self: *Self, kind: Terminal, start: u32, len: u32, found: ?u8) ?Result {
+            self.terminal = kind;
+            self.opener = start;
+            self.terminal_len = len;
+            self.found = found;
+            // Like the scalar scanner, rest at the token anchor: recovery
+            // measures its skip from there.
+            self.restore(self.anchor);
+            return .failure;
+        }
+
+        fn terminalResult(self: *const Self) Result {
+            if (self.terminal == .eof) return .{ .token = .{
+                .tag = .eof,
+                .span = .{ .start = self.cursor * enc.width, .len = 0 },
+            } };
+            return .failure;
+        }
+    };
+}
+
+// ---------------------------------------------------------------------------
+// Tests: the block scanner on its own. Equivalence with the scalar scanner is
+// tested in lexer.zig, which imports both.
+// ---------------------------------------------------------------------------
+
+const expect = std.testing.expect;
+const expectEqual = std.testing.expectEqual;
+const expectEqualStrings = std.testing.expectEqualStrings;
+
+fn expectToken(lexer: *Lexer, tag: Token.Tag, text: []const u8) !void {
+    const result = lexer.next();
+    try expect(result == .token);
+    try expectEqual(tag, result.token.tag);
+    try expectEqualStrings(text, result.token.span.slice(lexer.source));
+}
+
+test "bit order: element zero is bit zero" {
+    var bytes: Block = @splat('x');
+    bytes[0] = 'a';
+    bytes[17] = 'c';
+    bytes[40] = 'd';
+    bytes[63] = 'b';
+    try expectEqual(@as(u64, 1), eq(&bytes, 'a'));
+    try expectEqual(@as(u64, 1) << 17, eq(&bytes, 'c'));
+    try expectEqual(@as(u64, 1) << 40, eq(&bytes, 'd'));
+    try expectEqual(@as(u64, 1) << 63, eq(&bytes, 'b'));
+    try expectEqual(~((@as(u64, 1) << 17) | (@as(u64, 1) << 40)), ge(&bytes, 'x') | eq(&bytes, 'a') | eq(&bytes, 'b'));
+    try expectEqual(@as(u64, 0), ge(&bytes, 'y'));
+}
+
+test "escaped quotes follow backslash parity across blocks" {
+    var prev = false;
+    // \" at bits 0-1: the quote at bit 1 is escaped.
+    try expectEqual(@as(u64, 0b10), findEscaped(0b01, &prev));
+    try expect(!prev);
+    // \\" at bits 0-2: an even run, so the quote at bit 2 is not escaped
+    // (the second backslash is).
+    try expectEqual(@as(u64, 0b010), findEscaped(0b011, &prev));
+    try expect(!prev);
+    // A run ending on the last bit carries into the next block.
+    _ = findEscaped(@as(u64, 1) << 63, &prev);
+    try expect(prev);
+    try expectEqual(@as(u64, 1), findEscaped(0, &prev));
+    try expect(!prev);
+}
+
+test "tokens across a block boundary keep their spans and positions" {
+    var buffer: [200]u8 = undefined;
+    @memset(&buffer, 'a');
+    // An identifier straddling the first boundary, a newline, then more.
+    buffer[70] = ' ';
+    buffer[71] = '\n';
+    buffer[72] = '-';
+    buffer[73] = '>';
+    buffer[74] = ' ';
+    buffer[75] = '"';
+    @memset(buffer[76..130], 'q');
+    buffer[130] = '"';
+    buffer[131] = ';';
+    const source = buffer[0..132];
+    var lexer = Lexer.init(source);
+    var result = lexer.next();
+    try expect(result == .token);
+    try expectEqual(@as(u32, 70), result.token.span.len);
+    try expectToken(&lexer, .edge_directed, "->");
+    // The quoted identifier crosses the second boundary, on line 2.
+    result = lexer.next();
+    try expect(result == .token);
+    try expectEqual(@as(u32, 56), result.token.span.len);
+    try expectEqual(@as(u32, 75), result.token.span.start);
+    try expectEqual(@as(u32, 2), result.token.span.locate(source).line);
+    try expectEqual(@as(u32, 4), result.token.span.locate(source).byte_column);
+    try expectToken(&lexer, .semicolon, ";");
+    try expectToken(&lexer, .eof, "");
+}
+
+test "block scanner state is a small constant" {
+    // Exact documented native layouts are guarded in tests/layouts.zig;
+    // this portable ceiling leaves headroom for target-dependent alignment.
+    try expect(@sizeOf(Lexer) <= 192);
+    try expectEqual(void, @FieldType(Lexer, "source_frontier"));
+    try expectEqual(usize, @FieldType(Scanner(true, false, true), "source_frontier"));
+}

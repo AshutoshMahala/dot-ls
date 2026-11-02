@@ -1,0 +1,259 @@
+{
+  "binaries": [
+    "/private/tmp/dot-ls-html-before/dot-ls",
+    "/Users/ash/dev/dotls/dotls/zig-out/bin/dot-ls"
+  ],
+  "runs": [
+    {
+      "mb": 40,
+      "samples": [
+        {
+          "round": 0,
+          "kind": "error",
+          "variant": "before",
+          "ms": 182.615667
+        },
+        {
+          "round": 0,
+          "kind": "error",
+          "variant": "after",
+          "ms": 183.867292
+        },
+        {
+          "round": 0,
+          "kind": "repair",
+          "variant": "before",
+          "ms": 151.347417
+        },
+        {
+          "round": 0,
+          "kind": "repair",
+          "variant": "after",
+          "ms": 163.591
+        },
+        {
+          "round": 1,
+          "kind": "error",
+          "variant": "after",
+          "ms": 184.23825
+        },
+        {
+          "round": 1,
+          "kind": "error",
+          "variant": "before",
+          "ms": 178.640417
+        },
+        {
+          "round": 1,
+          "kind": "repair",
+          "variant": "after",
+          "ms": 160.69325
+        },
+        {
+          "round": 1,
+          "kind": "repair",
+          "variant": "before",
+          "ms": 155.588166
+        },
+        {
+          "round": 2,
+          "kind": "error",
+          "variant": "before",
+          "ms": 175.388209
+        },
+        {
+          "round": 2,
+          "kind": "error",
+          "variant": "after",
+          "ms": 182.931417
+        },
+        {
+          "round": 2,
+          "kind": "repair",
+          "variant": "before",
+          "ms": 159.97675
+        },
+        {
+          "round": 2,
+          "kind": "repair",
+          "variant": "after",
+          "ms": 161.062417
+        },
+        {
+          "round": 3,
+          "kind": "error",
+          "variant": "after",
+          "ms": 181.751416
+        },
+        {
+          "round": 3,
+          "kind": "error",
+          "variant": "before",
+          "ms": 177.334375
+        },
+        {
+          "round": 3,
+          "kind": "repair",
+          "variant": "after",
+          "ms": 160.436417
+        },
+        {
+          "round": 3,
+          "kind": "repair",
+          "variant": "before",
+          "ms": 161.557292
+        },
+        {
+          "round": 4,
+          "kind": "error",
+          "variant": "before",
+          "ms": 172.393167
+        },
+        {
+          "round": 4,
+          "kind": "error",
+          "variant": "after",
+          "ms": 181.381333
+        },
+        {
+          "round": 4,
+          "kind": "repair",
+          "variant": "before",
+          "ms": 153.434583
+        },
+        {
+          "round": 4,
+          "kind": "repair",
+          "variant": "after",
+          "ms": 161.560125
+        }
+      ]
+    },
+    {
+      "mb": 100,
+      "samples": [
+        {
+          "round": 0,
+          "kind": "error",
+          "variant": "before",
+          "ms": 453.617292
+        },
+        {
+          "round": 0,
+          "kind": "error",
+          "variant": "after",
+          "ms": 457.611417
+        },
+        {
+          "round": 0,
+          "kind": "repair",
+          "variant": "before",
+          "ms": 375.793292
+        },
+        {
+          "round": 0,
+          "kind": "repair",
+          "variant": "after",
+          "ms": 404.850375
+        },
+        {
+          "round": 1,
+          "kind": "error",
+          "variant": "after",
+          "ms": 460.231625
+        },
+        {
+          "round": 1,
+          "kind": "error",
+          "variant": "before",
+          "ms": 446.072292
+        },
+        {
+          "round": 1,
+          "kind": "repair",
+          "variant": "after",
+          "ms": 405.564042
+        },
+        {
+          "round": 1,
+          "kind": "repair",
+          "variant": "before",
+          "ms": 401.733125
+        },
+        {
+          "round": 2,
+          "kind": "error",
+          "variant": "before",
+          "ms": 436.512083
+        },
+        {
+          "round": 2,
+          "kind": "error",
+          "variant": "after",
+          "ms": 469.585375
+        },
+        {
+          "round": 2,
+          "kind": "repair",
+          "variant": "before",
+          "ms": 398.777209
+        },
+        {
+          "round": 2,
+          "kind": "repair",
+          "variant": "after",
+          "ms": 420.726625
+        },
+        {
+          "round": 3,
+          "kind": "error",
+          "variant": "after",
+          "ms": 467.667083
+        },
+        {
+          "round": 3,
+          "kind": "error",
+          "variant": "before",
+          "ms": 448.844375
+        },
+        {
+          "round": 3,
+          "kind": "repair",
+          "variant": "after",
+          "ms": 447.297916
+        },
+        {
+          "round": 3,
+          "kind": "repair",
+          "variant": "before",
+          "ms": 421.6985
+        },
+        {
+          "round": 4,
+          "kind": "error",
+          "variant": "before",
+          "ms": 482.982667
+        },
+        {
+          "round": 4,
+          "kind": "error",
+          "variant": "after",
+          "ms": 499.474917
+        },
+        {
+          "round": 4,
+          "kind": "repair",
+          "variant": "before",
+          "ms": 415.844208
+        },
+        {
+          "round": 4,
+          "kind": "repair",
+          "variant": "after",
+          "ms": 443.380459
+        }
+      ]
+    }
+  ],
+  "notes": "Five interleaved error/repair pairs per binary and size. Variant order reverses on alternate rounds. One active request at a time; every sample waits for background completion before the other binary is measured. Pre-encoded changes, first diagnostics only. No HTML in fixtures. Separate RSS evidence is in completion-context-html-{before,after}-40-100.json."
+}

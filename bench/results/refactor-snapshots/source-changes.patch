@@ -1,0 +1,1235 @@
+--- before/src/app.zig
++++ after/src/app.zig
+@@ -6,13 +6,13 @@
+ const responses = @import("protocol/responses.zig");
+ pub const server_version = lsp.server_version;
+ const json_message = @import("protocol/json_message.zig");
+-const pos = @import("text/positions.zig");
+-const context = @import("features/completion_context.zig");
++const pos = @import("text/types.zig");
+ const references = @import("features/references.zig");
+-const labels = @import("features/labels.zig");
+ const outline = @import("features/outline.zig");
+ const pipeline = @import("analysis/pipeline.zig");
+ const worker = @import("runtime/worker.zig");
++const snapshot = @import("runtime/snapshot.zig");
++const findings = @import("analysis/diagnostic_text.zig");
+ const State = @import("runtime/server.zig").Server;
+ const Job = @import("runtime/job.zig").Job;
+ const Document = @import("runtime/document.zig").Document;
+@@ -35,49 +35,42 @@
+ const Server = struct {
+     state: State,
+     writer: *std.Io.Writer,
++    // Transitional ordered synchronous output; step 7 will bound write progress.
++    output_mutex: std.Io.Mutex = .init,
++    output_condition: std.Io.Condition = .init,
++    issued: usize = 0, // protected by state mutex
++    serving: usize = 0, // protected by output mutex
++    output_failed: bool = false,
+     initialized: bool = false,
+     related_information: bool = false,
+     versioned_edits: bool = false,
+     hierarchical_symbols: bool = false,
+     shutdown: bool = false,
+ 
+-    fn failure(self: *Server, id: request_store.Id, code: i32, message: []const u8) !void {
+-        try responses.failure(self.state.allocator, self.writer, wireId(id), code, message);
+-    }
+-
+-    fn clear(self: *Server, uri: []const u8, version: ?i64, message: ?[]const u8) !void {
+-        try responses.clear(self.state.allocator, self.writer, uri, version, message);
+-    }
+-
+-    fn invalidate(self: *Server, doc: *Document) void {
+-        self.state.invalidate(doc, self.observer());
+-    }
+-
+-    fn update(self: *Server, uri: []const u8, text: []const u8, version: i64, opening: bool, message: *json_message.Message, packet: *?[]u8) !void {
+-        const result = try self.state.update(uri, .{ .text = text, .packet = if (message.inplace) packet.* else null }, version, opening, .{ .context = self, .start = startWorker }, self.observer());
++    fn failure(_: *Server, batch: *Batch, id: request_store.Id, code: i32, message: []const u8) !void {
++        try batch.add(id, .{ .failure = .{ .code = code, .message = message } });
++    }
++
++    fn clear(_: *Server, batch: *Batch, uri: []const u8, version: ?i64, message: ?[]const u8) !void {
++        try batch.add(.null, .{ .clear = .{ .uri = uri, .version = version, .message = message } });
++    }
++
++    fn invalidate(self: *Server, batch: *Batch, doc: *Document) void {
++        self.state.invalidate(doc, batch.observer());
++    }
++
++    fn update(self: *Server, batch: *Batch, uri: []const u8, text: []const u8, version: i64, opening: bool, message: *json_message.Message, packet: *?[]u8) !void {
++        const result = try self.state.update(uri, .{ .text = text, .packet = if (message.inplace) packet.* else null }, version, opening, .{ .context = self, .start = startWorker }, batch.observer());
+         switch (result) {
+             .transferred => packet.* = null,
+-            .limited => try self.clear(uri, version, "Analysis skipped: source memory limit exceeded."),
++            .limited => try self.clear(batch, uri, version, "Analysis skipped: source memory limit exceeded."),
+             .copied, .ignored => {},
+         }
+     }
+     fn startWorker(ctx: *anyopaque) !std.Thread {
+         const self: *Server = @ptrCast(@alignCast(ctx));
+-        return worker.start(&self.state, .{ .context = self, .advance = advance, .failed = phaseFailed, .observer = self.observer() });
+-    }
+-    fn observer(self: *Server) request_store.Observer {
+-        return .{ .context = self, .failure = requestFailure };
+-    }
+-    fn requestFailure(ctx: *anyopaque, id: request_store.Id, reason: request_store.Failure) !void {
+-        const self: *Server = @ptrCast(@alignCast(ctx));
+-        switch (reason) {
+-            .modified => try self.failure(id, lsp.ErrorCode.content_modified, "Document changed before the request completed."),
+-            .cancelled => try self.failure(id, lsp.ErrorCode.request_cancelled, "Request cancelled."),
+-            .reference_failed => try self.failure(id, lsp.ErrorCode.request_failed, "Reference analysis failed."),
+-            .reference_unavailable => try self.failure(id, lsp.ErrorCode.request_failed, "Node references are unavailable: analysis did not complete within limits."),
+-        }
+-    }
+-
++        return worker.start(&self.state, .{ .context = self, .advance = advance, .failed = phaseFailed, .failures = retiredRequests });
++    }
+     fn environment(self: *Server) pipeline.Environment {
+         return .{ .allocator = self.state.allocator, .html_allocator = self.state.html_allocator, .syntax_pending = &self.state.syntax_pending, .html_budget = &self.state.html_budget, .related_information = self.related_information, .finding_limit = limits.findings };
+     }
+@@ -92,20 +85,34 @@
+     }
+     fn phaseFailed(ctx: *anyopaque, current: *Job) void {
+         const self: *Server = @ptrCast(@alignCast(ctx));
++        var batch: Batch = .{ .server = self };
++        defer batch.deinit();
++        _ = self.commit(&batch, publishFailure, .{current}) catch {};
++    }
++    fn publishFailure(self: *Server, batch: *Batch, current: *Job) !bool {
++        if (self.state.find(current.uri)) |i| if (self.state.documents.items[i].generation == current.generation and !self.state.stopping) {
++            if (current.phase == .syntax) try self.clear(batch, current.uri, current.version, "Analysis failed: resource or output failure.");
++            try self.state.failRequests(&self.state.documents.items[i], .reference_failed, batch.observer());
++        };
++        return false;
++    }
++    fn retiredRequests(ctx: *anyopaque, queue: *request_store.Queue, reason: request_store.Failure) void {
++        const self: *Server = @ptrCast(@alignCast(ctx));
++        var batch: Batch = .{ .server = self };
++        defer batch.deinit();
+         self.state.mutex.lockUncancelable(self.state.io);
+-        defer self.state.mutex.unlock(self.state.io);
+-        if (self.state.find(current.uri)) |i| if (self.state.documents.items[i].generation == current.generation and !self.state.stopping) {
+-            if (current.phase == .syntax) self.clear(current.uri, current.version, "Analysis failed: resource or output failure.") catch {};
+-            self.state.failRequests(&self.state.documents.items[i], .reference_failed, self.observer()) catch {};
+-        };
+-    }
+-
+-    fn completionReply(self: *Server, id: request_store.Id, index: context.Index, point: pos.Position) !void {
+-        try responses.completion(self.state.allocator, self.writer, wireId(id), index, point);
+-    }
+-
+-    fn hoverReply(self: *Server, id: request_store.Id, index: context.Index, point: pos.Position) !void {
+-        try responses.hover(self.state.allocator, self.writer, wireId(id), index, point);
++        for (queue.items()) |request| batch.observer().fail(request.id, reason) catch {};
++        batch.seal();
++        self.state.mutex.unlock(self.state.io);
++        batch.flush() catch {};
++    }
++
++    fn completionReply(_: *Server, batch: *Batch, id: request_store.Id, index: *snapshot.Completion, point: pos.Position) !void {
++        try batch.add(id, .{ .completion = .{ .index = index, .point = point } });
++    }
++
++    fn hoverReply(_: *Server, batch: *Batch, id: request_store.Id, index: *snapshot.Completion, point: pos.Position) !void {
++        try batch.add(id, .{ .hover = .{ .index = index, .point = point } });
+     }
+ 
+     fn buildContext(self: *Server, job: *Job, encoding: pos.Encoding) !bool {
+@@ -115,17 +122,19 @@
+             return err;
+         };
+         defer built.deinit(self.state.allocator);
+-        self.state.mutex.lockUncancelable(self.state.io);
+-        defer self.state.mutex.unlock(self.state.io);
++        var batch: Batch = .{ .server = self };
++        defer batch.deinit();
++        return self.commit(&batch, publishContext, .{ job, &built });
++    }
++    fn publishContext(self: *Server, batch: *Batch, job: *Job, built: *pipeline.Context) !bool {
+         const i = self.state.find(job.uri) orelse return false;
+         const doc = &self.state.documents.items[i];
+         if (self.state.stopping or doc.generation != job.generation or job.cancel.load(.acquire)) return false;
+         doc.outline_done = true;
+-        if (built.symbols) |owned| if (owned.bytes() <= outline.global_bytes - self.state.outline_bytes) {
+-            self.state.outline_bytes += owned.bytes();
+-            doc.outline_index = owned;
+-            built.symbols = null;
+-        };
++        if (built.symbols) |owned| {
++            doc.outline_index = snapshot.Outline.create(self.state.allocator, owned, doc.uri, doc.version, doc.generation, owned.bytes(), &self.state.outline_bytes, outline.global_bytes) catch null;
++            if (doc.outline_index != null) built.symbols = null;
++        }
+         var symbol_n: usize = 0;
+         while (symbol_n < doc.requests.items().len) {
+             if (doc.requests.items()[symbol_n].kind != .symbols) {
+@@ -134,14 +143,13 @@
+             }
+             const request = doc.requests.orderedRemove(symbol_n);
+             defer request.id.deinit(self.state.allocator);
+-            try self.outlineReply(request.id, doc.*);
++            try self.outlineReply(batch, request.id, doc.*);
+         }
+         doc.completion_done = true;
+-        if (built.index) |owned| if (owned.bytes() <= limits.completion_total - self.state.context_bytes) {
+-            self.state.context_bytes += owned.bytes();
+-            doc.completion = owned;
+-            built.index = null;
+-        };
++        if (built.index) |owned| {
++            doc.completion = snapshot.Completion.create(self.state.allocator, owned, doc.uri, doc.version, doc.generation, owned.bytes(), &self.state.context_bytes, limits.completion_total) catch null;
++            if (doc.completion != null) built.index = null;
++        }
+         var n: usize = 0;
+         while (n < doc.requests.items().len) {
+             if (doc.requests.items()[n].kind != .completion and doc.requests.items()[n].kind != .hover) {
+@@ -151,8 +159,8 @@
+             const request = doc.requests.orderedRemove(n);
+             defer request.id.deinit(self.state.allocator);
+             if (doc.completion) |ready| {
+-                if (request.kind == .hover) try self.hoverReply(request.id, ready, request.point) else try self.completionReply(request.id, ready, request.point);
+-            } else try self.failure(request.id, lsp.ErrorCode.request_failed, "Completion context exceeded resource limits.");
++                if (request.kind == .hover) try self.hoverReply(batch, request.id, ready, request.point) else try self.completionReply(batch, request.id, ready, request.point);
++            } else try self.failure(batch, request.id, lsp.ErrorCode.request_failed, "Completion context exceeded resource limits.");
+         }
+         return pipeline.afterContext(job);
+     }
+@@ -180,13 +188,16 @@
+             return err;
+         };
+         defer built.deinit(self.state.allocator);
+-        self.state.mutex.lockUncancelable(self.state.io);
+-        defer self.state.mutex.unlock(self.state.io);
++        var batch: Batch = .{ .server = self };
++        defer batch.deinit();
++        return self.commit(&batch, publishHtml, .{ job, &built });
++    }
++    fn publishHtml(self: *Server, batch: *Batch, job: *Job, built: *pipeline.Html) !bool {
+         const i = self.state.find(job.uri) orelse return false;
+         const doc = &self.state.documents.items[i];
+         if (self.state.stopping or doc.generation != job.generation or job.cancel.load(.acquire)) return false;
+         self.state.setFixes(doc, built.offers.items, built.fixes_failed);
+-        try responses.diagnostics(self.state.allocator, self.writer, job.uri, job.version, built.diagnostics.items);
++        try batch.add(.null, .{ .diagnostics = .{ .uri = job.uri, .version = job.version, .generation = job.generation, .items = built.diagnostics.items } });
+         const old_bytes = if (doc.html_cache) |cache| cache.payload_bytes else 0;
+         if (job.html.?.cache) |cache| if (cache.payload_bytes <= limits.html_cache_total - (self.state.html_cache_bytes - old_bytes)) {
+             self.dropHtmlCache(doc);
+@@ -203,101 +214,117 @@
+             return false;
+         };
+         defer if (index) |*owned| owned.deinit(self.state.allocator);
+-        self.state.mutex.lockUncancelable(self.state.io);
+-        defer self.state.mutex.unlock(self.state.io);
++        var batch: Batch = .{ .server = self };
++        defer batch.deinit();
++        return self.commit(&batch, publishReferences, .{ job, &index });
++    }
++    fn publishReferences(self: *Server, batch: *Batch, job: *Job, index: *?references.Index) !bool {
+         const i = self.state.find(job.uri) orelse return false;
+         const doc = &self.state.documents.items[i];
+         if (self.state.stopping or doc.generation != job.generation or job.cancel.load(.acquire)) return false;
+-        const bytes = index.?.bytes();
+-        if (bytes > limits.references_total - self.state.index_bytes) return false;
+-        self.state.index_bytes += bytes;
+-        doc.references = index;
+-        index = null;
++        const owned = index.*.?;
++        doc.references = snapshot.References.create(self.state.allocator, owned, doc.uri, doc.version, doc.generation, owned.bytes(), &self.state.index_bytes, limits.references_total) catch return false;
++        index.* = null;
+         defer doc.requests.clear(self.state.allocator);
+-        for (doc.requests.items()) |request| try self.referenceReply(request.id, doc.uri, doc.references.?, request.point, request.include);
++        for (doc.requests.items()) |request| try self.referenceReply(batch, request.id, doc.uri, doc.references.?, request.point, request.include);
+         return false;
+     }
+ 
+-    fn outlineReply(self: *Server, id: request_store.Id, doc: Document) !void {
++    fn outlineReply(self: *Server, batch: *Batch, id: request_store.Id, doc: Document) !void {
+         if (doc.outline_index) |index| {
+             if (self.hierarchical_symbols) {
+-                try responses.result(self.state.allocator, self.writer, wireId(id), responses.Symbols{ .index = index });
+-            } else if (index.response_bound + index.entries.len * (6 * doc.uri.len + 914) <= 128 * 1024 * 1024) {
+-                try responses.result(self.state.allocator, self.writer, wireId(id), responses.FlatSymbols{ .index = index, .uri = doc.uri });
+-            } else try self.failure(id, lsp.ErrorCode.request_failed, "Flat outline response exceeded resource limits. Results were not truncated.");
+-        } else try self.failure(id, lsp.ErrorCode.request_failed, "Document outline exceeded analysis or index resource limits. Results were not truncated.");
+-    }
+-    fn referenceReply(self: *Server, request: request_store.Id, uri: []const u8, index: references.Index, point: pos.Position, include: bool) !void {
+-        try responses.referencesReply(self.state.allocator, self.writer, wireId(request), uri, index, point, include);
++                try batch.add(id, .{ .outline = .{ .index = index, .hierarchical = true } });
++            } else if (index.value.response_bound + index.value.entries.len * (6 * doc.uri.len + 914) <= 128 * 1024 * 1024) {
++                try batch.add(id, .{ .outline = .{ .index = index, .hierarchical = false } });
++            } else try self.failure(batch, id, lsp.ErrorCode.request_failed, "Flat outline response exceeded resource limits. Results were not truncated.");
++        } else try self.failure(batch, id, lsp.ErrorCode.request_failed, "Document outline exceeded analysis or index resource limits. Results were not truncated.");
++    }
++    fn referenceReply(_: *Server, batch: *Batch, request: request_store.Id, uri: []const u8, index: *snapshot.References, point: pos.Position, include: bool) !void {
++        _ = uri;
++        try batch.add(request, .{ .references = .{ .index = index, .point = point, .include = include } });
+     }
+ 
+     fn analyze(self: *Server, job: *Job, encoding: pos.Encoding) !bool {
+         if (!try pipeline.syntax(self.environment(), job, encoding)) return false;
+-        self.state.mutex.lockUncancelable(self.state.io);
+-        defer self.state.mutex.unlock(self.state.io);
++        var batch: Batch = .{ .server = self };
++        defer batch.deinit();
++        return self.commit(&batch, publishSyntax, .{job});
++    }
++    fn publishSyntax(self: *Server, batch: *Batch, job: *Job) !bool {
+         const i = self.state.find(job.uri) orelse return false;
+         if (self.state.stopping or self.state.documents.items[i].generation != job.generation) return false;
+         self.state.setFixes(&self.state.documents.items[i], job.fixes.items, job.fixes_failed);
+-        try responses.diagnostics(self.state.allocator, self.writer, job.uri, job.version, job.diagnostics.items);
++        try batch.add(.null, .{ .diagnostics = .{ .uri = job.uri, .version = job.version, .generation = job.generation, .items = job.diagnostics.items } });
+         if (job.labels.?.spans.count == 0 and !job.labels.?.incomplete) self.dropHtmlCache(&self.state.documents.items[i]);
+         pipeline.afterSyntax(self.state.allocator, job);
+         return true;
+     }
+-    fn codeActions(self: *Server, request: request_store.Id, decoded: ?requests.CodeActions) !void {
++    fn codeActions(self: *Server, batch: *Batch, request: request_store.Id, decoded: ?requests.CodeActions) !void {
+         const params = decoded orelse {
+-            try self.failure(request, lsp.ErrorCode.invalid_params, "Code actions require an open document, valid range and diagnostics array.");
++            try self.failure(batch, request, lsp.ErrorCode.invalid_params, "Code actions require an open document, valid range and diagnostics array.");
+             return;
+         };
+         if (params.too_many) {
+-            try self.failure(request, lsp.ErrorCode.invalid_params, "Code action diagnostic context exceeds its limit.");
++            try self.failure(batch, request, lsp.ErrorCode.invalid_params, "Code action diagnostic context exceeds its limit.");
+             return;
+         }
+         const i = self.state.find(params.uri) orelse {
+-            try self.failure(request, lsp.ErrorCode.invalid_params, "Code actions require an open document.");
++            try self.failure(batch, request, lsp.ErrorCode.invalid_params, "Code actions require an open document.");
+             return;
+         };
+         const doc = &self.state.documents.items[i];
+         switch (params.only) {
+             .invalid_array => {
+-                try self.failure(request, lsp.ErrorCode.invalid_params, "Code action kinds must be an array.");
++                try self.failure(batch, request, lsp.ErrorCode.invalid_params, "Code action kinds must be an array.");
+                 return;
+             },
+             .invalid_strings => {
+-                try self.failure(request, lsp.ErrorCode.invalid_params, "Code action kinds must be strings.");
++                try self.failure(batch, request, lsp.ErrorCode.invalid_params, "Code action kinds must be strings.");
+                 return;
+             },
+             .none => {
+-                try responses.result(self.state.allocator, self.writer, wireId(request), @as([]const bool, &.{}));
++                try batch.add(request, .empty_result);
+                 return;
+             },
+             .all => {},
+         }
+         if (!self.versioned_edits) {
+-            try responses.result(self.state.allocator, self.writer, wireId(request), @as([]const bool, &.{}));
++            try batch.add(request, .empty_result);
+             return;
+         }
+         const offers = doc.fixes orelse {
+             if (doc.fixes_done) {
+-                try self.failure(request, lsp.ErrorCode.request_failed, "Quick fixes are unavailable within resource limits.");
++                try self.failure(batch, request, lsp.ErrorCode.request_failed, "Quick fixes are unavailable within resource limits.");
+                 return;
+             }
+-            try self.failure(request, lsp.ErrorCode.content_modified, "Current diagnostics are not ready. Request code actions again after diagnostics arrive.");
++            try self.failure(batch, request, lsp.ErrorCode.content_modified, "Current diagnostics are not ready. Request code actions again after diagnostics arrive.");
+             return;
+         };
+         if (params.mixed_generations or if (params.generation) |generation| generation < 0 or @as(u64, @intCast(generation)) != doc.generation else false) {
+-            try self.failure(request, lsp.ErrorCode.content_modified, "Document changed since these diagnostics were produced.");
++            try self.failure(batch, request, lsp.ErrorCode.content_modified, "Document changed since these diagnostics were produced.");
+             return;
+         }
+-        try responses.codeActions(self.state.allocator, self.writer, wireId(request), doc.uri, doc.version, offers, params.range);
+-    }
+-
++        try batch.add(request, .{ .fixes = .{ .index = offers, .range = params.range } });
++    }
++
++    fn commit(self: *Server, batch: *Batch, comptime operation: anytype, args: anytype) !bool {
++        self.state.mutex.lockUncancelable(self.state.io);
++        const result = @call(.auto, operation, .{ self, batch } ++ args);
++        batch.seal();
++        self.state.mutex.unlock(self.state.io);
++        try batch.flush();
++        return result;
++    }
+     fn handle(self: *Server, message: *json_message.Message, packet: *?[]u8) !bool {
+-        self.state.mutex.lockUncancelable(self.state.io);
+-        defer self.state.mutex.unlock(self.state.io);
++        var batch: Batch = .{ .server = self };
++        defer batch.deinit();
++        return self.commit(&batch, handleLocked, .{ message, packet });
++    }
++    fn handleLocked(self: *Server, batch: *Batch, message: *json_message.Message, packet: *?[]u8) !bool {
+         const lifecycle: requests.Lifecycle = if (!self.initialized) .before_initialize else if (self.shutdown) .shutdown else .ready;
+         const command = switch (requests.decode(message.value, lifecycle)) {
+             .failure => |f| {
+-                try self.failure(runtimeId(f.id), f.code, f.message);
++                try self.failure(batch, runtimeId(f.id), f.code, f.message);
+                 return false;
+             },
+             .command => |c| c,
+@@ -307,7 +334,7 @@
+         if (method == .exit) return true;
+         if (!self.initialized) {
+             if (method != .initialize) {
+-                if (id) |request| try self.failure(request, lsp.ErrorCode.not_initialized, "Server not initialized");
++                if (id) |request| try self.failure(batch, request, lsp.ErrorCode.not_initialized, "Server not initialized");
+                 return false;
+             }
+             if (id == null) return false;
+@@ -317,106 +344,246 @@
+             self.related_information = caps.related_information;
+             self.state.encoding = caps.encoding;
+             self.initialized = true;
+-            try responses.initialized(self.state.allocator, self.writer, wireId(id.?), self.state.encoding);
++            try batch.add(id.?, .{ .initialized = self.state.encoding });
+             return false;
+         }
+         if (self.shutdown) {
+-            if (id) |request| try self.failure(request, lsp.ErrorCode.invalid_request, "Server has shut down");
++            if (id) |request| try self.failure(batch, request, lsp.ErrorCode.invalid_request, "Server has shut down");
+             return false;
+         }
+         if (method == .initialize) {
+-            if (id) |request| try self.failure(request, lsp.ErrorCode.invalid_request, "Already initialized");
++            if (id) |request| try self.failure(batch, request, lsp.ErrorCode.invalid_request, "Already initialized");
+         } else if (method == .shutdown) {
+             if (id) |request| {
+                 self.shutdown = true;
+-                for (self.state.documents.items) |*doc| self.invalidate(doc);
+-                try responses.result(self.state.allocator, self.writer, wireId(request), @as(?u8, null));
++                for (self.state.documents.items) |*doc| self.invalidate(batch, doc);
++                try batch.add(request, .null_result);
+             }
+         } else if (method == .code_actions) {
+-            try self.codeActions(id orelse return false, command.body.code_actions);
++            try self.codeActions(batch, id orelse return false, command.body.code_actions);
+         } else if (method == .symbols) {
+             const request = id orelse return false;
+             const uri = command.body.symbols;
+             const doc = if (uri) |u| if (self.state.find(u)) |i| &self.state.documents.items[i] else null else null;
+             if (doc == null) {
+-                try self.failure(request, lsp.ErrorCode.invalid_params, "Document outline requires an open document.");
++                try self.failure(batch, request, lsp.ErrorCode.invalid_params, "Document outline requires an open document.");
+             } else if (doc.?.outline_done) {
+-                try self.outlineReply(request, doc.?.*);
++                try self.outlineReply(batch, request, doc.?.*);
+             } else if (!(doc.?.pending != null or doc.?.index_pending != null or if (self.state.active) |job| std.mem.eql(u8, job.uri, doc.?.uri) and job.generation == doc.?.generation else false)) {
+-                try self.failure(request, lsp.ErrorCode.request_failed, "Document outline analysis did not complete within limits.");
++                try self.failure(batch, request, lsp.ErrorCode.request_failed, "Document outline analysis did not complete within limits.");
+             } else if (!doc.?.requests.canAppend(request)) {
+-                try self.failure(request, lsp.ErrorCode.request_failed, "Pending outline request limit exceeded.");
++                try self.failure(batch, request, lsp.ErrorCode.request_failed, "Pending outline request limit exceeded.");
+             } else {
+                 try doc.?.requests.append(self.state.allocator, .{ .id = request, .point = .{ .line = 0, .character = 0 }, .kind = .symbols });
+             }
+         } else if (method == .references) {
+             const request = id orelse return false;
+             const params = command.body.references orelse {
+-                try self.failure(request, lsp.ErrorCode.invalid_params, "References requires a document, position and includeDeclaration boolean.");
++                try self.failure(batch, request, lsp.ErrorCode.invalid_params, "References requires a document, position and includeDeclaration boolean.");
+                 return false;
+             };
+             const document = self.state.find(params.uri) orelse {
+-                try self.failure(request, lsp.ErrorCode.invalid_params, "References requires an open document.");
++                try self.failure(batch, request, lsp.ErrorCode.invalid_params, "References requires an open document.");
+                 return false;
+             };
+             const doc = &self.state.documents.items[document];
+             const point_value = params.point;
+             if (doc.references) |index| {
+-                try self.referenceReply(request, doc.uri, index, point_value, params.include);
++                try self.referenceReply(batch, request, doc.uri, index, point_value, params.include);
+             } else {
+                 const pending = doc.pending != null or doc.index_pending != null or if (self.state.active) |job| std.mem.eql(u8, job.uri, doc.uri) and job.generation == doc.generation else false;
+                 if (!pending) {
+-                    try self.failure(request, lsp.ErrorCode.request_failed, "Node references are unavailable: syntax analysis or index construction did not complete within limits.");
++                    try self.failure(batch, request, lsp.ErrorCode.request_failed, "Node references are unavailable: syntax analysis or index construction did not complete within limits.");
+                 } else if (!doc.requests.canAppend(request)) {
+-                    try self.failure(request, lsp.ErrorCode.request_failed, "Pending reference request limit exceeded.");
++                    try self.failure(batch, request, lsp.ErrorCode.request_failed, "Pending reference request limit exceeded.");
+                 } else {
+                     try doc.requests.append(self.state.allocator, .{ .id = request, .point = point_value, .include = params.include });
+                 }
+             }
+         } else if (method == .cancel) {
+             const cancelled = command.body.cancel orelse return false;
+-            _ = try self.state.cancelRequest(runtimeId(cancelled), self.observer());
++            _ = try self.state.cancelRequest(runtimeId(cancelled), batch.observer());
+         } else if (method == .completion or method == .hover) {
+             const is_hover = method == .hover;
+             const request_id = id orelse return false;
+             const params = command.body.positioned orelse {
+-                try self.failure(request_id, lsp.ErrorCode.invalid_params, "Completion requires an open document and a non-negative position.");
++                try self.failure(batch, request_id, lsp.ErrorCode.invalid_params, "Completion requires an open document and a non-negative position.");
+                 return false;
+             };
+             const i = self.state.find(params.uri) orelse {
+-                try self.failure(request_id, lsp.ErrorCode.invalid_params, "Completion requires an open document and a non-negative position.");
++                try self.failure(batch, request_id, lsp.ErrorCode.invalid_params, "Completion requires an open document and a non-negative position.");
+                 return false;
+             };
+             const doc = &self.state.documents.items[i];
+             const point_value = params.point;
+             if (doc.completion) |ready| {
+-                if (is_hover) try self.hoverReply(request_id, ready, point_value) else try self.completionReply(request_id, ready, point_value);
++                if (is_hover) try self.hoverReply(batch, request_id, ready, point_value) else try self.completionReply(batch, request_id, ready, point_value);
+             } else if (doc.completion_done or (doc.pending == null and doc.index_pending == null and !(if (self.state.active) |job| std.mem.eql(u8, job.uri, doc.uri) and job.generation == doc.generation else false))) {
+-                try self.failure(request_id, lsp.ErrorCode.request_failed, "Completion context is unavailable within resource limits.");
++                try self.failure(batch, request_id, lsp.ErrorCode.request_failed, "Completion context is unavailable within resource limits.");
+             } else if (!doc.requests.canAppend(request_id)) {
+-                try self.failure(request_id, lsp.ErrorCode.request_failed, "Pending request limit exceeded.");
++                try self.failure(batch, request_id, lsp.ErrorCode.request_failed, "Pending request limit exceeded.");
+             } else {
+                 try doc.requests.append(self.state.allocator, .{ .id = request_id, .point = point_value, .kind = if (is_hover) .hover else .completion });
+             }
+         } else if (method == .open or method == .change) {
+             const params = command.body.update orelse return false;
+-            try self.update(params.uri, params.text, params.version, params.opening, message, packet);
++            try self.update(batch, params.uri, params.text, params.version, params.opening, message, packet);
+         } else if (method == .close) {
+             const uri = command.body.close orelse return false;
+-            if (self.state.close(uri, self.observer())) |closed| {
++            if (self.state.close(uri, batch.observer())) |closed| {
+                 var removed = closed;
+                 defer removed.deinit(self.state.allocator);
+-                try self.clear(uri, null, null);
+-            }
+-        } else if (id) |request| try self.failure(request, lsp.ErrorCode.method_not_found, "Method not found");
++                try self.clear(batch, uri, null, null);
++            }
++        } else if (id) |request| try self.failure(batch, request, lsp.ErrorCode.method_not_found, "Method not found");
+         return false;
+     }
+     fn deinit(self: *Server) void {
+-        self.state.stop(self.observer());
++        var batch: Batch = .{ .server = self };
++        defer batch.deinit();
++        self.state.stop(batch.observer());
++        self.state.mutex.lockUncancelable(self.state.io);
++        batch.seal();
++        self.state.mutex.unlock(self.state.io);
++        batch.flush() catch {};
+     }
+ };
+-/// Transitional state owner: document/job/worker extraction is step 4/5.
+-/// Protocol helpers borrow data synchronously under the existing server lock.
++// A transaction prepares small response views under the state mutex. Its leases
++// keep published arrays alive after unlock. A ticket preserves transaction order
++// across the two existing threads. Blocking writes remain a step 7 limitation.
++const Batch = struct {
++    const Positioned = struct { index: *snapshot.Completion, point: pos.Position };
++    const Body = union(enum) {
++        failure: struct { code: i32, message: []const u8 },
++        clear: struct { uri: []const u8, version: ?i64, message: ?[]const u8 },
++        diagnostics: struct { uri: []const u8, version: i64, generation: u64, items: []const findings.Finding },
++        initialized: pos.Encoding,
++        empty_result,
++        null_result,
++        completion: Positioned,
++        hover: Positioned,
++        references: struct { index: *snapshot.References, point: pos.Position, include: bool },
++        outline: struct { index: *snapshot.Outline, hierarchical: bool },
++        fixes: struct { index: *snapshot.Fixes, range: pos.Range },
++    };
++    const Reply = struct { id: request_store.Id, body: Body };
++    server: *Server,
++    replies: std.ArrayList(Reply) = .empty,
++    ticket: ?usize = null,
++    /// Called under the state lock. The ID is copied; feature allocations are not.
++    fn add(self: *Batch, id: request_store.Id, body: Body) !void {
++        const a = self.server.state.allocator;
++        const owned = try id.clone(a);
++        errdefer owned.deinit(a);
++        try self.replies.append(a, .{ .id = owned, .body = body });
++        switch (body) {
++            .completion, .hover => |v| _ = v.index.retain(),
++            .references => |v| _ = v.index.retain(),
++            .outline => |v| _ = v.index.retain(),
++            .fixes => |v| _ = v.index.retain(),
++            else => {},
++        }
++    }
++    fn seal(self: *Batch) void {
++        if (self.replies.items.len == 0) return;
++        std.debug.assert(self.ticket == null);
++        self.ticket = self.server.issued;
++        self.server.issued += 1;
++    }
++    fn observer(self: *Batch) request_store.Observer {
++        return .{ .context = self, .failure = observe };
++    }
++    fn observe(ctx: *anyopaque, id: request_store.Id, reason: request_store.Failure) !void {
++        const self: *Batch = @ptrCast(@alignCast(ctx));
++        const code: i32 = switch (reason) {
++            .modified => lsp.ErrorCode.content_modified,
++            .cancelled => lsp.ErrorCode.request_cancelled,
++            else => lsp.ErrorCode.request_failed,
++        };
++        const message: []const u8 = switch (reason) {
++            .modified => "Document changed before the request completed.",
++            .cancelled => "Request cancelled.",
++            .reference_failed => "Reference analysis failed.",
++            .reference_unavailable => "Node references are unavailable: analysis did not complete within limits.",
++        };
++        try self.add(id, .{ .failure = .{ .code = code, .message = message } });
++    }
++    fn flush(self: *Batch) !void {
++        const ticket = self.ticket orelse return;
++        const s = self.server;
++        s.output_mutex.lockUncancelable(s.state.io);
++        defer s.output_mutex.unlock(s.state.io);
++        while (ticket != s.serving) s.output_condition.waitUncancelable(s.state.io, &s.output_mutex);
++        defer {
++            s.serving += 1;
++            s.output_condition.broadcast(s.state.io);
++        }
++        if (s.output_failed) return error.OutputFailed;
++        for (self.replies.items) |reply| self.encode(reply) catch |err| {
++            // Do not try another frame after a possibly partial write.
++            s.output_failed = true;
++            return err;
++        };
++    }
++    fn encode(self: *Batch, reply: Reply) !void {
++        const a = self.server.state.allocator;
++        const w: responses.Destination = .{ .writer = self.server.writer };
++        const id = wireId(reply.id);
++        switch (reply.body) {
++            .failure => |v| try responses.failure(a, w, id, v.code, v.message),
++            .clear => |v| try responses.clear(a, w, v.uri, v.version, v.message),
++            .diagnostics => |v| {
++                var gate: DiagnosticGate = .{ .server = self.server, .uri = v.uri, .generation = v.generation };
++                try responses.diagnostics(a, .{ .writer = self.server.writer, .gate = .{ .context = &gate, .current = DiagnosticGate.current } }, v.uri, v.version, v.items);
++            },
++            .initialized => |v| try responses.initialized(a, w, id, v),
++            .empty_result => try responses.result(a, w, id, @as([]const bool, &.{})),
++            .null_result => try responses.result(a, w, id, @as(?u8, null)),
++            .completion => |v| try responses.completion(a, w, id, v.index.value, v.point),
++            .hover => |v| try responses.hover(a, w, id, v.index.value, v.point),
++            .references => |v| try responses.referencesReply(a, w, id, v.index.uri, v.index.value, v.point, v.include),
++            .outline => |v| if (v.hierarchical) {
++                try responses.result(a, w, id, responses.Symbols{ .index = v.index.value });
++            } else {
++                try responses.result(a, w, id, responses.FlatSymbols{ .index = v.index.value, .uri = v.index.uri });
++            },
++            .fixes => |v| try responses.codeActions(a, w, id, v.index.uri, v.index.version, v.index.value, v.range),
++        }
++    }
++    const DiagnosticGate = struct {
++        server: *Server,
++        uri: []const u8,
++        generation: u64,
++        fn current(ctx: *anyopaque) bool {
++            const self: *DiagnosticGate = @ptrCast(@alignCast(ctx));
++            const state = &self.server.state;
++            state.mutex.lockUncancelable(state.io);
++            defer state.mutex.unlock(state.io);
++            const i = state.find(self.uri) orelse return false;
++            return !state.stopping and state.documents.items[i].generation == self.generation;
++        }
++    };
++    fn deinit(self: *Batch) void {
++        const state = &self.server.state;
++        state.mutex.lockUncancelable(state.io);
++        defer state.mutex.unlock(state.io);
++        for (self.replies.items) |reply| {
++            reply.id.deinit(state.allocator);
++            switch (reply.body) {
++                .completion, .hover => |v| v.index.release(state.allocator),
++                .references => |v| v.index.release(state.allocator),
++                .outline => |v| v.index.release(state.allocator),
++                .fixes => |v| v.index.release(state.allocator),
++                else => {},
++            }
++        }
++        self.replies.deinit(state.allocator);
++        self.replies = .empty;
++    }
++};
++
++/// Connects typed runtime transitions to protocol replies. Published feature
++/// views are leased; encoding and synchronous output run outside the state lock.
+ pub fn run(io: std.Io, allocator: std.mem.Allocator, html_allocator: std.mem.Allocator, reader: *std.Io.Reader, writer: *std.Io.Writer) !bool {
+     var server: Server = .{ .state = .{ .html_allocator = html_allocator, .allocator = allocator, .io = io }, .writer = writer };
+     var exit_requested = false;
+@@ -433,9 +600,14 @@
+             defer parsed.deinit();
+             const decoding = if (build_options.json_storage == .inplace) parsed.parseInPlace(bytes) else parsed.parse(bytes, if (build_options.json_storage == .buffer) .buffer else .arena);
+             decoding catch |err| {
++                var batch: Batch = .{ .server = &server };
++                defer batch.deinit();
+                 server.state.mutex.lockUncancelable(io);
+-                defer server.state.mutex.unlock(io);
+-                try server.failure(.null, if (err == error.OutOfMemory) @as(i32, lsp.ErrorCode.internal_error) else lsp.ErrorCode.parse_error, if (err == error.OutOfMemory) "Message storage exhausted" else "Parse error");
++                const result = server.failure(&batch, .null, if (err == error.OutOfMemory) @as(i32, lsp.ErrorCode.internal_error) else lsp.ErrorCode.parse_error, if (err == error.OutOfMemory) "Message storage exhausted" else "Parse error");
++                batch.seal();
++                server.state.mutex.unlock(io);
++                try result;
++                try batch.flush();
+                 continue;
+             };
+             if (try server.handle(&parsed, &packet)) {
+@@ -446,3 +618,117 @@
+     }
+     return exit_requested and !server.shutdown;
+ }
++
++test "leased reply survives close and releases storage on allocation or encoding failure" {
++    try std.testing.checkAllAllocationFailures(std.testing.allocator, struct {
++        fn run(a: std.mem.Allocator) !void {
++            var output = std.Io.Writer.Allocating.init(std.testing.allocator);
++            defer output.deinit();
++            var server: Server = .{ .state = .{ .allocator = a, .html_allocator = a, .io = std.testing.io }, .writer = &output.writer };
++            var batch: Batch = .{ .server = &server };
++            defer batch.deinit();
++            defer server.state.stop(batch.observer());
++            const uri = try a.dupe(u8, "untitled:retired");
++            server.state.documents.append(a, .{ .uri = uri, .version = 2, .generation = 8 }) catch |err| {
++                a.free(uri);
++                return err;
++            };
++            const doc = &server.state.documents.items[0];
++            doc.references = try snapshot.References.create(a, .{}, doc.uri, doc.version, doc.generation, 0, &server.state.index_bytes, limits.references_total);
++            try batch.add(.{ .string = "owned reply ID" }, .{ .references = .{ .index = doc.references.?, .point = .{ .line = 0, .character = 0 }, .include = true } });
++            var removed = server.state.close(doc.uri, batch.observer()).?;
++            removed.deinit(a);
++            try std.testing.expect(server.state.index_bytes > 0);
++            batch.seal();
++            try batch.flush();
++            try std.testing.expect(std.mem.indexOf(u8, output.written(), "owned reply ID") != null);
++            batch.deinit();
++            try std.testing.expectEqual(@as(usize, 0), server.state.index_bytes);
++        }
++    }.run, .{});
++}
++
++test "output failure stops subsequent frames and releases reply leases" {
++    const a = std.testing.allocator;
++    var output: std.Io.Writer = .failing;
++    var server: Server = .{ .state = .{ .allocator = a, .html_allocator = a, .io = std.testing.io }, .writer = &output };
++    var batch: Batch = .{ .server = &server };
++    defer batch.deinit();
++    const owner = try snapshot.References.create(a, .{}, "uri", 1, 1, 0, &server.state.index_bytes, limits.references_total);
++    try batch.add(.{ .integer = 2 }, .{ .references = .{ .index = owner, .point = .{ .line = 0, .character = 0 }, .include = true } });
++    owner.release(a);
++    batch.seal();
++    try std.testing.expectError(error.WriteFailed, batch.flush());
++    try std.testing.expect(server.output_failed);
++    batch.deinit();
++    try std.testing.expectEqual(@as(usize, 0), server.state.index_bytes);
++    var second: Batch = .{ .server = &server };
++    defer second.deinit();
++    try second.add(.null, .null_result);
++    second.seal();
++    try std.testing.expectError(error.OutputFailed, second.flush());
++}
++
++test "diagnostics are checked again after encoding and before the frame starts" {
++    const a = std.testing.allocator;
++    var output = std.Io.Writer.Allocating.init(a);
++    defer output.deinit();
++    var server: Server = .{ .state = .{ .allocator = a, .html_allocator = a, .io = std.testing.io }, .writer = &output.writer };
++    var batch: Batch = .{ .server = &server };
++    defer batch.deinit();
++    defer server.state.stop(batch.observer());
++    try server.state.documents.append(a, .{ .uri = try a.dupe(u8, "uri"), .version = 1, .generation = 1 });
++    try batch.add(.null, .{ .diagnostics = .{ .uri = "uri", .version = 1, .generation = 1, .items = &.{} } });
++    batch.seal();
++    server.state.documents.items[0].generation = 2;
++    try batch.flush();
++    try std.testing.expectEqual(@as(usize, 0), output.written().len);
++}
++
++test "edit and close can retire an index while another thread writes its reply" {
++    const Sink = struct {
++        writer: std.Io.Writer = .{ .buffer = &.{}, .vtable = &.{ .drain = drain } },
++        entered: std.atomic.Value(bool) = .init(false),
++        proceed: std.atomic.Value(bool) = .init(false),
++        batch: *Batch = undefined,
++        failed: bool = false,
++        fn drain(w: *std.Io.Writer, data: []const []const u8, splat: usize) std.Io.Writer.Error!usize {
++            const self: *@This() = @fieldParentPtr("writer", w);
++            self.entered.store(true, .release);
++            while (!self.proceed.load(.acquire)) std.Thread.yield() catch {};
++            var n: usize = 0;
++            for (data[0 .. data.len - 1]) |part| n += part.len;
++            return n + data[data.len - 1].len * splat;
++        }
++        fn encode(self: *@This()) void {
++            self.batch.flush() catch {
++                self.failed = true;
++            };
++        }
++    };
++    const a = std.testing.allocator;
++    var sink: Sink = .{};
++    var server: Server = .{ .state = .{ .allocator = a, .html_allocator = a, .io = std.testing.io }, .writer = &sink.writer };
++    var batch: Batch = .{ .server = &server };
++    defer batch.deinit();
++    defer server.state.stop(batch.observer());
++    try server.state.documents.append(a, .{ .uri = try a.dupe(u8, "uri"), .version = 1, .generation = 1 });
++    const doc = &server.state.documents.items[0];
++    doc.references = try snapshot.References.create(a, .{}, doc.uri, 1, 1, 0, &server.state.index_bytes, limits.references_total);
++    try batch.add(.{ .integer = 3 }, .{ .references = .{ .index = doc.references.?, .point = .{ .line = 0, .character = 0 }, .include = true } });
++    batch.seal();
++    sink.batch = &batch;
++    const thread = try std.Thread.spawn(.{}, Sink.encode, .{&sink});
++    defer thread.join();
++    defer sink.proceed.store(true, .release);
++    while (!sink.entered.load(.acquire)) std.Thread.yield() catch {};
++    // This fails immediately if response writing still holds the state mutex.
++    const unlocked = server.state.mutex.tryLock();
++    try std.testing.expect(unlocked);
++    defer server.state.mutex.unlock(server.state.io);
++    server.state.invalidate(doc, batch.observer());
++    try std.testing.expect(server.state.index_bytes > 0);
++    var closed = server.state.close("uri", batch.observer()).?;
++    closed.deinit(a);
++    try std.testing.expect(server.state.index_bytes > 0);
++}
+--- before/src/protocol/responses.zig
++++ after/src/protocol/responses.zig
+@@ -10,20 +10,27 @@
+ const outline = @import("../features/outline.zig");
+ const actions = @import("../features/code_actions.zig");
+ const findings = @import("../analysis/diagnostic_text.zig");
+-pub fn send(allocator: std.mem.Allocator, writer: *std.Io.Writer, value: anytype) !void {
++/// A borrowed writer with an optional final eligibility check. The check runs
++/// after encoding and before the first frame byte. It does not own runtime data.
++pub const Destination = struct {
++    writer: *std.Io.Writer,
++    gate: ?struct { context: *anyopaque, current: *const fn (*anyopaque) bool } = null,
++};
++pub fn send(allocator: std.mem.Allocator, writer: Destination, value: anytype) !void {
+     const bytes = try std.json.Stringify.valueAlloc(allocator, value, .{});
+     defer allocator.free(bytes);
+-    try writer.print("Content-Length: {d}\r\n\r\n", .{bytes.len});
+-    try writer.writeAll(bytes);
+-    try writer.flush();
+-}
+-pub fn failure(allocator: std.mem.Allocator, writer: *std.Io.Writer, id: lsp.Id, code: i32, message: []const u8) !void {
++    if (writer.gate) |gate| if (!gate.current(gate.context)) return;
++    try writer.writer.print("Content-Length: {d}\r\n\r\n", .{bytes.len});
++    try writer.writer.writeAll(bytes);
++    try writer.writer.flush();
++}
++pub fn failure(allocator: std.mem.Allocator, writer: Destination, id: lsp.Id, code: i32, message: []const u8) !void {
+     try send(allocator, writer, .{ .jsonrpc = "2.0", .id = id, .@"error" = .{ .code = code, .message = message } });
+ }
+-pub fn result(allocator: std.mem.Allocator, writer: *std.Io.Writer, id: lsp.Id, value: anytype) !void {
++pub fn result(allocator: std.mem.Allocator, writer: Destination, id: lsp.Id, value: anytype) !void {
+     try send(allocator, writer, .{ .jsonrpc = "2.0", .id = id, .result = value });
+ }
+-pub fn diagnostics(allocator: std.mem.Allocator, writer: *std.Io.Writer, uri: []const u8, version: ?i64, items: []const findings.Finding) !void {
++pub fn diagnostics(allocator: std.mem.Allocator, writer: Destination, uri: []const u8, version: ?i64, items: []const findings.Finding) !void {
+     try send(allocator, writer, .{ .jsonrpc = "2.0", .method = "textDocument/publishDiagnostics", .params = .{ .uri = uri, .version = version, .diagnostics = Findings{ .items = items } } });
+ }
+ /// Borrowed serialization views; no copied diagnostic or related-note arrays.
+@@ -51,12 +58,12 @@
+         try json.endArray();
+     }
+ };
+-pub fn clear(allocator: std.mem.Allocator, writer: *std.Io.Writer, uri: []const u8, version: ?i64, message: ?[]const u8) !void {
++pub fn clear(allocator: std.mem.Allocator, writer: Destination, uri: []const u8, version: ?i64, message: ?[]const u8) !void {
+     const origin = pos.Position{ .line = 0, .character = 0 };
+     const single = [_]findings.Finding{.{ .range = .{ .start = origin, .end = origin }, .severity = .information, .code = "dot-ls:limits", .message = message orelse "" }};
+     try diagnostics(allocator, writer, uri, version, if (message != null) single[0..] else single[0..0]);
+ }
+-pub fn initialized(allocator: std.mem.Allocator, writer: *std.Io.Writer, id: lsp.Id, encoding: pos.Encoding) !void {
++pub fn initialized(allocator: std.mem.Allocator, writer: Destination, id: lsp.Id, encoding: pos.Encoding) !void {
+     const enc = switch (encoding) {
+         .utf8 => "utf-8",
+         .utf16 => "utf-16",
+@@ -64,10 +71,10 @@
+     };
+     try result(allocator, writer, id, .{ .capabilities = .{ .positionEncoding = enc, .codeActionProvider = .{ .codeActionKinds = [_][]const u8{"quickfix"}, .resolveProvider = false }, .documentSymbolProvider = true, .referencesProvider = true, .hoverProvider = true, .completionProvider = .{ .resolveProvider = false }, .textDocumentSync = .{ .openClose = true, .change = 1 } }, .serverInfo = .{ .name = "dot-ls", .version = lsp.server_version } });
+ }
+-pub fn completion(allocator: std.mem.Allocator, writer: *std.Io.Writer, id: lsp.Id, index: context.Index, point: pos.Position) !void {
++pub fn completion(allocator: std.mem.Allocator, writer: Destination, id: lsp.Id, index: context.Index, point: pos.Position) !void {
+     try send(allocator, writer, .{ .jsonrpc = "2.0", .id = id, .result = CompletionList{ .kind = index.at(point) } });
+ }
+-pub fn hover(allocator: std.mem.Allocator, writer: *std.Io.Writer, id: lsp.Id, index: context.Index, point: pos.Position) !void {
++pub fn hover(allocator: std.mem.Allocator, writer: Destination, id: lsp.Id, index: context.Index, point: pos.Position) !void {
+     if (!index.attributes.available) return failure(allocator, writer, id, lsp.ErrorCode.request_failed, "Attribute hover exceeded its memory limit.");
+     const byte = index.coordinates.byteAt(point);
+     const match = if (byte) |b| index.attributes.at(b) else null;
+@@ -78,7 +85,7 @@
+         try send(allocator, writer, .{ .jsonrpc = "2.0", .id = id, .result = .{ .contents = .{ .kind = "plaintext", .value = text }, .range = .{ .start = index.coordinates.positionAt(key.span.start), .end = index.coordinates.positionAt(@intCast(key.span.endOffset())) } } });
+     } else try send(allocator, writer, .{ .jsonrpc = "2.0", .id = id, .result = @as(?u8, null) });
+ }
+-pub fn referencesReply(allocator: std.mem.Allocator, writer: *std.Io.Writer, request: lsp.Id, uri: []const u8, index: references.Index, point: pos.Position, include: bool) !void {
++pub fn referencesReply(allocator: std.mem.Allocator, writer: Destination, request: lsp.Id, uri: []const u8, index: references.Index, point: pos.Position, include: bool) !void {
+     const Location = struct { uri: []const u8, range: references.Range };
+     var locations: std.ArrayList(Location) = .empty;
+     defer locations.deinit(allocator);
+@@ -199,7 +206,7 @@
+     for (values, 0..) |edit, i| storage[i] = .{ .range = edit.range, .newText = edit.text };
+     return storage[0..values.len];
+ }
+-pub fn codeActions(gpa: std.mem.Allocator, writer: *std.Io.Writer, request: lsp.Id, uri: []const u8, version: i64, offers: []const actions.Fix, range: pos.Range) !void {
++pub fn codeActions(gpa: std.mem.Allocator, writer: Destination, request: lsp.Id, uri: []const u8, version: i64, offers: []const actions.Fix, range: pos.Range) !void {
+     const Change = struct { textDocument: struct { uri: []const u8, version: i64 }, edits: []const lsp.TextEdit };
+     const Action = struct { title: []const u8, kind: []const u8 = "quickfix", isPreferred: bool, edit: struct { documentChanges: []const Change } };
+     var arena = std.heap.ArenaAllocator.init(gpa);
+--- before/src/runtime/document.zig
++++ after/src/runtime/document.zig
+@@ -1,17 +1,15 @@
+ //! Open-document data. The runtime server owns generation transitions and accounting.
+ const std = @import("std");
+-const outline = @import("../features/outline.zig");
++const snapshot = @import("snapshot.zig");
+ const actions = @import("../features/code_actions.zig");
+-const references = @import("../features/references.zig");
+-const context = @import("../features/completion_context.zig");
+ const labels = @import("../features/labels.zig");
+ const Job = @import("job.zig").Job;
+ const requests = @import("requests.zig");
+ const limits = @import("limits.zig");
+ pub const Document = struct {
+-    outline_index: ?outline.Index = null,
++    outline_index: ?*snapshot.Outline = null,
+     outline_done: bool = false,
+-    fixes: ?[]actions.Fix = null,
++    fixes: ?*snapshot.Fixes = null,
+     fixes_done: bool = false,
+     requests: requests.Queue = .{},
+     index_pending: ?*Job = null,
+@@ -19,16 +17,21 @@
+     version: i64,
+     generation: u64,
+     pending: ?*Job = null,
+-    references: ?references.Index = null,
+-    completion: ?context.Index = null,
++    references: ?*snapshot.References = null,
++    completion: ?*snapshot.Completion = null,
+     completion_done: bool = false,
+     html_cache: ?*labels.Cache = null,
+-    pub fn setFixes(self: *Document, allocator: std.mem.Allocator, offers: []const actions.Fix, failed: bool) void {
++    pub fn setFixes(self: *Document, allocator: std.mem.Allocator, offers: []const actions.Fix, failed: bool, counter: *usize) void {
+         std.debug.assert(offers.len <= limits.findings);
+-        if (self.fixes) |old| allocator.free(old);
++        if (self.fixes) |old| old.release(allocator);
+         self.fixes = null;
+         self.fixes_done = true;
+-        if (!failed) self.fixes = allocator.dupe(actions.Fix, offers) catch null;
++        if (failed) return;
++        const copy = allocator.dupe(actions.Fix, offers) catch return;
++        self.fixes = snapshot.Fixes.create(allocator, copy, self.uri, self.version, self.generation, copy.len * @sizeOf(actions.Fix), counter, std.math.maxInt(usize)) catch {
++            allocator.free(copy);
++            return;
++        };
+     }
+     pub fn dropHtmlCache(self: *Document, allocator: std.mem.Allocator) usize {
+         const bytes = if (self.html_cache) |cache| cache.payload_bytes else 0;
+@@ -49,7 +52,8 @@
+ test "fix snapshot allocation failure leaves diagnostics publication independent" {
+     var document: Document = .{ .uri = @constCast("untitled:test"), .version = 1, .generation = 1 };
+     const offers = [_]actions.Fix{.{ .diagnostic = .{ .start = .{ .line = 0, .character = 0 }, .end = .{ .line = 0, .character = 1 } }, .edit = .{ .start = .{ .line = 0, .character = 0 }, .end = .{ .line = 0, .character = 1 } }, .kind = .delete, .preferred = true }};
+-    document.setFixes(std.testing.failing_allocator, &offers, false);
++    var counter: usize = 0;
++    document.setFixes(std.testing.failing_allocator, &offers, false, &counter);
+     try std.testing.expect(document.fixes_done);
+     try std.testing.expect(document.fixes == null);
+ }
+--- before/src/runtime/server.zig
++++ after/src/runtime/server.zig
+@@ -27,6 +27,7 @@
+     context_bytes: usize = 0,
+     outline_bytes: usize = 0,
+     html_cache_bytes: usize = 0,
++    fix_bytes: usize = 0,
+     html_budget: labels.Budget = .{},
+     // Queued syntax jobs plus any large packet being read/decoded by the dispatcher.
+     syntax_pending: std.atomic.Value(usize) = .init(0),
+@@ -47,13 +48,12 @@
+         return null;
+     }
+     pub fn invalidate(self: *Server, doc: *Document, observer: requests.Observer) void {
+-        if (doc.outline_index) |*index| {
+-            self.outline_bytes -= index.bytes();
+-            index.deinit(self.allocator);
++        if (doc.outline_index) |index| {
++            index.release(self.allocator);
+             doc.outline_index = null;
+         }
+         doc.outline_done = false;
+-        if (doc.fixes) |old| self.allocator.free(old);
++        if (doc.fixes) |old| old.release(self.allocator);
+         doc.fixes = null;
+         doc.fixes_done = false;
+         self.failRequests(doc, .modified, observer) catch {};
+@@ -62,15 +62,13 @@
+             job.destroy(self.allocator);
+             doc.index_pending = null;
+         }
+-        if (doc.completion) |*index| {
+-            self.context_bytes -= index.bytes();
+-            index.deinit(self.allocator);
++        if (doc.completion) |index| {
++            index.release(self.allocator);
+             doc.completion = null;
+         }
+         doc.completion_done = false;
+-        if (doc.references) |*index| {
+-            self.index_bytes -= index.bytes();
+-            index.deinit(self.allocator);
++        if (doc.references) |index| {
++            index.release(self.allocator);
+             doc.references = null;
+         }
+         if (doc.pending) |job| {
+@@ -92,7 +90,7 @@
+         }
+     }
+     pub fn setFixes(self: *Server, doc: *Document, offers: []const actions.Fix, failed: bool) void {
+-        doc.setFixes(self.allocator, offers, failed);
++        doc.setFixes(self.allocator, offers, failed, &self.fix_bytes);
+     }
+     pub fn dropHtmlCache(self: *Server, doc: *Document) void {
+         if (doc.html_cache) |cache| self.html_cache_bytes -= cache.payload_bytes;
+--- before/src/runtime/snapshot.zig
++++ after/src/runtime/snapshot.zig
+@@ -0,0 +1,81 @@
++//! Immutable feature ownership. Retain/release and admission require the state
++//! mutex. A reader may query value and metadata outside it until release.
++//! Each handle owns one feature allocation; no source or other feature is pinned.
++const std = @import("std");
++const context = @import("../features/completion_context.zig");
++const references = @import("../features/references.zig");
++const outline = @import("../features/outline.zig");
++const actions = @import("../features/code_actions.zig");
++pub const Completion = Lease(context.Index);
++pub const References = Lease(references.Index);
++pub const Outline = Lease(outline.Index);
++pub const Fixes = Lease([]actions.Fix);
++pub fn Lease(comptime T: type) type {
++    return struct {
++        const Self = @This();
++        value: T,
++        uri: []const u8,
++        version: i64,
++        generation: u64,
++        readers: usize = 1,
++        charged: usize,
++        counter: *usize,
++        /// Takes value only on success. Header and URI share one allocation.
++        pub fn create(allocator: std.mem.Allocator, value: T, uri: []const u8, version: i64, generation: u64, payload: usize, counter: *usize, limit: usize) !*Self {
++            const charged = @sizeOf(Self) + uri.len + payload;
++            if (counter.* > limit or charged > limit - counter.*) return error.SnapshotLimit;
++            const memory = try allocator.alignedAlloc(u8, .of(Self), @sizeOf(Self) + uri.len);
++            const self: *Self = @ptrCast(memory.ptr);
++            const key = memory[@sizeOf(Self)..];
++            @memcpy(key, uri);
++            self.* = .{ .value = value, .uri = key, .version = version, .generation = generation, .charged = charged, .counter = counter };
++            counter.* += charged;
++            return self;
++        }
++        pub fn retain(self: *Self) *Self {
++            std.debug.assert(self.readers > 0);
++            self.readers += 1;
++            return self;
++        }
++        pub fn release(self: *Self, allocator: std.mem.Allocator) void {
++            std.debug.assert(self.readers > 0);
++            self.readers -= 1;
++            if (self.readers != 0) return;
++            if (T == []actions.Fix) allocator.free(self.value) else self.value.deinit(allocator);
++            self.counter.* -= self.charged;
++            const memory: [*]align(@alignOf(Self)) u8 = @ptrCast(self);
++            allocator.free(memory[0 .. @sizeOf(Self) + self.uri.len]);
++        }
++    };
++}
++
++test "retired feature stays charged and readable until the last reply releases it" {
++    const a = std.testing.allocator;
++    var charged: usize = 0;
++    const entries = try a.alloc(references.Entry, 1);
++    entries[0] = .{ .line = 0, .character = 2, .length = 1, .symbol = 7 };
++    const index: references.Index = .{ .entries = entries };
++    const published = try References.create(a, index, "untitled:old", 3, 9, index.bytes(), &charged, 1024);
++    const reply = published.retain();
++    const bytes = charged;
++    published.release(a); // edit or close retires the document's owner
++    try std.testing.expectEqual(bytes, charged);
++    try std.testing.expectEqualStrings("untitled:old", reply.uri);
++    try std.testing.expectEqual(@as(?u32, 7), reply.value.symbolAt(.{ .line = 0, .character = 2 }));
++    try std.testing.expectError(error.SnapshotLimit, References.create(a, .{}, "new", 4, 10, 0, &charged, bytes));
++    reply.release(a);
++    try std.testing.expectEqual(@as(usize, 0), charged);
++}
++
++test "snapshot allocation failure leaves the input owned by the caller" {
++    try std.testing.checkAllAllocationFailures(std.testing.allocator, struct {
++        fn run(a: std.mem.Allocator) !void {
++            var charged: usize = 0;
++            var value: references.Index = .{ .entries = try a.alloc(references.Entry, 1) };
++            errdefer value.deinit(a);
++            const lease = try References.create(a, value, "uri", 1, 1, value.bytes(), &charged, 1024);
++            lease.release(a);
++            try std.testing.expectEqual(@as(usize, 0), charged);
++        }
++    }.run, .{});
++}
+--- before/src/runtime/worker.zig
++++ after/src/runtime/worker.zig
+@@ -8,7 +8,7 @@
+     context: *anyopaque,
+     advance: *const fn (*anyopaque, *Job, Encoding) anyerror!bool,
+     failed: *const fn (*anyopaque, *Job) void,
+-    observer: requests.Observer,
++    failures: *const fn (*anyopaque, *requests.Queue, requests.Failure) void,
+ };
+ pub fn start(state: anytype, callbacks: Callbacks) !std.Thread {
+     return std.Thread.spawn(.{ .stack_size = limits.worker_stack }, run, .{ state, callbacks });
+@@ -18,29 +18,7 @@
+         state.mutex.lockUncancelable(state.io);
+         var job: ?*Job = null;
+         while (job == null and !state.stopping) {
+-            // Pending syntax always takes priority over reference indexing.
+-            for (state.documents.items) |*doc| if (doc.pending) |pending| {
+-                job = pending;
+-                doc.pending = null;
+-                _ = state.syntax_pending.fetchSub(1, .release);
+-                break;
+-            };
+-            if (job == null and state.syntax_pending.load(.acquire) == 0) {
+-                // Delayed labels and completion both precede reference interning.
+-                for ([_]u8{ 0, 1, 2 }) |priority| {
+-                    for (state.documents.items) |*doc| if (doc.index_pending) |pending| {
+-                        if (@as(u8, switch (pending.phase) {
+-                            .context => 1,
+-                            .html => 0,
+-                            else => 2,
+-                        }) != priority) continue;
+-                        job = pending;
+-                        doc.index_pending = null;
+-                        break;
+-                    };
+-                    if (job != null) break;
+-                }
+-            }
++            job = select(state);
+             if (job == null) state.condition.waitUncancelable(state.io, &state.mutex);
+         }
+         if (state.stopping) {
+@@ -58,17 +36,104 @@
+         state.mutex.lockUncancelable(state.io);
+         state.active = null;
+         var retained = false;
++        var failed: requests.Queue = .{};
+         if (state.find(current.uri)) |i| if (state.documents.items[i].generation == current.generation and !state.stopping and !current.cancel.load(.acquire)) {
+             const doc = &state.documents.items[i];
+             if (again) {
+                 doc.index_pending = current;
+                 retained = true;
+-            } else if (doc.references == null) state.failRequests(doc, .reference_unavailable, callbacks.observer) catch {};
++            } else if (doc.references == null) {
++                failed = doc.requests;
++                doc.requests = .{};
++            }
+         };
+         if (!retained) {
+             state.source_bytes -= current.allocation.len;
+             current.destroy(state.allocator);
+         }
+         state.mutex.unlock(state.io);
++        finishRequests(state.allocator, &failed, callbacks);
+     }
+ }
++
++/// Caller holds the state mutex. Intake priority also pauses delayed phases.
++fn select(state: anytype) ?*Job {
++    var job: ?*Job = null;
++    // Pending syntax always takes priority over reference indexing.
++    for (state.documents.items) |*doc| if (doc.pending) |pending| {
++        job = pending;
++        doc.pending = null;
++        _ = state.syntax_pending.fetchSub(1, .release);
++        break;
++    };
++    if (job == null and state.syntax_pending.load(.acquire) == 0) {
++        // Delayed labels and completion both precede reference interning.
++        for ([_]u8{ 0, 1, 2 }) |priority| {
++            for (state.documents.items) |*doc| if (doc.index_pending) |pending| {
++                if (@as(u8, switch (pending.phase) {
++                    .context => 1,
++                    .html => 0,
++                    else => 2,
++                }) != priority) continue;
++                job = pending;
++                doc.index_pending = null;
++                break;
++            };
++            if (job != null) break;
++        }
++    }
++    return job;
++}
++
++test "syntax then HTML then context then references; intake pauses delayed work" {
++    const Document = @import("document.zig").Document;
++    const Fake = struct {
++        documents: struct { items: []Document },
++        syntax_pending: std.atomic.Value(usize) = .init(0),
++    };
++    var syntax: Job = undefined;
++    var html: Job = undefined;
++    html.phase = .html;
++    var context: Job = undefined;
++    context.phase = .context;
++    var index: Job = undefined;
++    index.phase = .index;
++    var docs = [_]Document{
++        .{ .uri = @constCast("a"), .version = 1, .generation = 1, .index_pending = &index },
++        .{ .uri = @constCast("b"), .version = 1, .generation = 1, .index_pending = &context },
++        .{ .uri = @constCast("c"), .version = 1, .generation = 1, .index_pending = &html, .pending = &syntax },
++    };
++    var state: Fake = .{ .documents = .{ .items = &docs }, .syntax_pending = .init(2) };
++    try std.testing.expect(select(&state) == &syntax);
++    try std.testing.expectEqual(@as(usize, 1), state.syntax_pending.load(.acquire));
++    try std.testing.expect(select(&state) == null);
++    state.syntax_pending.store(0, .release);
++    try std.testing.expect(select(&state) == &html);
++    try std.testing.expect(select(&state) == &context);
++    try std.testing.expect(select(&state) == &index);
++    try std.testing.expect(select(&state) == null);
++}
++
++fn finishRequests(allocator: std.mem.Allocator, queue: *requests.Queue, callbacks: Callbacks) void {
++    defer queue.clear(allocator);
++    if (queue.items().len != 0) callbacks.failures(callbacks.context, queue, .reference_unavailable);
++}
++
++test "worker releases transferred queue capacity even when all requests were answered" {
++    var queue: requests.Queue = .{};
++    try queue.append(std.testing.allocator, .{ .id = .{ .integer = 1 }, .point = .{ .line = 0, .character = 0 } });
++    const answered = queue.orderedRemove(0);
++    answered.id.deinit(std.testing.allocator);
++    var ctx: u8 = 0;
++    finishRequests(std.testing.allocator, &queue, .{
++        .context = &ctx,
++        .advance = undefined,
++        .failed = undefined,
++        .failures = struct {
++            fn unexpected(_: *anyopaque, _: *requests.Queue, _: requests.Failure) void {
++                unreachable;
++            }
++        }.unexpected,
++    });
++    try std.testing.expectEqual(@as(usize, 0), queue.list.capacity);
++}
+--- before/src/tests.zig
++++ after/src/tests.zig
+@@ -4,6 +4,7 @@
+     _ = @import("app.zig");
+     _ = @import("analysis/pipeline.zig");
+     _ = @import("runtime/worker.zig");
++    _ = @import("runtime/snapshot.zig");
+     _ = @import("runtime/server.zig");
+     _ = @import("runtime/document.zig");
+     _ = @import("runtime/job.zig");

@@ -1,0 +1,71 @@
+{
+  "host": "aarch64-macos",
+  "passed": true,
+  "archives": [
+    {
+      "archive": "dot-ls-0.0.1-aarch64-macos.tar.gz",
+      "sha256": "aa9928a5dc5062c80a58787b7379c7ff028f8a2c82298f3e158886a4d8453ddc",
+      "archive_bytes": 290448,
+      "files": 11,
+      "runtime_tested": true,
+      "version_output": "dot-ls 0.0.1; dot-parser 0.5.0 (01b0a8e)",
+      "suites": [
+        {
+          "name": "lsp",
+          "exit_code": 0,
+          "output": "{\n  \"checks\": \"passed\",\n  \"binary_bytes\": 618456,\n  \"startup_ms_median\": 2.193417000000003,\n  \"startup_ms_max\": 2.5936670000000217,\n  \"edit_bytes\": 800012,\n  \"edit_ms_median\": 10.030770999999994,\n  \"edit_ms_max\": 10.322292000000012\n}\n"
+        },
+        {
+          "name": "protocol",
+          "exit_code": 0,
+          "output": "Protocol boundaries passed: framing, lifecycle/error order, IDs, source updates and 26 captured replies/findings.\n"
+        },
+        {
+          "name": "validation",
+          "exit_code": 0,
+          "output": "DOT policy protocol checks passed (UTF-8/16/32, limits, repair, HTML merge).\n"
+        },
+        {
+          "name": "completion",
+          "exit_code": 0,
+          "output": "Completion: contexts, partial input, UTF-8/16/32, line endings, limits and deferred lifecycle passed\n"
+        },
+        {
+          "name": "attributes",
+          "exit_code": 0,
+          "output": "Attributes: owner filtering, quoted names, UTF-8/16/32, hover exclusions and stale/cancelled requests passed\n"
+        },
+        {
+          "name": "references",
+          "exit_code": 0,
+          "output": "Node references: identities, chains, scopes, encodings, limits, invalid syntax and lifecycle passed\n"
+        },
+        {
+          "name": "html",
+          "exit_code": 0,
+          "output": "HTML: staged merge, selection, UTF-8/16/32, moved labels, repairs, limits, 70,000-label tail coverage and obsolete generations passed\n"
+        },
+        {
+          "name": "code_actions",
+          "exit_code": 0,
+          "output": "Code actions: parser edits apply cleanly; UTF-8/16/32, HTML rebase, filters, stale generations and versioned edits passed.\n"
+        },
+        {
+          "name": "outline",
+          "exit_code": 0,
+          "output": "document outline protocol checks passed\n"
+        },
+        {
+          "name": "output",
+          "exit_code": 0,
+          "output": "Output: partial intake, paused/resumed reader, intact large reply, close/cancel input, bounded exit and broken pipe passed.\n"
+        },
+        {
+          "name": "templates",
+          "exit_code": 0,
+          "output": "Templates: Markdown/plaintext preference, malformed capabilities, example, link and plain diagnostic passed.\n"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+// Quoted text stays a DOT string. Angle-delimited content gets HTML colors.
+// The <a> pair illustrates highlighting; Graphviz does not support an A tag.
+digraph html_colors {
+    quoted [label="<a></a>"];
+    html [label=<<a></a>>];
+    table [label=<
+        <TABLE BORDER="0">
+            <TR><TD><B>bold</B> text</TD></TR>
+        </TABLE>
+    >];
+}

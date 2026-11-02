@@ -1,0 +1,47 @@
+{
+  "lsp": {
+    "exit": 0,
+    "stdout": "{\n  \"checks\": \"passed\",\n  \"binary_bytes\": 945464,\n  \"startup_ms_median\": 2.2911670000000384,\n  \"startup_ms_max\": 2.512292000000027,\n  \"edit_bytes\": 800012,\n  \"edit_ms_median\": 8.380583500000094,\n  \"edit_ms_max\": 8.862207999999983\n}\n",
+    "stderr": ""
+  },
+  "protocol": {
+    "exit": 0,
+    "stdout": "Protocol boundaries passed: framing, lifecycle/error order, IDs, source updates and 26 captured replies/findings; exact baseline parity.\n",
+    "stderr": ""
+  },
+  "completion": {
+    "exit": 0,
+    "stdout": "Completion: contexts, partial input, UTF-8/16/32, line endings, limits and deferred lifecycle passed\n",
+    "stderr": ""
+  },
+  "attributes": {
+    "exit": 0,
+    "stdout": "Attributes: owner filtering, quoted names, UTF-8/16/32, hover exclusions and stale/cancelled requests passed\n",
+    "stderr": ""
+  },
+  "references": {
+    "exit": 0,
+    "stdout": "Node references: identities, chains, scopes, encodings, limits, invalid syntax and lifecycle passed\n",
+    "stderr": ""
+  },
+  "validation": {
+    "exit": 0,
+    "stdout": "DOT policy protocol checks passed (UTF-8/16/32, limits, repair, HTML merge).\n",
+    "stderr": ""
+  },
+  "html": {
+    "exit": 0,
+    "stdout": "HTML: staged merge, selection, UTF-8/16/32, moved labels, repairs, limits, 70,000-label tail coverage and obsolete generations passed\n",
+    "stderr": ""
+  },
+  "code_actions": {
+    "exit": 0,
+    "stdout": "Code actions: parser edits apply cleanly; UTF-8/16/32, HTML rebase, filters, stale generations and versioned edits passed.\n",
+    "stderr": ""
+  },
+  "outline": {
+    "exit": 0,
+    "stdout": "document outline protocol checks passed\n",
+    "stderr": ""
+  }
+}

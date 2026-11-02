@@ -1,0 +1,31 @@
+{
+  "platform": "macOS-27.0.1-arm64-arm-64bit",
+  "compiler": "Zig 0.16.0",
+  "optimization": "ReleaseSafe",
+  "binary_bytes": 801368,
+  "binary_sha256": "fdea34c2600f08b83902605ef825e168ad8f43daa4af202d06fbbf422cf25f5a",
+  "files": {
+    "src/parser_policy.zig": "94bdf8b8317691271194212fddd3ae248b90bff71226af0d36b1c58fccb47ed8",
+    "src/validation.zig": "5b68614577ec2c225e535692458b0ae119306883dbf8006f93a81f8f3937e691",
+    "src/analysis.zig": "b95b712377a3a33e7b112e590421481eb423bd78d6f8d36f4c669bee32bce23e",
+    "src/main.zig": "eeef306327aa25b00e4a28e007f04b1e71d73cd1b84522619e86de2e9820513e",
+    "src/diagnostic_text.zig": "6b3a780524a2cf25e43dd0000507dc15cc9b3dedcb9a45dff7a57a41b32c77c2",
+    "vendor/dot-parser/src/root.zig": "779fd2f1fe100fb524e117c26dbe0bd1efc04ee27aaf1c8616f8684d87bc159a",
+    "vendor/dot-parser/src/dot/profile.zig": "6baaf002005b3ab24c93698e061ddef4da113c0177d42d677284c946311ccab3",
+    "vendor/dot-parser/src/dot/syntax.zig": "3ac9e09486bc42e9fc10f9fc53395ea1e42eece9a0fae395f7baf8d757385a39"
+  },
+  "checks": {
+    "project_debug_unit_tests": "passed",
+    "project_ReleaseSafe_unit_tests": "passed",
+    "vendored_parser_ReleaseSafe_tests": "passed",
+    "protocol_suites": [
+      "validation",
+      "lsp",
+      "html",
+      "references",
+      "completion"
+    ],
+    "reported_benchmark_processes": 36,
+    "reported_benchmark_versions": 216
+  }
+}

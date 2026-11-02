@@ -1,0 +1,17 @@
+{
+  "upstream_commit": "8615e9ff8e9a22ba8090dc780daf75ee4cb7ccbe",
+  "before_commit": "75ce950b356d341fba2cdcf4fcd6c224cb049a67",
+  "before_binary_sha256": "06136fdde4f08991e2c02ebfddb1a1619b1be58a569f7d1f2b036946be2e32b0",
+  "after_binary_sha256": "620fa7b71146dc263f5a8061eb19e62918f5a707cc49204634001e88115c2631",
+  "server_unit_tests": 69,
+  "vendored_parser_unit_tests": 208,
+  "optimize": "safe",
+  "zig": "0.17.0",
+  "token_previews_enabled": false,
+  "patches": [
+    "outline-observer.patch"
+  ],
+  "patch_change": "Rebased hunk offsets only; hook behavior unchanged.",
+  "sibling_checkout_modified": false,
+  "server_only_memory": true
+}

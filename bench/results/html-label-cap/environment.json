@@ -1,0 +1,20 @@
+{
+  "date": "2026-10-15",
+  "machine": "Apple M4 Pro, 14 logical CPUs, 48 GiB RAM; native arm64 macOS 27.0.1",
+  "build": "Zig 0.16.0 ReleaseSafe; page allocator; buffered JSON; unchanged packed HTML entry allocator",
+  "baseline_sha256": "06634ddefd6c88f0d168ad6825401b43b57b27a322643d8bb53f234e389d2344",
+  "measured_candidate_sha256": "042d3982618c9283f649391c940c09b1cecf4ce62bc5ea0cc52ab9c4f17e8e40",
+  "benchmark_sha256": "606373e7ebb5cb3660e5f39974c8cd3d54c458e0205db23895f07f5d23f1f987",
+  "source_sha256": {
+    "src/labels.zig": "c912e6c7e5289356aa6471cf34bad7883c372d15f5f01fc022a36622763d129e",
+    "src/main.zig": "bb23545d68ab4ee4efdc75e7af65469e108be1a8d5574e9db8df47c4f88ff128",
+    "tests/html.py": "a67a00db6a312d0df09055820440dd9743e3202091ccdd25701f65f3a5439750",
+    "tools/html_profile.zig": "e7259b31749a2019bb5c27a63b81a4ef289dcac73f564e762aa73ed369f0ee88"
+  },
+  "native_fixture_notes": "Repeated bodies are byte-identical. Unique variant uses an eight-digit text ID and shrinks beta to b, preserving exact file size.",
+  "normal_trials_per_case": 3,
+  "versions_per_process": 6,
+  "excluded": "plain-after-excluded-build-overlap.json overlaps a unit-test build; replaced by a clean complete plain-after run.",
+  "memory": "macOS wait4 actual peak RSS per server child; client/editor excluded. Retained allocator bytes profiled separately in disposable builds.",
+  "final_binary_sha256": "fb02d43fd1f9b61be949a95e84c9ef3ec3becd60a62d096aaf3c8f7cc4375d9a"
+}

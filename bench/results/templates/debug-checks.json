@@ -1,0 +1,22 @@
+[
+  {
+    "suite": "templates",
+    "exit": 0,
+    "output": "Templates: Markdown/plaintext preference, malformed capabilities, example, link and plain diagnostic passed.\n"
+  },
+  {
+    "suite": "attributes",
+    "exit": 0,
+    "output": "Attributes: owner filtering, quoted names, UTF-8/16/32, hover exclusions and stale/cancelled requests passed\n"
+  },
+  {
+    "suite": "code_actions",
+    "exit": 0,
+    "output": "Code actions: parser edits apply cleanly; UTF-8/16/32, HTML rebase, filters, stale generations and versioned edits passed.\n"
+  },
+  {
+    "suite": "html",
+    "exit": 0,
+    "output": "HTML: staged merge, selection, UTF-8/16/32, moved labels, repairs, limits, 70,000-label tail coverage and obsolete generations passed\n"
+  }
+]

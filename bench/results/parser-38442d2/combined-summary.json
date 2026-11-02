@@ -1,0 +1,214 @@
+{
+  "scope": "Full dot-ls stdio process; server-only RSS, editor/harness excluded. Same compiler, features, credits, allocator and fixture bytes. Project dependency and active binaries unchanged.",
+  "source_files": [
+    "comparison.json",
+    "repeat-40/comparison.json"
+  ],
+  "method": "Three alternating fresh processes per build/layout at 5 and 20 MB. Six at 40 MB: initial three plus a three-trial follow-up because edit timing varied. All trials included. Each process runs clean open, broken edit and repair; full-sync payloads pre-encoded. No builds, tests or editor automation alongside measurements.",
+  "rows": [
+    {
+      "mb": 5,
+      "kind": "plain",
+      "before": {
+        "trials": 3,
+        "open_ms": 44.081499999999885,
+        "broken_ms": 49.79529199999999,
+        "repair_ms": 45.14233300000026,
+        "completion_ready_ms": 68.6662499999997,
+        "open_cpu_through_settle_ms": 73.73612500000002,
+        "startup_ms": 6.609832999999732,
+        "settled_rss_bytes": 7503872,
+        "peak_rss_bytes": 17973248,
+        "idle_rss_bytes": 2244608,
+        "process_cpu_ms": 222.81699999999998,
+        "open_min_ms": 37.662375000000026,
+        "open_max_ms": 47.629417000000004
+      },
+      "after": {
+        "trials": 3,
+        "open_ms": 48.11958300000008,
+        "broken_ms": 47.20929199999979,
+        "repair_ms": 45.39029200000044,
+        "completion_ready_ms": 71.65945800000006,
+        "open_cpu_through_settle_ms": 75.75983333333333,
+        "startup_ms": 7.0510829999999025,
+        "settled_rss_bytes": 7520256,
+        "peak_rss_bytes": 17989632,
+        "idle_rss_bytes": 2244608,
+        "process_cpu_ms": 217.037,
+        "open_min_ms": 33.338749999999976,
+        "open_max_ms": 48.435499999999855
+      }
+    },
+    {
+      "mb": 5,
+      "kind": "html",
+      "before": {
+        "trials": 3,
+        "open_ms": 42.43204099999964,
+        "broken_ms": 42.35495900000075,
+        "repair_ms": 44.77804100000071,
+        "completion_ready_ms": 67.88733299999983,
+        "open_cpu_through_settle_ms": 69.40933333333334,
+        "startup_ms": 7.048915999998684,
+        "settled_rss_bytes": 7356416,
+        "peak_rss_bytes": 18120704,
+        "idle_rss_bytes": 2244608,
+        "process_cpu_ms": 207.65200000000002,
+        "open_min_ms": 39.00150000000124,
+        "open_max_ms": 45.91783300000074
+      },
+      "after": {
+        "trials": 3,
+        "open_ms": 37.57483399999906,
+        "broken_ms": 47.100042000000286,
+        "repair_ms": 37.550667000001425,
+        "completion_ready_ms": 62.59733299999937,
+        "open_cpu_through_settle_ms": 65.64,
+        "startup_ms": 7.133582999999888,
+        "settled_rss_bytes": 7356416,
+        "peak_rss_bytes": 18120704,
+        "idle_rss_bytes": 2244608,
+        "process_cpu_ms": 194.98399999999998,
+        "open_min_ms": 36.82270799999898,
+        "open_max_ms": 39.24183300000017
+      }
+    },
+    {
+      "mb": 20,
+      "kind": "plain",
+      "before": {
+        "trials": 3,
+        "open_ms": 125.11262499999987,
+        "broken_ms": 135.22050000000263,
+        "repair_ms": 127.86400000000242,
+        "completion_ready_ms": 194.3459169999997,
+        "open_cpu_through_settle_ms": 221.98387499999998,
+        "startup_ms": 7.565374999998653,
+        "settled_rss_bytes": 21872640,
+        "peak_rss_bytes": 63930368,
+        "idle_rss_bytes": 2244608,
+        "process_cpu_ms": 656.336,
+        "open_min_ms": 124.74554099999935,
+        "open_max_ms": 125.70629100000019
+      },
+      "after": {
+        "trials": 3,
+        "open_ms": 125.36279100000058,
+        "broken_ms": 134.46283299999706,
+        "repair_ms": 123.56920799999926,
+        "completion_ready_ms": 195.29441599999942,
+        "open_cpu_through_settle_ms": 221.93366666666668,
+        "startup_ms": 6.940750000001827,
+        "settled_rss_bytes": 21872640,
+        "peak_rss_bytes": 63930368,
+        "idle_rss_bytes": 2244608,
+        "process_cpu_ms": 650.576,
+        "open_min_ms": 117.03975,
+        "open_max_ms": 129.17937499999965
+      }
+    },
+    {
+      "mb": 20,
+      "kind": "html",
+      "before": {
+        "trials": 3,
+        "open_ms": 117.45249999999885,
+        "broken_ms": 128.150208000001,
+        "repair_ms": 113.34999999999695,
+        "completion_ready_ms": 190.90887500000164,
+        "open_cpu_through_settle_ms": 205.84425000000002,
+        "startup_ms": 7.258415999999102,
+        "settled_rss_bytes": 20856832,
+        "peak_rss_bytes": 64061440,
+        "idle_rss_bytes": 2244608,
+        "process_cpu_ms": 614.381,
+        "open_min_ms": 116.84254199999344,
+        "open_max_ms": 117.46000000000123
+      },
+      "after": {
+        "trials": 3,
+        "open_ms": 113.3266670000026,
+        "broken_ms": 129.75195799999995,
+        "repair_ms": 114.42658300000375,
+        "completion_ready_ms": 187.6434580000037,
+        "open_cpu_through_settle_ms": 201.84283333333335,
+        "startup_ms": 6.971583000002113,
+        "settled_rss_bytes": 20856832,
+        "peak_rss_bytes": 64077824,
+        "idle_rss_bytes": 2244608,
+        "process_cpu_ms": 608.9129999999999,
+        "open_min_ms": 112.77791600000597,
+        "open_max_ms": 115.96329099999991
+      }
+    },
+    {
+      "mb": 40,
+      "kind": "plain",
+      "before": {
+        "trials": 6,
+        "open_ms": 217.75770850000154,
+        "broken_ms": 238.8920210000005,
+        "repair_ms": 214.08206200000012,
+        "completion_ready_ms": 361.5150625000023,
+        "open_cpu_through_settle_ms": 433.10337499999997,
+        "startup_ms": 6.46625000000256,
+        "settled_rss_bytes": 40992768.0,
+        "peak_rss_bytes": 125198336.0,
+        "idle_rss_bytes": 2244608.0,
+        "process_cpu_ms": 1239.828,
+        "open_min_ms": 213.39549999999895,
+        "open_max_ms": 227.1627909999978
+      },
+      "after": {
+        "trials": 6,
+        "open_ms": 209.9066875000002,
+        "broken_ms": 229.70302099999972,
+        "repair_ms": 212.0062079999987,
+        "completion_ready_ms": 349.9536669999976,
+        "open_cpu_through_settle_ms": 419.5126458333333,
+        "startup_ms": 6.841813000002084,
+        "settled_rss_bytes": 40992768.0,
+        "peak_rss_bytes": 125190144.0,
+        "idle_rss_bytes": 2244608.0,
+        "process_cpu_ms": 1214.0285,
+        "open_min_ms": 205.48670800000002,
+        "open_max_ms": 227.59858300000246
+      }
+    },
+    {
+      "mb": 40,
+      "kind": "html",
+      "before": {
+        "trials": 6,
+        "open_ms": 193.86404150000124,
+        "broken_ms": 216.94450000000032,
+        "repair_ms": 189.743395999999,
+        "completion_ready_ms": 348.325667000001,
+        "open_cpu_through_settle_ms": 390.98495833333334,
+        "startup_ms": 5.0379789999990265,
+        "settled_rss_bytes": 38879232.0,
+        "peak_rss_bytes": 125386752.0,
+        "idle_rss_bytes": 2244608.0,
+        "process_cpu_ms": 1140.6039999999998,
+        "open_min_ms": 179.72216699999422,
+        "open_max_ms": 220.65016599999865
+      },
+      "after": {
+        "trials": 6,
+        "open_ms": 189.48660450000077,
+        "broken_ms": 222.56122950000545,
+        "repair_ms": 195.23370799999816,
+        "completion_ready_ms": 342.1639585000005,
+        "open_cpu_through_settle_ms": 379.8802708333333,
+        "startup_ms": 7.494979500000554,
+        "settled_rss_bytes": 38879232.0,
+        "peak_rss_bytes": 125378560.0,
+        "idle_rss_bytes": 2244608.0,
+        "process_cpu_ms": 1142.6945,
+        "open_min_ms": 175.19504199999858,
+        "open_max_ms": 207.1882499999944
+      }
+    }
+  ]
+}

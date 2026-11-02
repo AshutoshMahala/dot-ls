@@ -1,0 +1,38 @@
+{
+  "platform": "macOS-27.0.1-arm64-arm-64bit",
+  "compiler": "Zig 0.16.0",
+  "optimization": "ReleaseSafe",
+  "binary_bytes": 836312,
+  "binary_sha256": "e033565dba18a762a5e66a69f0e13762cf376b69e8b582d0d408a27ff857c9f6",
+  "files": {
+    "src/main.zig": "93eee5ccf54d01073bb409c7e0316838d475efcb547b0b92c4f1e07d051bef2a",
+    "src/code_actions.zig": "89f4c939c761b75a6312baf8b04ffbcbdf39f3547551e5218e3173b6762f9c0a",
+    "src/analysis.zig": "b95b712377a3a33e7b112e590421481eb423bd78d6f8d36f4c669bee32bce23e",
+    "src/parser_policy.zig": "94bdf8b8317691271194212fddd3ae248b90bff71226af0d36b1c58fccb47ed8",
+    "src/validation.zig": "5b68614577ec2c225e535692458b0ae119306883dbf8006f93a81f8f3937e691"
+  },
+  "checks": {
+    "unit_debug": "passed",
+    "unit_ReleaseSafe": "passed",
+    "protocol": [
+      "code_actions",
+      "lsp",
+      "html",
+      "references",
+      "completion",
+      "validation"
+    ],
+    "Zed_actions": [
+      "edge operator",
+      "HTML reference semicolon",
+      "quote identifier",
+      "missing right bracket"
+    ]
+  },
+  "benchmark": {
+    "processes": 36,
+    "versions": 180,
+    "new_action_requests": 36,
+    "all_completed": true
+  }
+}

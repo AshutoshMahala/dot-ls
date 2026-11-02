@@ -1,0 +1,48 @@
+--- a/src/positions.zig
++++ b/src/positions.zig
+@@ -1,6 +1,14 @@
+ const std = @import("std");
+ pub const Encoding = enum { utf8, utf16, utf32 };
+ pub const Position = struct { line: usize, character: usize };
++/// Preserve replacement decoding without calling the standard decoder on a
++/// truncated sequence. Its length-specific routines require a matching lead byte.
++pub fn decodeScalar(bytes: []const u8) u21 {
++    if (bytes.len == 0) return 0xfffd;
++    const width = std.unicode.utf8ByteSequenceLength(bytes[0]) catch return 0xfffd;
++    if (width != bytes.len) return 0xfffd;
++    return std.unicode.utf8Decode(bytes) catch 0xfffd;
++}
+ pub const Index = struct {
+     starts: std.ArrayList(u32) = .empty,
+     pub fn init(gpa: std.mem.Allocator, text: []const u8) !Index {
+@@ -62,7 +70,7 @@
+             }
+             const n = std.unicode.utf8ByteSequenceLength(text[i]) catch 1;
+             const end = @min(i + n, offset);
+-            const scalar = std.unicode.utf8Decode(text[i..end]) catch 0xfffd;
++            const scalar = decodeScalar(text[i..end]);
+             count += switch (encoding) {
+                 .utf8 => end - i,
+                 .utf16 => if (scalar > 0xffff) @as(usize, 2) else 1,
+--- a/src/completion_context.zig
++++ b/src/completion_context.zig
+@@ -392,7 +392,7 @@
+                 try self.lines.append(self.gpa, @as(u32, @intCast(i)) | if (pair) crlf else 0);
+             } else {
+                 const width = @min(std.unicode.utf8ByteSequenceLength(byte) catch 1, self.source.len - i);
+-                const scalar = std.unicode.utf8Decode(self.source[i..][0..width]) catch 0xfffd;
++                const scalar = pos.decodeScalar(self.source[i..][0..width]);
+                 const count: u32 = switch (encoding) {
+                     .utf8 => @intCast(width),
+                     .utf16 => if (scalar > 0xffff) 2 else 1,
+--- a/src/references.zig
++++ b/src/references.zig
+@@ -192,7 +192,7 @@
+                 self.position.character += 1;
+             } else {
+                 const width = @min(std.unicode.utf8ByteSequenceLength(byte) catch 1, end - self.offset);
+-                const scalar = std.unicode.utf8Decode(self.source[self.offset..][0..width]) catch 0xfffd;
++                const scalar = pos.decodeScalar(self.source[self.offset..][0..width]);
+                 self.position.character += switch (self.encoding) {
+                     .utf8 => width,
+                     .utf16 => if (scalar > 0xffff) @as(usize, 2) else 1,

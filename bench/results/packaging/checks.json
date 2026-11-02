@@ -1,0 +1,99 @@
+{
+  "host": "aarch64-macos",
+  "passed": true,
+  "archives": [
+    {
+      "archive": "dot-ls-0.0.1-aarch64-linux-musl.tar.gz",
+      "sha256": "c9077406ba867718395fef84f9242b4b425605c7a208b778de9b474831328049",
+      "archive_bytes": 309126,
+      "files": 12,
+      "runtime_tested": false
+    },
+    {
+      "archive": "dot-ls-0.0.1-aarch64-macos.tar.gz",
+      "sha256": "017af1e0764bdf8195cceebbb105a501d793512d7e35c26c875aa0188959d026",
+      "archive_bytes": 286734,
+      "files": 12,
+      "runtime_tested": true,
+      "version_output": "dot-ls 0.0.1; dot-parser 0.5.0+outline-hook.3 (8615e9f)",
+      "suites": [
+        {
+          "name": "lsp",
+          "exit_code": 0,
+          "output": "{\n  \"checks\": \"passed\",\n  \"binary_bytes\": 618456,\n  \"startup_ms_median\": 2.341791999999981,\n  \"startup_ms_max\": 2.663167000000022,\n  \"edit_bytes\": 800012,\n  \"edit_ms_median\": 8.248833499999996,\n  \"edit_ms_max\": 8.511083000000031\n}\n"
+        },
+        {
+          "name": "protocol",
+          "exit_code": 0,
+          "output": "Protocol boundaries passed: framing, lifecycle/error order, IDs, source updates and 26 captured replies/findings.\n"
+        },
+        {
+          "name": "validation",
+          "exit_code": 0,
+          "output": "DOT policy protocol checks passed (UTF-8/16/32, limits, repair, HTML merge).\n"
+        },
+        {
+          "name": "completion",
+          "exit_code": 0,
+          "output": "Completion: contexts, partial input, UTF-8/16/32, line endings, limits and deferred lifecycle passed\n"
+        },
+        {
+          "name": "attributes",
+          "exit_code": 0,
+          "output": "Attributes: owner filtering, quoted names, UTF-8/16/32, hover exclusions and stale/cancelled requests passed\n"
+        },
+        {
+          "name": "references",
+          "exit_code": 0,
+          "output": "Node references: identities, chains, scopes, encodings, limits, invalid syntax and lifecycle passed\n"
+        },
+        {
+          "name": "html",
+          "exit_code": 0,
+          "output": "HTML: staged merge, selection, UTF-8/16/32, moved labels, repairs, limits, 70,000-label tail coverage and obsolete generations passed\n"
+        },
+        {
+          "name": "code_actions",
+          "exit_code": 0,
+          "output": "Code actions: parser edits apply cleanly; UTF-8/16/32, HTML rebase, filters, stale generations and versioned edits passed.\n"
+        },
+        {
+          "name": "outline",
+          "exit_code": 0,
+          "output": "document outline protocol checks passed\n"
+        },
+        {
+          "name": "output",
+          "exit_code": 0,
+          "output": "Output: partial intake, paused/resumed reader, intact large reply, close/cancel input, bounded exit and broken pipe passed.\n"
+        },
+        {
+          "name": "templates",
+          "exit_code": 0,
+          "output": "Templates: Markdown/plaintext preference, malformed capabilities, example, link and plain diagnostic passed.\n"
+        }
+      ]
+    },
+    {
+      "archive": "dot-ls-0.0.1-x86_64-linux-musl.tar.gz",
+      "sha256": "3a8f60771b806e2b8002bafb54e6fe814491f54fe1b02d024f5c7792f990b9d4",
+      "archive_bytes": 314684,
+      "files": 12,
+      "runtime_tested": false
+    },
+    {
+      "archive": "dot-ls-0.0.1-x86_64-macos.tar.gz",
+      "sha256": "379185d16d3c28f60479d6ef23220f1c3a28cd2a59d8f4a77df57113c0876eb7",
+      "archive_bytes": 307518,
+      "files": 12,
+      "runtime_tested": false
+    },
+    {
+      "archive": "dot-ls-zed-0.0.1.tar.gz",
+      "sha256": "326d4314ecd6b366d4f4a31f69ae6194d250e9313940230f4d02c0c0b82d989e",
+      "archive_bytes": 255700,
+      "files": 165,
+      "runtime_tested": false
+    }
+  ]
+}

@@ -1,0 +1,72 @@
+[
+  {
+    "storage": "inplace",
+    "suite": "lsp",
+    "sha256": "ba948aa29c28a48070552589517b191146f27966078ed0b6bf90c05329b5bc9d",
+    "code": 0,
+    "output": "{\n  \"checks\": \"passed\",\n  \"binary_bytes\": 945560,\n  \"startup_ms_median\": 2.7764169999999755,\n  \"startup_ms_max\": 3.1110840000000417,\n  \"edit_bytes\": 800012,\n  \"edit_ms_median\": 8.391457999999991,\n  \"edit_ms_max\": 8.893375000000036\n}\n"
+  },
+  {
+    "storage": "inplace",
+    "suite": "protocol",
+    "sha256": "ba948aa29c28a48070552589517b191146f27966078ed0b6bf90c05329b5bc9d",
+    "code": 0,
+    "output": "Protocol boundaries passed: framing, lifecycle/error order, IDs, source updates and 26 captured replies/findings.\n"
+  },
+  {
+    "storage": "inplace",
+    "suite": "attributes",
+    "sha256": "ba948aa29c28a48070552589517b191146f27966078ed0b6bf90c05329b5bc9d",
+    "code": 0,
+    "output": "Attributes: owner filtering, quoted names, UTF-8/16/32, hover exclusions and stale/cancelled requests passed\n"
+  },
+  {
+    "storage": "inplace",
+    "suite": "code_actions",
+    "sha256": "ba948aa29c28a48070552589517b191146f27966078ed0b6bf90c05329b5bc9d",
+    "code": 0,
+    "output": "Code actions: parser edits apply cleanly; UTF-8/16/32, HTML rebase, filters, stale generations and versioned edits passed.\n"
+  },
+  {
+    "storage": "inplace",
+    "suite": "html",
+    "sha256": "ba948aa29c28a48070552589517b191146f27966078ed0b6bf90c05329b5bc9d",
+    "code": 0,
+    "output": "HTML: staged merge, selection, UTF-8/16/32, moved labels, repairs, limits, 70,000-label tail coverage and obsolete generations passed\n"
+  },
+  {
+    "storage": "arena",
+    "suite": "lsp",
+    "sha256": "527ec87eb907c1938f2516d55d8857b31ac925f700488205532ce5b2892914fb",
+    "code": 0,
+    "output": "{\n  \"checks\": \"passed\",\n  \"binary_bytes\": 945384,\n  \"startup_ms_median\": 2.953375000000036,\n  \"startup_ms_max\": 3.1941670000000255,\n  \"edit_bytes\": 800012,\n  \"edit_ms_median\": 9.048270999999996,\n  \"edit_ms_max\": 9.551666000000015\n}\n"
+  },
+  {
+    "storage": "arena",
+    "suite": "protocol",
+    "sha256": "527ec87eb907c1938f2516d55d8857b31ac925f700488205532ce5b2892914fb",
+    "code": 0,
+    "output": "Protocol boundaries passed: framing, lifecycle/error order, IDs, source updates and 26 captured replies/findings.\n"
+  },
+  {
+    "storage": "arena",
+    "suite": "attributes",
+    "sha256": "527ec87eb907c1938f2516d55d8857b31ac925f700488205532ce5b2892914fb",
+    "code": 0,
+    "output": "Attributes: owner filtering, quoted names, UTF-8/16/32, hover exclusions and stale/cancelled requests passed\n"
+  },
+  {
+    "storage": "arena",
+    "suite": "code_actions",
+    "sha256": "527ec87eb907c1938f2516d55d8857b31ac925f700488205532ce5b2892914fb",
+    "code": 0,
+    "output": "Code actions: parser edits apply cleanly; UTF-8/16/32, HTML rebase, filters, stale generations and versioned edits passed.\n"
+  },
+  {
+    "storage": "arena",
+    "suite": "html",
+    "sha256": "527ec87eb907c1938f2516d55d8857b31ac925f700488205532ce5b2892914fb",
+    "code": 0,
+    "output": "HTML: staged merge, selection, UTF-8/16/32, moved labels, repairs, limits, 70,000-label tail coverage and obsolete generations passed\n"
+  }
+]

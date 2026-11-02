@@ -1,0 +1,17 @@
+--- a/src/main.zig
++++ b/src/main.zig
+@@ -439,6 +439,8 @@
+     fn buildIndex(self: *Server, job: *Job, encoding: pos.Encoding) !bool {
+         const builder = &job.builder.?;
+         builder.waiting = &self.syntax_pending;
++        const index_start = mach_absolute_time();
++        defer std.debug.print("REF_INDEX_TICKS {d}\n", .{mach_absolute_time() - index_start});
+         var index: ?references.Index = builder.finish(encoding) catch |err| {
+             if (err == error.Yield) return true;
+             return false;
+@@ -977,3 +979,5 @@
+     try std.testing.expect(document.fixes_done);
+     try std.testing.expect(document.fixes == null);
+ }
++
++extern "c" fn mach_absolute_time() u64;

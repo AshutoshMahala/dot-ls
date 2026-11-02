@@ -1,0 +1,3205 @@
+{
+  "runs": [
+    {
+      "mb": 5,
+      "events": [
+        {
+          "stage": "lex_regions",
+          "us": 15416,
+          "total_peak_bytes": 7500057,
+          "categories": [
+            {
+              "name": "misc",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "input",
+              "live": 4999953,
+              "peak": 7500057,
+              "allocations": 1
+            },
+            {
+              "name": "json",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "snapshot",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "parser",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "response",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "positions",
+              "live": 911382,
+              "peak": 1484076,
+              "allocations": 15
+            }
+          ],
+          "json_used_bytes": 0
+        },
+        {
+          "stage": "coordinates",
+          "us": 1087,
+          "total_peak_bytes": 7500057,
+          "categories": [
+            {
+              "name": "misc",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "input",
+              "live": 4999953,
+              "peak": 7500057,
+              "allocations": 1
+            },
+            {
+              "name": "json",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "snapshot",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "parser",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "response",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "positions",
+              "live": 1499790,
+              "peak": 1891974,
+              "allocations": 25
+            }
+          ],
+          "json_used_bytes": 0
+        },
+        {
+          "stage": "context",
+          "us": 16540,
+          "total_peak_bytes": 7500057,
+          "categories": [
+            {
+              "name": "misc",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "input",
+              "live": 4999953,
+              "peak": 7500057,
+              "allocations": 1
+            },
+            {
+              "name": "json",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "snapshot",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "parser",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "response",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "positions",
+              "live": 1068234,
+              "peak": 1891974,
+              "allocations": 25
+            }
+          ],
+          "json_used_bytes": 0
+        },
+        {
+          "us": 16540,
+          "events": 612230,
+          "anchors": 47832,
+          "lines": 408172,
+          "unicode": 0,
+          "total": 1068234
+        },
+        {
+          "stage": "lex_regions",
+          "us": 14982,
+          "total_peak_bytes": 7500057,
+          "categories": [
+            {
+              "name": "misc",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "input",
+              "live": 4999953,
+              "peak": 7500057,
+              "allocations": 1
+            },
+            {
+              "name": "json",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "snapshot",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "parser",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "response",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "positions",
+              "live": 911382,
+              "peak": 1891974,
+              "allocations": 40
+            }
+          ],
+          "json_used_bytes": 0
+        },
+        {
+          "stage": "coordinates",
+          "us": 958,
+          "total_peak_bytes": 7500057,
+          "categories": [
+            {
+              "name": "misc",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "input",
+              "live": 4999953,
+              "peak": 7500057,
+              "allocations": 1
+            },
+            {
+              "name": "json",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "snapshot",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "parser",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "response",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "positions",
+              "live": 1499790,
+              "peak": 1891974,
+              "allocations": 50
+            }
+          ],
+          "json_used_bytes": 0
+        },
+        {
+          "stage": "context",
+          "us": 15957,
+          "total_peak_bytes": 7500057,
+          "categories": [
+            {
+              "name": "misc",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "input",
+              "live": 4999953,
+              "peak": 7500057,
+              "allocations": 1
+            },
+            {
+              "name": "json",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "snapshot",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "parser",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "response",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "positions",
+              "live": 1068234,
+              "peak": 1891974,
+              "allocations": 50
+            }
+          ],
+          "json_used_bytes": 0
+        },
+        {
+          "us": 15957,
+          "events": 612230,
+          "anchors": 47832,
+          "lines": 408172,
+          "unicode": 0,
+          "total": 1068234
+        },
+        {
+          "stage": "lex_regions",
+          "us": 14854,
+          "total_peak_bytes": 7500057,
+          "categories": [
+            {
+              "name": "misc",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "input",
+              "live": 4999953,
+              "peak": 7500057,
+              "allocations": 1
+            },
+            {
+              "name": "json",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "snapshot",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "parser",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "response",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "positions",
+              "live": 911382,
+              "peak": 1891974,
+              "allocations": 65
+            }
+          ],
+          "json_used_bytes": 0
+        },
+        {
+          "stage": "coordinates",
+          "us": 958,
+          "total_peak_bytes": 7500057,
+          "categories": [
+            {
+              "name": "misc",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "input",
+              "live": 4999953,
+              "peak": 7500057,
+              "allocations": 1
+            },
+            {
+              "name": "json",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "snapshot",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "parser",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "response",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "positions",
+              "live": 1499790,
+              "peak": 1891974,
+              "allocations": 75
+            }
+          ],
+          "json_used_bytes": 0
+        },
+        {
+          "stage": "context",
+          "us": 15824,
+          "total_peak_bytes": 7500057,
+          "categories": [
+            {
+              "name": "misc",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "input",
+              "live": 4999953,
+              "peak": 7500057,
+              "allocations": 1
+            },
+            {
+              "name": "json",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "snapshot",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "parser",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "response",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "positions",
+              "live": 1068234,
+              "peak": 1891974,
+              "allocations": 75
+            }
+          ],
+          "json_used_bytes": 0
+        },
+        {
+          "us": 15824,
+          "events": 612230,
+          "anchors": 47832,
+          "lines": 408172,
+          "unicode": 0,
+          "total": 1068234
+        },
+        {
+          "stage": "lex_regions",
+          "us": 14819,
+          "total_peak_bytes": 7500057,
+          "categories": [
+            {
+              "name": "misc",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "input",
+              "live": 4999953,
+              "peak": 7500057,
+              "allocations": 1
+            },
+            {
+              "name": "json",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "snapshot",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "parser",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "response",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "positions",
+              "live": 911382,
+              "peak": 1891974,
+              "allocations": 90
+            }
+          ],
+          "json_used_bytes": 0
+        },
+        {
+          "stage": "coordinates",
+          "us": 972,
+          "total_peak_bytes": 7500057,
+          "categories": [
+            {
+              "name": "misc",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "input",
+              "live": 4999953,
+              "peak": 7500057,
+              "allocations": 1
+            },
+            {
+              "name": "json",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "snapshot",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "parser",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "response",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "positions",
+              "live": 1499790,
+              "peak": 1891974,
+              "allocations": 100
+            }
+          ],
+          "json_used_bytes": 0
+        },
+        {
+          "stage": "context",
+          "us": 15799,
+          "total_peak_bytes": 7500057,
+          "categories": [
+            {
+              "name": "misc",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "input",
+              "live": 4999953,
+              "peak": 7500057,
+              "allocations": 1
+            },
+            {
+              "name": "json",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "snapshot",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "parser",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "response",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "positions",
+              "live": 1068234,
+              "peak": 1891974,
+              "allocations": 100
+            }
+          ],
+          "json_used_bytes": 0
+        },
+        {
+          "us": 15799,
+          "events": 612230,
+          "anchors": 47832,
+          "lines": 408172,
+          "unicode": 0,
+          "total": 1068234
+        },
+        {
+          "stage": "lex_regions",
+          "us": 14349,
+          "total_peak_bytes": 7500057,
+          "categories": [
+            {
+              "name": "misc",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "input",
+              "live": 4999953,
+              "peak": 7500057,
+              "allocations": 1
+            },
+            {
+              "name": "json",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "snapshot",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "parser",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "response",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "positions",
+              "live": 911382,
+              "peak": 1891974,
+              "allocations": 115
+            }
+          ],
+          "json_used_bytes": 0
+        },
+        {
+          "stage": "coordinates",
+          "us": 957,
+          "total_peak_bytes": 7500057,
+          "categories": [
+            {
+              "name": "misc",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "input",
+              "live": 4999953,
+              "peak": 7500057,
+              "allocations": 1
+            },
+            {
+              "name": "json",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "snapshot",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "parser",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "response",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "positions",
+              "live": 1499790,
+              "peak": 1891974,
+              "allocations": 125
+            }
+          ],
+          "json_used_bytes": 0
+        },
+        {
+          "stage": "context",
+          "us": 15323,
+          "total_peak_bytes": 7500057,
+          "categories": [
+            {
+              "name": "misc",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "input",
+              "live": 4999953,
+              "peak": 7500057,
+              "allocations": 1
+            },
+            {
+              "name": "json",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "snapshot",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "parser",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "response",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "positions",
+              "live": 1068234,
+              "peak": 1891974,
+              "allocations": 125
+            }
+          ],
+          "json_used_bytes": 0
+        },
+        {
+          "us": 15323,
+          "events": 612230,
+          "anchors": 47832,
+          "lines": 408172,
+          "unicode": 0,
+          "total": 1068234
+        }
+      ],
+      "median_ms": {
+        "lex_regions": 14.854,
+        "coordinates": 0.958,
+        "context": 15.824
+      }
+    },
+    {
+      "mb": 20,
+      "events": [
+        {
+          "stage": "lex_regions",
+          "us": 57221,
+          "total_peak_bytes": 30000096,
+          "categories": [
+            {
+              "name": "misc",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "input",
+              "live": 19999979,
+              "peak": 30000096,
+              "allocations": 1
+            },
+            {
+              "name": "json",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "snapshot",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "parser",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "response",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "positions",
+              "live": 3165728,
+              "peak": 5010623,
+              "allocations": 22
+            }
+          ],
+          "json_used_bytes": 0
+        },
+        {
+          "stage": "coordinates",
+          "us": 3530,
+          "total_peak_bytes": 30000096,
+          "categories": [
+            {
+              "name": "misc",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "input",
+              "live": 19999979,
+              "peak": 30000096,
+              "allocations": 1
+            },
+            {
+              "name": "json",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "snapshot",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "parser",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "response",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "positions",
+              "live": 5152232,
+              "peak": 6476480,
+              "allocations": 35
+            }
+          ],
+          "json_used_bytes": 0
+        },
+        {
+          "stage": "context",
+          "us": 60775,
+          "total_peak_bytes": 30000096,
+          "categories": [
+            {
+              "name": "misc",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "input",
+              "live": 19999979,
+              "peak": 30000096,
+              "allocations": 1
+            },
+            {
+              "name": "json",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "snapshot",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "parser",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "response",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "positions",
+              "live": 4272954,
+              "peak": 6476480,
+              "allocations": 35
+            }
+          ],
+          "json_used_bytes": 0
+        },
+        {
+          "us": 60775,
+          "events": 2448966,
+          "anchors": 191328,
+          "lines": 1632660,
+          "unicode": 0,
+          "total": 4272954
+        },
+        {
+          "stage": "lex_regions",
+          "us": 57974,
+          "total_peak_bytes": 30000096,
+          "categories": [
+            {
+              "name": "misc",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "input",
+              "live": 19999979,
+              "peak": 30000096,
+              "allocations": 1
+            },
+            {
+              "name": "json",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "snapshot",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "parser",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "response",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "positions",
+              "live": 3165728,
+              "peak": 6476480,
+              "allocations": 57
+            }
+          ],
+          "json_used_bytes": 0
+        },
+        {
+          "stage": "coordinates",
+          "us": 3743,
+          "total_peak_bytes": 30000096,
+          "categories": [
+            {
+              "name": "misc",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "input",
+              "live": 19999979,
+              "peak": 30000096,
+              "allocations": 1
+            },
+            {
+              "name": "json",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "snapshot",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "parser",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "response",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "positions",
+              "live": 5152232,
+              "peak": 6476480,
+              "allocations": 70
+            }
+          ],
+          "json_used_bytes": 0
+        },
+        {
+          "stage": "context",
+          "us": 61739,
+          "total_peak_bytes": 30000096,
+          "categories": [
+            {
+              "name": "misc",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "input",
+              "live": 19999979,
+              "peak": 30000096,
+              "allocations": 1
+            },
+            {
+              "name": "json",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "snapshot",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "parser",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "response",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "positions",
+              "live": 4272954,
+              "peak": 6476480,
+              "allocations": 70
+            }
+          ],
+          "json_used_bytes": 0
+        },
+        {
+          "us": 61739,
+          "events": 2448966,
+          "anchors": 191328,
+          "lines": 1632660,
+          "unicode": 0,
+          "total": 4272954
+        },
+        {
+          "stage": "lex_regions",
+          "us": 58970,
+          "total_peak_bytes": 30000096,
+          "categories": [
+            {
+              "name": "misc",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "input",
+              "live": 19999979,
+              "peak": 30000096,
+              "allocations": 1
+            },
+            {
+              "name": "json",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "snapshot",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "parser",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "response",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "positions",
+              "live": 3165728,
+              "peak": 6476480,
+              "allocations": 92
+            }
+          ],
+          "json_used_bytes": 0
+        },
+        {
+          "stage": "coordinates",
+          "us": 3822,
+          "total_peak_bytes": 30000096,
+          "categories": [
+            {
+              "name": "misc",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "input",
+              "live": 19999979,
+              "peak": 30000096,
+              "allocations": 1
+            },
+            {
+              "name": "json",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "snapshot",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "parser",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "response",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "positions",
+              "live": 5152232,
+              "peak": 6476480,
+              "allocations": 105
+            }
+          ],
+          "json_used_bytes": 0
+        },
+        {
+          "stage": "context",
+          "us": 62811,
+          "total_peak_bytes": 30000096,
+          "categories": [
+            {
+              "name": "misc",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "input",
+              "live": 19999979,
+              "peak": 30000096,
+              "allocations": 1
+            },
+            {
+              "name": "json",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "snapshot",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "parser",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "response",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "positions",
+              "live": 4272954,
+              "peak": 6476480,
+              "allocations": 105
+            }
+          ],
+          "json_used_bytes": 0
+        },
+        {
+          "us": 62811,
+          "events": 2448966,
+          "anchors": 191328,
+          "lines": 1632660,
+          "unicode": 0,
+          "total": 4272954
+        },
+        {
+          "stage": "lex_regions",
+          "us": 57837,
+          "total_peak_bytes": 30000096,
+          "categories": [
+            {
+              "name": "misc",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "input",
+              "live": 19999979,
+              "peak": 30000096,
+              "allocations": 1
+            },
+            {
+              "name": "json",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "snapshot",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "parser",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "response",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "positions",
+              "live": 3165728,
+              "peak": 6476480,
+              "allocations": 127
+            }
+          ],
+          "json_used_bytes": 0
+        },
+        {
+          "stage": "coordinates",
+          "us": 3736,
+          "total_peak_bytes": 30000096,
+          "categories": [
+            {
+              "name": "misc",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "input",
+              "live": 19999979,
+              "peak": 30000096,
+              "allocations": 1
+            },
+            {
+              "name": "json",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "snapshot",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "parser",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "response",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "positions",
+              "live": 5152232,
+              "peak": 6476480,
+              "allocations": 140
+            }
+          ],
+          "json_used_bytes": 0
+        },
+        {
+          "stage": "context",
+          "us": 61591,
+          "total_peak_bytes": 30000096,
+          "categories": [
+            {
+              "name": "misc",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "input",
+              "live": 19999979,
+              "peak": 30000096,
+              "allocations": 1
+            },
+            {
+              "name": "json",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "snapshot",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "parser",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "response",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "positions",
+              "live": 4272954,
+              "peak": 6476480,
+              "allocations": 140
+            }
+          ],
+          "json_used_bytes": 0
+        },
+        {
+          "us": 61591,
+          "events": 2448966,
+          "anchors": 191328,
+          "lines": 1632660,
+          "unicode": 0,
+          "total": 4272954
+        },
+        {
+          "stage": "lex_regions",
+          "us": 58362,
+          "total_peak_bytes": 30000096,
+          "categories": [
+            {
+              "name": "misc",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "input",
+              "live": 19999979,
+              "peak": 30000096,
+              "allocations": 1
+            },
+            {
+              "name": "json",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "snapshot",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "parser",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "response",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "positions",
+              "live": 3165728,
+              "peak": 6476480,
+              "allocations": 162
+            }
+          ],
+          "json_used_bytes": 0
+        },
+        {
+          "stage": "coordinates",
+          "us": 4033,
+          "total_peak_bytes": 30000096,
+          "categories": [
+            {
+              "name": "misc",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "input",
+              "live": 19999979,
+              "peak": 30000096,
+              "allocations": 1
+            },
+            {
+              "name": "json",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "snapshot",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "parser",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "response",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "positions",
+              "live": 5152232,
+              "peak": 6476480,
+              "allocations": 175
+            }
+          ],
+          "json_used_bytes": 0
+        },
+        {
+          "stage": "context",
+          "us": 62423,
+          "total_peak_bytes": 30000096,
+          "categories": [
+            {
+              "name": "misc",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "input",
+              "live": 19999979,
+              "peak": 30000096,
+              "allocations": 1
+            },
+            {
+              "name": "json",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "snapshot",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "parser",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "response",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "positions",
+              "live": 4272954,
+              "peak": 6476480,
+              "allocations": 175
+            }
+          ],
+          "json_used_bytes": 0
+        },
+        {
+          "us": 62423,
+          "events": 2448966,
+          "anchors": 191328,
+          "lines": 1632660,
+          "unicode": 0,
+          "total": 4272954
+        }
+      ],
+      "median_ms": {
+        "lex_regions": 57.974,
+        "coordinates": 3.743,
+        "context": 61.739
+      }
+    },
+    {
+      "mb": 40,
+      "events": [
+        {
+          "stage": "lex_regions",
+          "us": 117499,
+          "total_peak_bytes": 60000128,
+          "categories": [
+            {
+              "name": "misc",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "input",
+              "live": 40000000,
+              "peak": 60000128,
+              "allocations": 1
+            },
+            {
+              "name": "json",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "snapshot",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "parser",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "response",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "positions",
+              "live": 6924281,
+              "peak": 11274878,
+              "allocations": 25
+            }
+          ],
+          "json_used_bytes": 0
+        },
+        {
+          "stage": "coordinates",
+          "us": 7717,
+          "total_peak_bytes": 60000128,
+          "categories": [
+            {
+              "name": "misc",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "input",
+              "live": 40000000,
+              "peak": 60000128,
+              "allocations": 1
+            },
+            {
+              "name": "json",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "snapshot",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "parser",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "response",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "positions",
+              "live": 11394245,
+              "peak": 14374133,
+              "allocations": 40
+            }
+          ],
+          "json_used_bytes": 0
+        },
+        {
+          "stage": "context",
+          "us": 125255,
+          "total_peak_bytes": 60000128,
+          "categories": [
+            {
+              "name": "misc",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "input",
+              "live": 40000000,
+              "peak": 60000128,
+              "allocations": 1
+            },
+            {
+              "name": "json",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "snapshot",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "parser",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "response",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "positions",
+              "live": 8545919,
+              "peak": 14374133,
+              "allocations": 40
+            }
+          ],
+          "json_used_bytes": 0
+        },
+        {
+          "us": 125255,
+          "events": 4897947,
+          "anchors": 382656,
+          "lines": 3265316,
+          "unicode": 0,
+          "total": 8545919
+        },
+        {
+          "stage": "lex_regions",
+          "us": 119051,
+          "total_peak_bytes": 60000128,
+          "categories": [
+            {
+              "name": "misc",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "input",
+              "live": 40000000,
+              "peak": 60000128,
+              "allocations": 1
+            },
+            {
+              "name": "json",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "snapshot",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "parser",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "response",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "positions",
+              "live": 6924281,
+              "peak": 14374133,
+              "allocations": 65
+            }
+          ],
+          "json_used_bytes": 0
+        },
+        {
+          "stage": "coordinates",
+          "us": 7835,
+          "total_peak_bytes": 60000128,
+          "categories": [
+            {
+              "name": "misc",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "input",
+              "live": 40000000,
+              "peak": 60000128,
+              "allocations": 1
+            },
+            {
+              "name": "json",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "snapshot",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "parser",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "response",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "positions",
+              "live": 11394245,
+              "peak": 14374133,
+              "allocations": 80
+            }
+          ],
+          "json_used_bytes": 0
+        },
+        {
+          "stage": "context",
+          "us": 126916,
+          "total_peak_bytes": 60000128,
+          "categories": [
+            {
+              "name": "misc",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "input",
+              "live": 40000000,
+              "peak": 60000128,
+              "allocations": 1
+            },
+            {
+              "name": "json",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "snapshot",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "parser",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "response",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "positions",
+              "live": 8545919,
+              "peak": 14374133,
+              "allocations": 80
+            }
+          ],
+          "json_used_bytes": 0
+        },
+        {
+          "us": 126916,
+          "events": 4897947,
+          "anchors": 382656,
+          "lines": 3265316,
+          "unicode": 0,
+          "total": 8545919
+        },
+        {
+          "stage": "lex_regions",
+          "us": 120952,
+          "total_peak_bytes": 60000128,
+          "categories": [
+            {
+              "name": "misc",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "input",
+              "live": 40000000,
+              "peak": 60000128,
+              "allocations": 1
+            },
+            {
+              "name": "json",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "snapshot",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "parser",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "response",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "positions",
+              "live": 6924281,
+              "peak": 14374133,
+              "allocations": 105
+            }
+          ],
+          "json_used_bytes": 0
+        },
+        {
+          "stage": "coordinates",
+          "us": 7816,
+          "total_peak_bytes": 60000128,
+          "categories": [
+            {
+              "name": "misc",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "input",
+              "live": 40000000,
+              "peak": 60000128,
+              "allocations": 1
+            },
+            {
+              "name": "json",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "snapshot",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "parser",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "response",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "positions",
+              "live": 11394245,
+              "peak": 14374133,
+              "allocations": 120
+            }
+          ],
+          "json_used_bytes": 0
+        },
+        {
+          "stage": "context",
+          "us": 128800,
+          "total_peak_bytes": 60000128,
+          "categories": [
+            {
+              "name": "misc",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "input",
+              "live": 40000000,
+              "peak": 60000128,
+              "allocations": 1
+            },
+            {
+              "name": "json",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "snapshot",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "parser",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "response",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "positions",
+              "live": 8545919,
+              "peak": 14374133,
+              "allocations": 120
+            }
+          ],
+          "json_used_bytes": 0
+        },
+        {
+          "us": 128800,
+          "events": 4897947,
+          "anchors": 382656,
+          "lines": 3265316,
+          "unicode": 0,
+          "total": 8545919
+        },
+        {
+          "stage": "lex_regions",
+          "us": 119689,
+          "total_peak_bytes": 60000128,
+          "categories": [
+            {
+              "name": "misc",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "input",
+              "live": 40000000,
+              "peak": 60000128,
+              "allocations": 1
+            },
+            {
+              "name": "json",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "snapshot",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "parser",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "response",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "positions",
+              "live": 6924281,
+              "peak": 14374133,
+              "allocations": 145
+            }
+          ],
+          "json_used_bytes": 0
+        },
+        {
+          "stage": "coordinates",
+          "us": 7825,
+          "total_peak_bytes": 60000128,
+          "categories": [
+            {
+              "name": "misc",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "input",
+              "live": 40000000,
+              "peak": 60000128,
+              "allocations": 1
+            },
+            {
+              "name": "json",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "snapshot",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "parser",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "response",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "positions",
+              "live": 11394245,
+              "peak": 14374133,
+              "allocations": 160
+            }
+          ],
+          "json_used_bytes": 0
+        },
+        {
+          "stage": "context",
+          "us": 127543,
+          "total_peak_bytes": 60000128,
+          "categories": [
+            {
+              "name": "misc",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "input",
+              "live": 40000000,
+              "peak": 60000128,
+              "allocations": 1
+            },
+            {
+              "name": "json",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "snapshot",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "parser",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "response",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "positions",
+              "live": 8545919,
+              "peak": 14374133,
+              "allocations": 160
+            }
+          ],
+          "json_used_bytes": 0
+        },
+        {
+          "us": 127543,
+          "events": 4897947,
+          "anchors": 382656,
+          "lines": 3265316,
+          "unicode": 0,
+          "total": 8545919
+        },
+        {
+          "stage": "lex_regions",
+          "us": 119269,
+          "total_peak_bytes": 60000128,
+          "categories": [
+            {
+              "name": "misc",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "input",
+              "live": 40000000,
+              "peak": 60000128,
+              "allocations": 1
+            },
+            {
+              "name": "json",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "snapshot",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "parser",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "response",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "positions",
+              "live": 6924281,
+              "peak": 14374133,
+              "allocations": 185
+            }
+          ],
+          "json_used_bytes": 0
+        },
+        {
+          "stage": "coordinates",
+          "us": 7515,
+          "total_peak_bytes": 60000128,
+          "categories": [
+            {
+              "name": "misc",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "input",
+              "live": 40000000,
+              "peak": 60000128,
+              "allocations": 1
+            },
+            {
+              "name": "json",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "snapshot",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "parser",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "response",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "positions",
+              "live": 11394245,
+              "peak": 14374133,
+              "allocations": 200
+            }
+          ],
+          "json_used_bytes": 0
+        },
+        {
+          "stage": "context",
+          "us": 126814,
+          "total_peak_bytes": 60000128,
+          "categories": [
+            {
+              "name": "misc",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "input",
+              "live": 40000000,
+              "peak": 60000128,
+              "allocations": 1
+            },
+            {
+              "name": "json",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "snapshot",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "parser",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "response",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "positions",
+              "live": 8545919,
+              "peak": 14374133,
+              "allocations": 200
+            }
+          ],
+          "json_used_bytes": 0
+        },
+        {
+          "us": 126814,
+          "events": 4897947,
+          "anchors": 382656,
+          "lines": 3265316,
+          "unicode": 0,
+          "total": 8545919
+        }
+      ],
+      "median_ms": {
+        "lex_regions": 119.269,
+        "coordinates": 7.816,
+        "context": 126.916
+      }
+    },
+    {
+      "mb": 100,
+      "events": [
+        {
+          "stage": "lex_regions",
+          "us": 294016,
+          "total_peak_bytes": 150000048,
+          "categories": [
+            {
+              "name": "misc",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "input",
+              "live": 99999947,
+              "peak": 150000048,
+              "allocations": 1
+            },
+            {
+              "name": "json",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "snapshot",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "parser",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "response",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "positions",
+              "live": 16028636,
+              "peak": 25369459,
+              "allocations": 30
+            }
+          ],
+          "json_used_bytes": 0
+        },
+        {
+          "stage": "coordinates",
+          "us": 19529,
+          "total_peak_bytes": 150000048,
+          "categories": [
+            {
+              "name": "misc",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "input",
+              "live": 99999947,
+              "peak": 150000048,
+              "allocations": 1
+            },
+            {
+              "name": "json",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "snapshot",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "parser",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "response",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "positions",
+              "live": 26086388,
+              "peak": 32791468,
+              "allocations": 47
+            }
+          ],
+          "json_used_bytes": 0
+        },
+        {
+          "stage": "context",
+          "us": 313596,
+          "total_peak_bytes": 150000048,
+          "categories": [
+            {
+              "name": "misc",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "input",
+              "live": 99999947,
+              "peak": 150000048,
+              "allocations": 1
+            },
+            {
+              "name": "json",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "snapshot",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "parser",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "response",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "positions",
+              "live": 21364789,
+              "peak": 32791468,
+              "allocations": 47
+            }
+          ],
+          "json_used_bytes": 0
+        },
+        {
+          "us": 313596,
+          "events": 12244877,
+          "anchors": 956640,
+          "lines": 8163272,
+          "unicode": 0,
+          "total": 21364789
+        },
+        {
+          "stage": "lex_regions",
+          "us": 289597,
+          "total_peak_bytes": 150000048,
+          "categories": [
+            {
+              "name": "misc",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "input",
+              "live": 99999947,
+              "peak": 150000048,
+              "allocations": 1
+            },
+            {
+              "name": "json",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "snapshot",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "parser",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "response",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "positions",
+              "live": 16028636,
+              "peak": 32791468,
+              "allocations": 77
+            }
+          ],
+          "json_used_bytes": 0
+        },
+        {
+          "stage": "coordinates",
+          "us": 18897,
+          "total_peak_bytes": 150000048,
+          "categories": [
+            {
+              "name": "misc",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "input",
+              "live": 99999947,
+              "peak": 150000048,
+              "allocations": 1
+            },
+            {
+              "name": "json",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "snapshot",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "parser",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "response",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "positions",
+              "live": 26086388,
+              "peak": 32791468,
+              "allocations": 94
+            }
+          ],
+          "json_used_bytes": 0
+        },
+        {
+          "stage": "context",
+          "us": 308535,
+          "total_peak_bytes": 150000048,
+          "categories": [
+            {
+              "name": "misc",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "input",
+              "live": 99999947,
+              "peak": 150000048,
+              "allocations": 1
+            },
+            {
+              "name": "json",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "snapshot",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "parser",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "response",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "positions",
+              "live": 21364789,
+              "peak": 32791468,
+              "allocations": 94
+            }
+          ],
+          "json_used_bytes": 0
+        },
+        {
+          "us": 308535,
+          "events": 12244877,
+          "anchors": 956640,
+          "lines": 8163272,
+          "unicode": 0,
+          "total": 21364789
+        },
+        {
+          "stage": "lex_regions",
+          "us": 291758,
+          "total_peak_bytes": 150000048,
+          "categories": [
+            {
+              "name": "misc",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "input",
+              "live": 99999947,
+              "peak": 150000048,
+              "allocations": 1
+            },
+            {
+              "name": "json",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "snapshot",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "parser",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "response",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "positions",
+              "live": 16028636,
+              "peak": 32791468,
+              "allocations": 124
+            }
+          ],
+          "json_used_bytes": 0
+        },
+        {
+          "stage": "coordinates",
+          "us": 18789,
+          "total_peak_bytes": 150000048,
+          "categories": [
+            {
+              "name": "misc",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "input",
+              "live": 99999947,
+              "peak": 150000048,
+              "allocations": 1
+            },
+            {
+              "name": "json",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "snapshot",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "parser",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "response",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "positions",
+              "live": 26086388,
+              "peak": 32791468,
+              "allocations": 141
+            }
+          ],
+          "json_used_bytes": 0
+        },
+        {
+          "stage": "context",
+          "us": 310591,
+          "total_peak_bytes": 150000048,
+          "categories": [
+            {
+              "name": "misc",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "input",
+              "live": 99999947,
+              "peak": 150000048,
+              "allocations": 1
+            },
+            {
+              "name": "json",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "snapshot",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "parser",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "response",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "positions",
+              "live": 21364789,
+              "peak": 32791468,
+              "allocations": 141
+            }
+          ],
+          "json_used_bytes": 0
+        },
+        {
+          "us": 310591,
+          "events": 12244877,
+          "anchors": 956640,
+          "lines": 8163272,
+          "unicode": 0,
+          "total": 21364789
+        },
+        {
+          "stage": "lex_regions",
+          "us": 291414,
+          "total_peak_bytes": 150000048,
+          "categories": [
+            {
+              "name": "misc",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "input",
+              "live": 99999947,
+              "peak": 150000048,
+              "allocations": 1
+            },
+            {
+              "name": "json",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "snapshot",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "parser",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "response",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "positions",
+              "live": 16028636,
+              "peak": 32791468,
+              "allocations": 171
+            }
+          ],
+          "json_used_bytes": 0
+        },
+        {
+          "stage": "coordinates",
+          "us": 19240,
+          "total_peak_bytes": 150000048,
+          "categories": [
+            {
+              "name": "misc",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "input",
+              "live": 99999947,
+              "peak": 150000048,
+              "allocations": 1
+            },
+            {
+              "name": "json",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "snapshot",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "parser",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "response",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "positions",
+              "live": 26086388,
+              "peak": 32791468,
+              "allocations": 188
+            }
+          ],
+          "json_used_bytes": 0
+        },
+        {
+          "stage": "context",
+          "us": 310696,
+          "total_peak_bytes": 150000048,
+          "categories": [
+            {
+              "name": "misc",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "input",
+              "live": 99999947,
+              "peak": 150000048,
+              "allocations": 1
+            },
+            {
+              "name": "json",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "snapshot",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "parser",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "response",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "positions",
+              "live": 21364789,
+              "peak": 32791468,
+              "allocations": 188
+            }
+          ],
+          "json_used_bytes": 0
+        },
+        {
+          "us": 310696,
+          "events": 12244877,
+          "anchors": 956640,
+          "lines": 8163272,
+          "unicode": 0,
+          "total": 21364789
+        },
+        {
+          "stage": "lex_regions",
+          "us": 292302,
+          "total_peak_bytes": 150000048,
+          "categories": [
+            {
+              "name": "misc",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "input",
+              "live": 99999947,
+              "peak": 150000048,
+              "allocations": 1
+            },
+            {
+              "name": "json",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "snapshot",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "parser",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "response",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "positions",
+              "live": 16028636,
+              "peak": 32791468,
+              "allocations": 218
+            }
+          ],
+          "json_used_bytes": 0
+        },
+        {
+          "stage": "coordinates",
+          "us": 19364,
+          "total_peak_bytes": 150000048,
+          "categories": [
+            {
+              "name": "misc",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "input",
+              "live": 99999947,
+              "peak": 150000048,
+              "allocations": 1
+            },
+            {
+              "name": "json",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "snapshot",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "parser",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "response",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "positions",
+              "live": 26086388,
+              "peak": 32791468,
+              "allocations": 235
+            }
+          ],
+          "json_used_bytes": 0
+        },
+        {
+          "stage": "context",
+          "us": 311715,
+          "total_peak_bytes": 150000048,
+          "categories": [
+            {
+              "name": "misc",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "input",
+              "live": 99999947,
+              "peak": 150000048,
+              "allocations": 1
+            },
+            {
+              "name": "json",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "snapshot",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "parser",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "response",
+              "live": 0,
+              "peak": 0,
+              "allocations": 0
+            },
+            {
+              "name": "positions",
+              "live": 21364789,
+              "peak": 32791468,
+              "allocations": 235
+            }
+          ],
+          "json_used_bytes": 0
+        },
+        {
+          "us": 311715,
+          "events": 12244877,
+          "anchors": 956640,
+          "lines": 8163272,
+          "unicode": 0,
+          "total": 21364789
+        }
+      ],
+      "median_ms": {
+        "lex_regions": 291.758,
+        "coordinates": 19.24,
+        "context": 310.696
+      }
+    }
+  ],
+  "notes": "Temporary ReleaseSafe profiler, five builds per file. Requested allocator bytes and capacities, not RSS. Source read growth is included in input peak; positions category contains only completion construction. Tracing is absent from production."
+}

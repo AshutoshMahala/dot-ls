@@ -1,0 +1,916 @@
+--- before/src/app.zig
++++ after/src/app.zig
+@@ -1,5 +1,6 @@
+ const std = @import("std");
+ const build_options = @import("build_options");
++const output = @import("protocol/output.zig");
+ const framing = @import("protocol/framing.zig");
+ const lsp = @import("protocol/lsp.zig");
+ const requests = @import("protocol/requests.zig");
+@@ -34,18 +35,13 @@
+ }
+ const Server = struct {
+     state: State,
+-    writer: *std.Io.Writer,
+-    // Transitional ordered synchronous output; step 7 will bound write progress.
+-    output_mutex: std.Io.Mutex = .init,
+-    output_condition: std.Io.Condition = .init,
+-    issued: usize = 0, // protected by state mutex
+-    serving: usize = 0, // protected by output mutex
+-    output_failed: bool = false,
++    output: *output.Queue,
+     initialized: bool = false,
+     related_information: bool = false,
+     versioned_edits: bool = false,
+     hierarchical_symbols: bool = false,
+     shutdown: bool = false,
++    stopped: bool = false,
+ 
+     fn failure(_: *Server, batch: *Batch, id: request_store.Id, code: i32, message: []const u8) !void {
+         try batch.add(id, .{ .failure = .{ .code = code, .message = message } });
+@@ -85,7 +81,7 @@
+     }
+     fn phaseFailed(ctx: *anyopaque, current: *Job) void {
+         const self: *Server = @ptrCast(@alignCast(ctx));
+-        var batch: Batch = .{ .server = self };
++        var batch: Batch = .{ .server = self, .role = .worker };
+         defer batch.deinit();
+         _ = self.commit(&batch, publishFailure, .{current}) catch {};
+     }
+@@ -98,11 +94,10 @@
+     }
+     fn retiredRequests(ctx: *anyopaque, queue: *request_store.Queue, reason: request_store.Failure) void {
+         const self: *Server = @ptrCast(@alignCast(ctx));
+-        var batch: Batch = .{ .server = self };
++        var batch: Batch = .{ .server = self, .role = .worker };
+         defer batch.deinit();
+         self.state.mutex.lockUncancelable(self.state.io);
+         for (queue.items()) |request| batch.observer().fail(request.id, reason) catch {};
+-        batch.seal();
+         self.state.mutex.unlock(self.state.io);
+         batch.flush() catch {};
+     }
+@@ -122,7 +117,7 @@
+             return err;
+         };
+         defer built.deinit(self.state.allocator);
+-        var batch: Batch = .{ .server = self };
++        var batch: Batch = .{ .server = self, .role = .worker };
+         defer batch.deinit();
+         return self.commit(&batch, publishContext, .{ job, &built });
+     }
+@@ -188,7 +183,7 @@
+             return err;
+         };
+         defer built.deinit(self.state.allocator);
+-        var batch: Batch = .{ .server = self };
++        var batch: Batch = .{ .server = self, .role = .worker };
+         defer batch.deinit();
+         return self.commit(&batch, publishHtml, .{ job, &built });
+     }
+@@ -214,7 +209,7 @@
+             return false;
+         };
+         defer if (index) |*owned| owned.deinit(self.state.allocator);
+-        var batch: Batch = .{ .server = self };
++        var batch: Batch = .{ .server = self, .role = .worker };
+         defer batch.deinit();
+         return self.commit(&batch, publishReferences, .{ job, &index });
+     }
+@@ -246,7 +241,7 @@
+ 
+     fn analyze(self: *Server, job: *Job, encoding: pos.Encoding) !bool {
+         if (!try pipeline.syntax(self.environment(), job, encoding)) return false;
+-        var batch: Batch = .{ .server = self };
++        var batch: Batch = .{ .server = self, .role = .worker };
+         defer batch.deinit();
+         return self.commit(&batch, publishSyntax, .{job});
+     }
+@@ -310,7 +305,6 @@
+     fn commit(self: *Server, batch: *Batch, comptime operation: anytype, args: anytype) !bool {
+         self.state.mutex.lockUncancelable(self.state.io);
+         const result = @call(.auto, operation, .{ self, batch } ++ args);
+-        batch.seal();
+         self.state.mutex.unlock(self.state.io);
+         try batch.flush();
+         return result;
+@@ -439,18 +433,16 @@
+         return false;
+     }
+     fn deinit(self: *Server) void {
++        if (self.stopped) return;
++        self.stopped = true;
+         var batch: Batch = .{ .server = self };
+         defer batch.deinit();
+         self.state.stop(batch.observer());
+-        self.state.mutex.lockUncancelable(self.state.io);
+-        batch.seal();
+-        self.state.mutex.unlock(self.state.io);
+         batch.flush() catch {};
+     }
+ };
+-// A transaction prepares small response views under the state mutex. Its leases
+-// keep published arrays alive after unlock. A ticket preserves transaction order
+-// across the two existing threads. Blocking writes remain a step 7 limitation.
++// A transaction prepares response views under the state mutex. Leases keep
++// arrays alive through encoding. The queue then owns independent frame chunks.
+ const Batch = struct {
+     const Positioned = struct { index: *snapshot.Completion, point: pos.Position };
+     const Body = union(enum) {
+@@ -469,7 +461,7 @@
+     const Reply = struct { id: request_store.Id, body: Body };
+     server: *Server,
+     replies: std.ArrayList(Reply) = .empty,
+-    ticket: ?usize = null,
++    role: output.Role = .dispatcher,
+     /// Called under the state lock. The ID is copied; feature allocations are not.
+     fn add(self: *Batch, id: request_store.Id, body: Body) !void {
+         const a = self.server.state.allocator;
+@@ -484,12 +476,6 @@
+             else => {},
+         }
+     }
+-    fn seal(self: *Batch) void {
+-        if (self.replies.items.len == 0) return;
+-        std.debug.assert(self.ticket == null);
+-        self.ticket = self.server.issued;
+-        self.server.issued += 1;
+-    }
+     fn observer(self: *Batch) request_store.Observer {
+         return .{ .context = self, .failure = observe };
+     }
+@@ -509,36 +495,31 @@
+         try self.add(id, .{ .failure = .{ .code = code, .message = message } });
+     }
+     fn flush(self: *Batch) !void {
+-        const ticket = self.ticket orelse return;
+-        const s = self.server;
+-        s.output_mutex.lockUncancelable(s.state.io);
+-        defer s.output_mutex.unlock(s.state.io);
+-        while (ticket != s.serving) s.output_condition.waitUncancelable(s.state.io, &s.output_mutex);
+-        defer {
+-            s.serving += 1;
+-            s.output_condition.broadcast(s.state.io);
+-        }
+-        if (s.output_failed) return error.OutputFailed;
+         for (self.replies.items) |reply| self.encode(reply) catch |err| {
+-            // Do not try another frame after a possibly partial write.
+-            s.output_failed = true;
+-            return err;
++            if (err == error.OutputBusy or err == error.FrameTooLarge) {
++                try responses.failure(self.server.state.allocator, .{ .queue = self.server.output, .control = true }, wireId(reply.id), lsp.ErrorCode.request_failed, "Response exceeded output capacity. Try again after pending replies arrive.");
++            } else {
++                self.server.output.close();
++                return err;
++            }
+         };
+     }
+     fn encode(self: *Batch, reply: Reply) !void {
+         const a = self.server.state.allocator;
+-        const w: responses.Destination = .{ .writer = self.server.writer };
++        const w: responses.Destination = .{ .queue = self.server.output, .role = self.role };
++        var control = w;
++        control.control = true;
+         const id = wireId(reply.id);
+         switch (reply.body) {
+             .failure => |v| try responses.failure(a, w, id, v.code, v.message),
+-            .clear => |v| try responses.clear(a, w, v.uri, v.version, v.message),
++            .clear => |v| try responses.clear(a, control, v.uri, v.version, v.message),
+             .diagnostics => |v| {
+                 var gate: DiagnosticGate = .{ .server = self.server, .uri = v.uri, .generation = v.generation };
+-                try responses.diagnostics(a, .{ .writer = self.server.writer, .gate = .{ .context = &gate, .current = DiagnosticGate.current } }, v.uri, v.version, v.items);
++                try responses.diagnostics(a, .{ .queue = self.server.output, .role = self.role, .tag = .{ .uri = v.uri, .generation = v.generation }, .gate = .{ .context = &gate, .current = DiagnosticGate.current } }, v.uri, v.version, v.items);
+             },
+-            .initialized => |v| try responses.initialized(a, w, id, v),
++            .initialized => |v| try responses.initialized(a, control, id, v),
+             .empty_result => try responses.result(a, w, id, @as([]const bool, &.{})),
+-            .null_result => try responses.result(a, w, id, @as(?u8, null)),
++            .null_result => try responses.result(a, control, id, @as(?u8, null)),
+             .completion => |v| try responses.completion(a, w, id, v.index.value, v.point),
+             .hover => |v| try responses.hover(a, w, id, v.index.value, v.point),
+             .references => |v| try responses.referencesReply(a, w, id, v.index.uri, v.index.value, v.point, v.include),
+@@ -582,153 +563,73 @@
+     }
+ };
+ 
+-/// Connects typed runtime transitions to protocol replies. Published feature
+-/// views are leased; encoding and synchronous output run outside the state lock.
+-pub fn run(io: std.Io, allocator: std.mem.Allocator, html_allocator: std.mem.Allocator, reader: *std.Io.Reader, writer: *std.Io.Writer) !bool {
+-    var server: Server = .{ .state = .{ .html_allocator = html_allocator, .allocator = allocator, .io = io }, .writer = writer };
++/// One protocol event loop advances both streams. The worker only queues frames.
++pub fn run(io: std.Io, allocator: std.mem.Allocator, html_allocator: std.mem.Allocator) !bool {
++    var transport = try output.Transport.init();
++    defer transport.deinit();
++    var queue: output.Queue = .{ .allocator = allocator, .io = io, .wake_fd = transport.wake[1] };
++    defer queue.deinit();
++    var server: Server = .{ .state = .{ .html_allocator = html_allocator, .allocator = allocator, .io = io }, .output = &queue };
++    defer server.deinit();
++    // Closing output first wakes a worker waiting for encoding credits on error.
++    errdefer queue.close();
++    var intake: framing.Intake = .{};
++    defer intake.deinit(allocator);
++    var intake_priority = false;
++    defer server.state.releaseIntake(&intake_priority);
+     var exit_requested = false;
+-    {
+-        defer server.deinit();
+-        var intake_priority = false;
+-        while (try framing.readHeader(reader)) |length| {
+-            server.state.beginIntake(length, &intake_priority);
+-            defer server.state.releaseIntake(&intake_priority);
+-            const bytes = try framing.readBody(reader, allocator, length);
+-            var packet: ?[]u8 = bytes;
+-            defer if (packet) |owned| allocator.free(owned);
+-            var parsed: json_message.Message = .{ .allocator = allocator };
+-            defer parsed.deinit();
+-            const decoding = if (build_options.json_storage == .inplace) parsed.parseInPlace(bytes) else parsed.parse(bytes, if (build_options.json_storage == .buffer) .buffer else .arena);
+-            decoding catch |err| {
+-                var batch: Batch = .{ .server = &server };
+-                defer batch.deinit();
+-                server.state.mutex.lockUncancelable(io);
+-                const result = server.failure(&batch, .null, if (err == error.OutOfMemory) @as(i32, lsp.ErrorCode.internal_error) else lsp.ErrorCode.parse_error, if (err == error.OutOfMemory) "Message storage exhausted" else "Parse error");
+-                batch.seal();
+-                server.state.mutex.unlock(io);
+-                try result;
+-                try batch.flush();
+-                continue;
+-            };
+-            if (try server.handle(&parsed, &packet)) {
+-                exit_requested = true;
+-                break;
+-            }
+-        }
++    while (true) {
++        var progressed = false;
++        if (queue.peek()) |frame| {
++            if (!frame.started() and frame.tag != null) {
++                const tag = frame.tag.?;
++                var gate: Batch.DiagnosticGate = .{ .server = &server, .uri = tag.uri, .generation = tag.generation };
++                if (!Batch.DiagnosticGate.current(&gate)) {
++                    queue.discard(frame);
++                    continue;
++                }
++            }
++            progressed = try queue.advance(1);
++        }
++        const incoming = try intake.step(allocator, 0);
++        if (intake.length) |n| if (!intake_priority) server.state.beginIntake(n, &intake_priority);
++        switch (incoming) {
++            .pending => {},
++            .eof => break,
++            .packet => |bytes| {
++                if (!intake_priority) server.state.beginIntake(bytes.len, &intake_priority);
++                defer server.state.releaseIntake(&intake_priority);
++                var packet: ?[]u8 = bytes;
++                defer if (packet) |owned| allocator.free(owned);
++                var parsed: json_message.Message = .{ .allocator = allocator };
++                defer parsed.deinit();
++                const decoding = if (build_options.json_storage == .inplace) parsed.parseInPlace(bytes) else parsed.parse(bytes, if (build_options.json_storage == .buffer) .buffer else .arena);
++                decoding catch |err| {
++                    try responses.failure(allocator, .{ .queue = &queue, .control = true }, .null, if (err == error.OutOfMemory) lsp.ErrorCode.internal_error else lsp.ErrorCode.parse_error, if (err == error.OutOfMemory) "Message storage exhausted" else "Parse error");
++                    continue;
++                };
++                if (try server.handle(&parsed, &packet)) {
++                    exit_requested = true;
++                    break;
++                }
++                progressed = true;
++            },
++        }
++        if (queue.isClosed()) return error.OutputClosed;
++        if (!progressed and !intake.progressed) try transport.wait(true, queue.peek() != null, -1);
++    }
++    queue.close();
++    // stop is idempotent at the application boundary; join before draining frames.
++    server.deinit();
++    const deadline = std.Io.Clock.awake.now(io).addDuration(.fromSeconds(2));
++    while (queue.peek()) |frame| {
++        if (!frame.started() and frame.tag != null) {
++            queue.discard(frame);
++            continue;
++        }
++        _ = try queue.advance(1);
++        if (std.Io.Timestamp.compare(std.Io.Clock.awake.now(io), .gte, deadline)) return error.OutputDrainTimeout;
++        if (queue.peek() != null) try transport.wait(false, true, 10);
+     }
+     return exit_requested and !server.shutdown;
+ }
+-
+-test "leased reply survives close and releases storage on allocation or encoding failure" {
+-    try std.testing.checkAllAllocationFailures(std.testing.allocator, struct {
+-        fn run(a: std.mem.Allocator) !void {
+-            var output = std.Io.Writer.Allocating.init(std.testing.allocator);
+-            defer output.deinit();
+-            var server: Server = .{ .state = .{ .allocator = a, .html_allocator = a, .io = std.testing.io }, .writer = &output.writer };
+-            var batch: Batch = .{ .server = &server };
+-            defer batch.deinit();
+-            defer server.state.stop(batch.observer());
+-            const uri = try a.dupe(u8, "untitled:retired");
+-            server.state.documents.append(a, .{ .uri = uri, .version = 2, .generation = 8 }) catch |err| {
+-                a.free(uri);
+-                return err;
+-            };
+-            const doc = &server.state.documents.items[0];
+-            doc.references = try snapshot.References.create(a, .{}, doc.uri, doc.version, doc.generation, 0, &server.state.index_bytes, limits.references_total);
+-            try batch.add(.{ .string = "owned reply ID" }, .{ .references = .{ .index = doc.references.?, .point = .{ .line = 0, .character = 0 }, .include = true } });
+-            var removed = server.state.close(doc.uri, batch.observer()).?;
+-            removed.deinit(a);
+-            try std.testing.expect(server.state.index_bytes > 0);
+-            batch.seal();
+-            try batch.flush();
+-            try std.testing.expect(std.mem.indexOf(u8, output.written(), "owned reply ID") != null);
+-            batch.deinit();
+-            try std.testing.expectEqual(@as(usize, 0), server.state.index_bytes);
+-        }
+-    }.run, .{});
+-}
+-
+-test "output failure stops subsequent frames and releases reply leases" {
+-    const a = std.testing.allocator;
+-    var output: std.Io.Writer = .failing;
+-    var server: Server = .{ .state = .{ .allocator = a, .html_allocator = a, .io = std.testing.io }, .writer = &output };
+-    var batch: Batch = .{ .server = &server };
+-    defer batch.deinit();
+-    const owner = try snapshot.References.create(a, .{}, "uri", 1, 1, 0, &server.state.index_bytes, limits.references_total);
+-    try batch.add(.{ .integer = 2 }, .{ .references = .{ .index = owner, .point = .{ .line = 0, .character = 0 }, .include = true } });
+-    owner.release(a);
+-    batch.seal();
+-    try std.testing.expectError(error.WriteFailed, batch.flush());
+-    try std.testing.expect(server.output_failed);
+-    batch.deinit();
+-    try std.testing.expectEqual(@as(usize, 0), server.state.index_bytes);
+-    var second: Batch = .{ .server = &server };
+-    defer second.deinit();
+-    try second.add(.null, .null_result);
+-    second.seal();
+-    try std.testing.expectError(error.OutputFailed, second.flush());
+-}
+-
+-test "diagnostics are checked again after encoding and before the frame starts" {
+-    const a = std.testing.allocator;
+-    var output = std.Io.Writer.Allocating.init(a);
+-    defer output.deinit();
+-    var server: Server = .{ .state = .{ .allocator = a, .html_allocator = a, .io = std.testing.io }, .writer = &output.writer };
+-    var batch: Batch = .{ .server = &server };
+-    defer batch.deinit();
+-    defer server.state.stop(batch.observer());
+-    try server.state.documents.append(a, .{ .uri = try a.dupe(u8, "uri"), .version = 1, .generation = 1 });
+-    try batch.add(.null, .{ .diagnostics = .{ .uri = "uri", .version = 1, .generation = 1, .items = &.{} } });
+-    batch.seal();
+-    server.state.documents.items[0].generation = 2;
+-    try batch.flush();
+-    try std.testing.expectEqual(@as(usize, 0), output.written().len);
+-}
+-
+-test "edit and close can retire an index while another thread writes its reply" {
+-    const Sink = struct {
+-        writer: std.Io.Writer = .{ .buffer = &.{}, .vtable = &.{ .drain = drain } },
+-        entered: std.atomic.Value(bool) = .init(false),
+-        proceed: std.atomic.Value(bool) = .init(false),
+-        batch: *Batch = undefined,
+-        failed: bool = false,
+-        fn drain(w: *std.Io.Writer, data: []const []const u8, splat: usize) std.Io.Writer.Error!usize {
+-            const self: *@This() = @fieldParentPtr("writer", w);
+-            self.entered.store(true, .release);
+-            while (!self.proceed.load(.acquire)) std.Thread.yield() catch {};
+-            var n: usize = 0;
+-            for (data[0 .. data.len - 1]) |part| n += part.len;
+-            return n + data[data.len - 1].len * splat;
+-        }
+-        fn encode(self: *@This()) void {
+-            self.batch.flush() catch {
+-                self.failed = true;
+-            };
+-        }
+-    };
+-    const a = std.testing.allocator;
+-    var sink: Sink = .{};
+-    var server: Server = .{ .state = .{ .allocator = a, .html_allocator = a, .io = std.testing.io }, .writer = &sink.writer };
+-    var batch: Batch = .{ .server = &server };
+-    defer batch.deinit();
+-    defer server.state.stop(batch.observer());
+-    try server.state.documents.append(a, .{ .uri = try a.dupe(u8, "uri"), .version = 1, .generation = 1 });
+-    const doc = &server.state.documents.items[0];
+-    doc.references = try snapshot.References.create(a, .{}, doc.uri, 1, 1, 0, &server.state.index_bytes, limits.references_total);
+-    try batch.add(.{ .integer = 3 }, .{ .references = .{ .index = doc.references.?, .point = .{ .line = 0, .character = 0 }, .include = true } });
+-    batch.seal();
+-    sink.batch = &batch;
+-    const thread = try std.Thread.spawn(.{}, Sink.encode, .{&sink});
+-    defer thread.join();
+-    defer sink.proceed.store(true, .release);
+-    while (!sink.entered.load(.acquire)) std.Thread.yield() catch {};
+-    // This fails immediately if response writing still holds the state mutex.
+-    const unlocked = server.state.mutex.tryLock();
+-    try std.testing.expect(unlocked);
+-    defer server.state.mutex.unlock(server.state.io);
+-    server.state.invalidate(doc, batch.observer());
+-    try std.testing.expect(server.state.index_bytes > 0);
+-    var closed = server.state.close("uri", batch.observer()).?;
+-    closed.deinit(a);
+-    try std.testing.expect(server.state.index_bytes > 0);
+-}
+--- before/src/main.zig
++++ after/src/main.zig
+@@ -19,12 +19,8 @@
+         return;
+     }
+     if (args.len > 2 or (args.len == 2 and !std.mem.eql(u8, args[1], "lsp") and !std.mem.eql(u8, args[1], "--stdio"))) return error.InvalidArguments;
+-    var input_buffer: [8192]u8 = undefined;
+-    var output_buffer: [8192]u8 = undefined;
+-    var input = std.Io.File.Reader.initStreaming(.stdin(), init.io, &input_buffer);
+-    var output = std.Io.File.Writer.init(.stdout(), init.io, &output_buffer);
+     // Small HTML cache allocations share pages. Return empty buckets on close.
+     var html_allocator: std.heap.DebugAllocator(.{ .thread_safe = true, .stack_trace_frames = 0 }) = .{ .backing_allocator = allocator };
+     defer std.debug.assert(html_allocator.deinit() == .ok);
+-    if (try app.run(init.io, allocator, html_allocator.allocator(), &input.interface, &output.interface)) std.process.exit(1);
++    if (try app.run(init.io, allocator, html_allocator.allocator())) std.process.exit(1);
+ }
+--- before/src/protocol/framing.zig
++++ after/src/protocol/framing.zig
+@@ -58,3 +58,63 @@
+     var incomplete_header = std.Io.Reader.fixed("Content-Length: 3\r\n");
+     try std.testing.expectError(error.EndOfStream, readHeader(&incomplete_header));
+ }
++
++/// Incremental intake. Owns one exact body allocation; never reads into the next
++/// packet. A partial header/body yields to output and worker wakeups.
++pub const Intake = struct {
++    header: [8192]u8 = undefined,
++    header_len: usize = 0,
++    length: ?usize = null,
++    body: ?[]u8 = null,
++    at: usize = 0,
++    progressed: bool = false,
++    pub const Result = union(enum) { pending, eof, packet: []u8 };
++    pub fn deinit(self: *Intake, allocator: std.mem.Allocator) void {
++        if (self.body) |body| allocator.free(body);
++    }
++    pub fn step(self: *Intake, allocator: std.mem.Allocator, fd: std.posix.fd_t) !Result {
++        self.progressed = false;
++        var read: usize = 0;
++        while (read < 256 * 1024) {
++            if (self.length) |n| {
++                if (self.body == null) self.body = try allocator.alloc(u8, n);
++                if (self.at == n) {
++                    const body = self.body.?;
++                    self.body = null;
++                    self.at = 0;
++                    self.length = null;
++                    self.header_len = 0;
++                    return .{ .packet = body };
++                }
++                const count = std.posix.read(fd, self.body.?[self.at..][0..@min(n - self.at, 256 * 1024 - read)]) catch |err| {
++                    if (err == error.WouldBlock) return .pending;
++                    return err;
++                };
++                if (count == 0) return error.EndOfStream;
++                self.at += count;
++                read += count;
++                self.progressed = true;
++            } else {
++                if (self.header_len == self.header.len) return error.HeaderTooLarge;
++                const count = std.posix.read(fd, self.header[self.header_len..][0..1]) catch |err| {
++                    if (err == error.WouldBlock) return .pending;
++                    return err;
++                };
++                if (count == 0) return if (self.header_len == 0) .eof else error.EndOfStream;
++                self.header_len += 1;
++                read += 1;
++                self.progressed = true;
++                const h = self.header[0..self.header_len];
++                if (h[h.len - 1] == '\n') {
++                    const start = if (std.mem.lastIndexOfScalar(u8, h[0 .. h.len - 1], '\n')) |v| v + 1 else 0;
++                    const line = h[start..];
++                    if (std.mem.eql(u8, line, "\r\n")) {
++                        var reader = std.Io.Reader.fixed(h);
++                        self.length = (try readHeader(&reader)).?;
++                    } else if (std.mem.indexOfScalar(u8, line, ':') == null) return error.InvalidHeader;
++                }
++            }
++        }
++        return .pending;
++    }
++};
+--- before/src/protocol/output.zig
++++ after/src/protocol/output.zig
+@@ -0,0 +1,372 @@
++//! Bounded owned frames. The protocol thread alone writes; producers never do I/O.
++const std = @import("std");
++const posix = std.posix;
++pub const Role = enum { dispatcher, worker };
++pub const Config = struct {
++    bytes: usize = 144 * 1024 * 1024,
++    frames: usize = 256,
++    body: usize = 128 * 1024 * 1024,
++    control_bytes: usize = 512 * 1024,
++    control_frames: usize = 64,
++};
++const bulk_metadata = 256 * 1024;
++const control_metadata = 4096;
++pub const Tag = struct { uri: []const u8, generation: u64 };
++const Chunk = struct { bytes: []u8, used: usize = 0 };
++pub const Frame = struct {
++    next: ?*Frame = null,
++    chunks: std.ArrayList(Chunk) = .empty,
++    tag: ?Tag = null,
++    control: bool,
++    charged: usize,
++    header: [64]u8 = undefined,
++    header_len: usize = 0,
++    header_at: usize = 0,
++    chunk_at: usize = 0,
++    byte_at: usize = 0,
++    pub fn started(self: *const Frame) bool {
++        return self.header_at != 0;
++    }
++};
++pub const Queue = struct {
++    allocator: std.mem.Allocator,
++    io: std.Io,
++    config: Config = .{},
++    mutex: std.Io.Mutex = .init,
++    condition: std.Io.Condition = .init,
++    head: ?*Frame = null,
++    tail: ?*Frame = null,
++    bytes: [2]usize = .{ 0, 0 },
++    frames: [2]usize = .{ 0, 0 },
++    closed: bool = false,
++    wake_fd: ?posix.fd_t = null,
++    fn index(control: bool) usize {
++        return @intFromBool(control);
++    }
++    fn reserve(self: *Queue, n: usize, slot: bool, control: bool, role: Role) !void {
++        const i = index(control);
++        const cap = if (control) self.config.control_bytes else self.config.bytes;
++        const slots = if (control) self.config.control_frames else self.config.frames;
++        if (n > cap) return error.OutputBusy;
++        self.mutex.lockUncancelable(self.io);
++        defer self.mutex.unlock(self.io);
++        while (!self.closed and (n > cap - self.bytes[i] or (slot and self.frames[i] == slots))) {
++            if (role == .dispatcher) return error.OutputBusy;
++            self.condition.waitUncancelable(self.io, &self.mutex);
++        }
++        if (self.closed) return error.OutputClosed;
++        self.bytes[i] += n;
++        if (slot) self.frames[i] += 1;
++    }
++    fn giveBack(self: *Queue, n: usize, slot: bool, control: bool) void {
++        self.mutex.lockUncancelable(self.io);
++        defer self.mutex.unlock(self.io);
++        const i = index(control);
++        self.bytes[i] -= n;
++        if (slot) self.frames[i] -= 1;
++        self.condition.broadcast(self.io);
++    }
++    fn wake(self: *Queue) void {
++        if (self.wake_fd) |fd| {
++            _ = posix.system.write(fd, "x", 1);
++        }
++    }
++    pub fn close(self: *Queue) void {
++        self.mutex.lockUncancelable(self.io);
++        self.closed = true;
++        self.condition.broadcast(self.io);
++        self.mutex.unlock(self.io);
++        self.wake();
++    }
++    pub fn isClosed(self: *Queue) bool {
++        self.mutex.lockUncancelable(self.io);
++        defer self.mutex.unlock(self.io);
++        return self.closed;
++    }
++    pub fn enqueue(self: *Queue, frame: *Frame) !void {
++        self.mutex.lockUncancelable(self.io);
++        defer self.mutex.unlock(self.io);
++        if (self.closed) return error.OutputClosed;
++        if (self.tail) |last| last.next = frame else self.head = frame;
++        self.tail = frame;
++        self.wake();
++    }
++    pub fn peek(self: *Queue) ?*Frame {
++        self.mutex.lockUncancelable(self.io);
++        defer self.mutex.unlock(self.io);
++        return self.head;
++    }
++    pub fn discard(self: *Queue, frame: *Frame) void {
++        self.mutex.lockUncancelable(self.io);
++        std.debug.assert(self.head == frame);
++        self.head = frame.next;
++        if (self.head == null) self.tail = null;
++        self.mutex.unlock(self.io);
++        self.destroy(frame);
++    }
++    pub fn destroy(self: *Queue, frame: *Frame) void {
++        for (frame.chunks.items[frame.chunk_at..]) |chunk| self.allocator.free(chunk.bytes);
++        frame.chunks.deinit(self.allocator);
++        if (frame.tag) |tag| self.allocator.free(tag.uri);
++        const charged = frame.charged;
++        const control = frame.control;
++        self.allocator.destroy(frame);
++        self.giveBack(charged, true, control);
++    }
++    pub fn deinit(self: *Queue) void {
++        self.close();
++        while (self.peek()) |frame| self.discard(frame);
++        std.debug.assert(self.bytes[0] == 0 and self.bytes[1] == 0);
++        std.debug.assert(self.frames[0] == 0 and self.frames[1] == 0);
++    }
++    /// One nonblocking write, at most 64 KiB. Caller checks a diagnostic's tag
++    /// immediately before the first call. Once started, a frame cannot be skipped.
++    pub fn advance(self: *Queue, fd: posix.fd_t) !bool {
++        const frame = self.peek() orelse return false;
++        var budget: usize = 64 * 1024;
++        var progressed = false;
++        while (budget != 0) {
++            if (frame.header_at < frame.header_len) {
++                const bytes = frame.header[frame.header_at..frame.header_len];
++                const n = try writeSome(fd, bytes[0..@min(bytes.len, budget)]);
++                if (n == 0) return progressed;
++                frame.header_at += n;
++                budget -= n;
++                progressed = true;
++                continue;
++            }
++            if (frame.chunk_at == frame.chunks.items.len) {
++                self.discard(frame);
++                return true;
++            }
++            const chunk = frame.chunks.items[frame.chunk_at];
++            const bytes = chunk.bytes[frame.byte_at..chunk.used];
++            const n = try writeSome(fd, bytes[0..@min(bytes.len, budget)]);
++            if (n == 0) return progressed;
++            frame.byte_at += n;
++            budget -= n;
++            progressed = true;
++            if (frame.byte_at == chunk.used) {
++                self.allocator.free(chunk.bytes);
++                frame.charged -= chunk.bytes.len;
++                self.giveBack(chunk.bytes.len, false, frame.control);
++                frame.chunk_at += 1;
++                frame.byte_at = 0;
++            }
++        }
++        return progressed;
++    }
++};
++pub const Builder = struct {
++    queue: *Queue,
++    role: Role,
++    frame: ?*Frame,
++    writer: std.Io.Writer = .{ .buffer = &.{}, .vtable = &.{ .drain = drain, .flush = flush } },
++    sealed: usize = 0,
++    failure: anyerror = error.WriteFailed,
++    pub fn init(queue: *Queue, role: Role, control: bool, tag: ?Tag) !Builder {
++        const metadata: usize = if (control) control_metadata else bulk_metadata;
++        try queue.reserve(metadata, true, control, role);
++        errdefer queue.giveBack(metadata, true, control);
++        const frame = try queue.allocator.create(Frame);
++        errdefer queue.allocator.destroy(frame);
++        frame.* = .{ .control = control, .charged = metadata };
++        if (tag) |t| frame.tag = .{ .uri = try queue.allocator.dupe(u8, t.uri), .generation = t.generation };
++        return .{ .queue = queue, .role = role, .frame = frame };
++    }
++    pub fn deinit(self: *Builder) void {
++        if (self.frame) |f| self.queue.destroy(f);
++    }
++    fn limit(self: *Builder) usize {
++        return if (self.frame.?.control) 64 * 1024 else self.queue.config.body;
++    }
++    fn next(self: *Builder) !void {
++        const frame = self.frame.?;
++        if (frame.chunks.items.len != 0) {
++            frame.chunks.items[frame.chunks.items.len - 1].used = self.writer.end;
++            self.sealed += self.writer.end;
++        }
++        if (self.sealed >= self.limit()) return error.FrameTooLarge;
++        const n = @min(if (frame.chunks.items.len == 0) @as(usize, 4096) else 64 * 1024, self.limit() - self.sealed);
++        try self.queue.reserve(n, false, frame.control, self.role);
++        errdefer self.queue.giveBack(n, false, frame.control);
++        const bytes = try self.queue.allocator.alloc(u8, n);
++        errdefer self.queue.allocator.free(bytes);
++        try frame.chunks.append(self.queue.allocator, .{ .bytes = bytes });
++        frame.charged += n;
++        self.writer.buffer = bytes;
++        self.writer.end = 0;
++    }
++    fn append(self: *Builder, bytes: []const u8) !void {
++        var at: usize = 0;
++        while (at < bytes.len) {
++            if (self.writer.end == self.writer.buffer.len) try self.next();
++            const n = @min(bytes.len - at, self.writer.buffer.len - self.writer.end);
++            @memcpy(self.writer.buffer[self.writer.end..][0..n], bytes[at..][0..n]);
++            self.writer.end += n;
++            at += n;
++        }
++    }
++    fn drain(w: *std.Io.Writer, data: []const []const u8, splat: usize) std.Io.Writer.Error!usize {
++        const self: *Builder = @fieldParentPtr("writer", w);
++        var n: usize = 0;
++        for (data, 0..) |part, i| {
++            const count = if (i + 1 == data.len) splat else 1;
++            for (0..count) |_| {
++                self.append(part) catch |err| {
++                    self.failure = err;
++                    return error.WriteFailed;
++                };
++                n += part.len;
++            }
++        }
++        return n;
++    }
++    fn flush(_: *std.Io.Writer) std.Io.Writer.Error!void {}
++    pub fn finish(self: *Builder) !*Frame {
++        const frame = self.frame.?;
++        if (frame.chunks.items.len != 0) frame.chunks.items[frame.chunks.items.len - 1].used = self.writer.end;
++        const length = self.sealed + self.writer.end;
++        frame.header_len = (try std.fmt.bufPrint(&frame.header, "Content-Length: {d}\r\n\r\n", .{length})).len;
++        self.frame = null;
++        return frame;
++    }
++};
++
++pub fn writeSome(fd: posix.fd_t, bytes: []const u8) !usize {
++    while (true) {
++        const n = posix.system.write(fd, bytes.ptr, bytes.len);
++        switch (posix.errno(n)) {
++            .SUCCESS => return @intCast(n),
++            .INTR => continue,
++            .AGAIN => return 0,
++            else => return error.OutputFailed,
++        }
++    }
++}
++fn setFlags(fd: posix.fd_t, flags: usize) !void {
++    if (posix.errno(posix.system.fcntl(fd, posix.F.SETFL, flags)) != .SUCCESS) return error.NonblockingFailed;
++}
++fn nonblocking(fd: posix.fd_t) !usize {
++    const rc = posix.system.fcntl(fd, posix.F.GETFL, @as(usize, 0));
++    if (posix.errno(rc) != .SUCCESS) return error.NonblockingFailed;
++    const flags: usize = @intCast(rc);
++    const mask: u32 = @bitCast(posix.O{ .NONBLOCK = true });
++    try setFlags(fd, flags | mask);
++    return flags;
++}
++pub const Transport = struct {
++    wake: [2]posix.fd_t,
++    input_flags: usize,
++    output_flags: usize,
++    pub fn init() !Transport {
++        const wake = try std.Io.Threaded.pipe2(.{ .NONBLOCK = true, .CLOEXEC = true });
++        errdefer for (wake) |fd| {
++            _ = posix.system.close(fd);
++        };
++        const input_flags = try nonblocking(0);
++        errdefer setFlags(0, input_flags) catch {};
++        const output_flags = try nonblocking(1);
++        return .{ .wake = wake, .input_flags = input_flags, .output_flags = output_flags };
++    }
++    pub fn deinit(self: *Transport) void {
++        setFlags(0, self.input_flags) catch {};
++        setFlags(1, self.output_flags) catch {};
++        for (self.wake) |fd| {
++            _ = posix.system.close(fd);
++        }
++    }
++    pub fn wait(self: *Transport, input: bool, output: bool, timeout: i32) !void {
++        var fds = [_]posix.pollfd{
++            .{ .fd = if (input) 0 else -1, .events = posix.POLL.IN, .revents = 0 },
++            .{ .fd = if (output) 1 else -1, .events = posix.POLL.OUT, .revents = 0 },
++            .{ .fd = self.wake[0], .events = posix.POLL.IN, .revents = 0 },
++        };
++        _ = try posix.poll(&fds, timeout);
++        var bytes: [256]u8 = undefined;
++        while (true) {
++            const n = posix.read(self.wake[0], &bytes) catch break;
++            if (n == 0) break;
++        }
++    }
++};
++
++test "chunk encoding handles boundaries, splats, frame caps and credit cleanup" {
++    const a = std.testing.allocator;
++    var q: Queue = .{ .allocator = a, .io = std.testing.io, .config = .{ .body = 100000 } };
++    defer q.deinit();
++    var b = try Builder.init(&q, .dispatcher, false, .{ .uri = "uri", .generation = 9 });
++    defer b.deinit();
++    try b.writer.splatByteAll('x', 70000);
++    const frame = try b.finish();
++    try q.enqueue(frame);
++    var total: usize = 0;
++    for (frame.chunks.items) |chunk| {
++        total += chunk.used;
++        for (chunk.bytes[0..chunk.used]) |byte| try std.testing.expectEqual(@as(u8, 'x'), byte);
++    }
++    try std.testing.expectEqual(@as(usize, 70000), total);
++    try std.testing.expectEqualStrings("Content-Length: 70000\r\n\r\n", frame.header[0..frame.header_len]);
++    q.discard(frame);
++    try std.testing.expectEqual(@as(usize, 0), q.bytes[0]);
++    var limited = try Builder.init(&q, .dispatcher, false, null);
++    defer limited.deinit();
++    try std.testing.expectError(error.WriteFailed, limited.writer.splatByteAll('y', 100001));
++    try std.testing.expectEqual(error.FrameTooLarge, limited.failure);
++}
++
++test "dispatcher rejects pressure while control reserve remains available" {
++    var q: Queue = .{ .allocator = std.testing.allocator, .io = std.testing.io, .config = .{ .frames = 1 } };
++    defer q.deinit();
++    var first = try Builder.init(&q, .dispatcher, false, null);
++    defer first.deinit();
++    try std.testing.expectError(error.OutputBusy, Builder.init(&q, .dispatcher, false, null));
++    var control = try Builder.init(&q, .dispatcher, true, null);
++    defer control.deinit();
++    try control.writer.writeAll("error reply");
++    q.close();
++    const frame = try control.finish();
++    defer q.destroy(frame);
++    try std.testing.expectError(error.OutputClosed, q.enqueue(frame));
++}
++
++test "all encoding allocation failures roll back reserved bytes and slots" {
++    try std.testing.checkAllAllocationFailures(std.testing.allocator, struct {
++        fn run(a: std.mem.Allocator) !void {
++            var q: Queue = .{ .allocator = a, .io = std.testing.io };
++            defer q.deinit();
++            var b = try Builder.init(&q, .dispatcher, false, .{ .uri = "uri", .generation = 1 });
++            defer b.deinit();
++            b.writer.splatByteAll('x', 90000) catch return b.failure;
++            const frame = try b.finish();
++            errdefer q.destroy(frame);
++            try q.enqueue(frame);
++        }
++    }.run, .{});
++}
++
++test "closing output wakes a worker waiting for frame capacity" {
++    var q: Queue = .{ .allocator = std.testing.allocator, .io = std.testing.io, .config = .{ .frames = 1 } };
++    defer q.deinit();
++    var held = try Builder.init(&q, .dispatcher, false, null);
++    defer held.deinit();
++    const Waiter = struct {
++        queue: *Queue,
++        entered: std.atomic.Value(bool) = .init(false),
++        closed: bool = false,
++        fn run(self: *@This()) void {
++            self.entered.store(true, .release);
++            var b = Builder.init(self.queue, .worker, false, null) catch |err| {
++                self.closed = err == error.OutputClosed;
++                return;
++            };
++            b.deinit();
++        }
++    };
++    var waiter: Waiter = .{ .queue = &q };
++    const thread = try std.Thread.spawn(.{}, Waiter.run, .{&waiter});
++    while (!waiter.entered.load(.acquire)) std.Thread.yield() catch {};
++    q.close();
++    thread.join();
++    try std.testing.expect(waiter.closed);
++}
+--- before/src/protocol/responses.zig
++++ after/src/protocol/responses.zig
+@@ -1,6 +1,7 @@
+ //! Wire response encoding. Calls borrow stable data until synchronous send ends.
+ //! This remains blocking until the separate bounded-output migration step.
+ const std = @import("std");
++const output = @import("output.zig");
+ const lsp = @import("lsp.zig");
+ const pos = @import("../text/types.zig");
+ const completion_feature = @import("../features/completion.zig");
+@@ -13,16 +14,21 @@
+ /// A borrowed writer with an optional final eligibility check. The check runs
+ /// after encoding and before the first frame byte. It does not own runtime data.
+ pub const Destination = struct {
+-    writer: *std.Io.Writer,
++    queue: *output.Queue,
++    role: output.Role = .dispatcher,
++    control: bool = false,
++    tag: ?output.Tag = null,
+     gate: ?struct { context: *anyopaque, current: *const fn (*anyopaque) bool } = null,
+ };
+ pub fn send(allocator: std.mem.Allocator, writer: Destination, value: anytype) !void {
+-    const bytes = try std.json.Stringify.valueAlloc(allocator, value, .{});
+-    defer allocator.free(bytes);
++    _ = allocator;
++    var builder = try output.Builder.init(writer.queue, writer.role, writer.control, writer.tag);
++    defer builder.deinit();
++    std.json.Stringify.value(value, .{}, &builder.writer) catch return builder.failure;
+     if (writer.gate) |gate| if (!gate.current(gate.context)) return;
+-    try writer.writer.print("Content-Length: {d}\r\n\r\n", .{bytes.len});
+-    try writer.writer.writeAll(bytes);
+-    try writer.writer.flush();
++    const frame = try builder.finish();
++    errdefer writer.queue.destroy(frame);
++    try writer.queue.enqueue(frame);
+ }
+ pub fn failure(allocator: std.mem.Allocator, writer: Destination, id: lsp.Id, code: i32, message: []const u8) !void {
+     try send(allocator, writer, .{ .jsonrpc = "2.0", .id = id, .@"error" = .{ .code = code, .message = message } });
+--- before/src/tests.zig
++++ after/src/tests.zig
+@@ -12,6 +12,7 @@
+     _ = @import("runtime/limits.zig");
+     _ = @import("protocol/json_message.zig");
+     _ = @import("protocol/framing.zig");
++    _ = @import("protocol/output.zig");
+     _ = @import("protocol/lsp.zig");
+     _ = @import("protocol/requests.zig");
+     _ = @import("protocol/responses.zig");

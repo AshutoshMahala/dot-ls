@@ -1,0 +1,23 @@
+id = "dotls"
+name = "Graphviz DOT (dot-ls)"
+version = "0.0.1"
+schema_version = 1
+authors = ["Ashutosh Mahala"]
+description = "Graphviz DOT diagnostics, completion, hover, references, outline and quick fixes."
+repository = "https://github.com/AshutoshMahala/dot-ls"
+languages = ["languages/dot", "languages/dot-html"]
+
+[language_servers.dotls]
+name = "dot-ls"
+languages = ["DOT (dot-ls)"]
+
+[language_servers.dotls.language_ids]
+"DOT (dot-ls)" = "dot"
+
+[grammars.dot]
+repository = "https://github.com/rydesun/tree-sitter-dot"
+rev = "9ab85550c896d8b294d9b9ca1e30698736f08cea"
+
+[grammars.html]
+repository = "https://github.com/tree-sitter/tree-sitter-html"
+rev = "bfa075d83c6b97cd48440b3829ab8d24a2319809"

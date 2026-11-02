@@ -1,0 +1,53 @@
+{
+  "runs": [
+    {
+      "server": "dotls",
+      "mb": 5,
+      "source_bytes": 4999953,
+      "peak_rss_bytes": 17678336,
+      "request_ms_including_python_encoding": [
+        34.628958,
+        36.473375,
+        32.738708
+      ],
+      "time_output": "        0.41 real         0.06 user         0.00 sys\n            17678336  maximum resident set size\n                   0  average shared memory size\n                   0  average unshared data size\n                   0  average unshared stack size\n                3272  page reclaims\n                   0  page faults\n                   0  swaps\n                   0  block input operations\n                   0  block output operations\n                   0  messages sent\n                   0  messages received\n                   0  signals received\n                 246  voluntary context switches\n                 103  involuntary context switches\n          1614553240  instructions retired\n           264419586  cycles elapsed\n            16941416  peak memory footprint\n"
+    },
+    {
+      "server": "graphviz",
+      "mb": 5,
+      "source_bytes": 4999953,
+      "peak_rss_bytes": 1217167360,
+      "request_ms_including_python_encoding": [
+        744.580041,
+        350.165959,
+        347.811792
+      ],
+      "time_output": "        1.90 real         2.49 user         0.22 sys\n          1217167360  maximum resident set size\n                   0  average shared memory size\n                   0  average unshared data size\n                   0  average unshared stack size\n               76858  page reclaims\n                 128  page faults\n                   0  swaps\n                   0  block input operations\n                   0  block output operations\n                   0  messages sent\n                   0  messages received\n                   0  signals received\n                 125  voluntary context switches\n                3345  involuntary context switches\n         36535159540  instructions retired\n         10795633039  cycles elapsed\n          1260784024  peak memory footprint\n"
+    },
+    {
+      "server": "dotls",
+      "mb": 20,
+      "source_bytes": 20000000,
+      "peak_rss_bytes": 63569920,
+      "request_ms_including_python_encoding": [
+        113.470625,
+        131.039834,
+        121.217708
+      ],
+      "time_output": "        0.67 real         0.22 user         0.02 sys\n            63569920  maximum resident set size\n                   0  average shared memory size\n                   0  average unshared data size\n                   0  average unshared stack size\n               11932  page reclaims\n                   0  page faults\n                   0  swaps\n                   0  block input operations\n                   0  block output operations\n                   0  messages sent\n                   0  messages received\n                   0  signals received\n                 974  voluntary context switches\n                  77  involuntary context switches\n          6425437451  instructions retired\n          1010109693  cycles elapsed\n            62882224  peak memory footprint\n"
+    },
+    {
+      "server": "graphviz",
+      "mb": 20,
+      "source_bytes": 20000000,
+      "peak_rss_bytes": 3197829120,
+      "request_ms_including_python_encoding": [
+        3074.286542,
+        1657.989625,
+        1675.481
+      ],
+      "time_output": "        6.91 real        10.49 user         0.73 sys\n          3197829120  maximum resident set size\n                   0  average shared memory size\n                   0  average unshared data size\n                   0  average unshared stack size\n              209301  page reclaims\n                  93  page faults\n                   0  swaps\n                   0  block input operations\n                   0  block output operations\n                   0  messages sent\n                   0  messages received\n                   0  signals received\n                 393  voluntary context switches\n               12849  involuntary context switches\n        146208433221  instructions retired\n         45155971580  cycles elapsed\n          3346949176  peak memory footprint\n"
+    }
+  ],
+  "notes": "Separate stdio client, not Zed. Fresh process per case. macOS time -l measures actual maximum resident size across open, EOF syntax error, repair and shutdown. No RSS polling or relay. Timing here includes Python encoding; use Zed relay traces for editor LSP notification-to-diagnostic latency."
+}

@@ -1,0 +1,210 @@
+--- a/src/completion_context.zig
++++ b/src/features/completion_context.zig
+@@ -1,11 +1,11 @@
+ //! Compressed lexical completion regions. No retained source or AST.
+ const std = @import("std");
+ const dot = @import("dot_parser");
+-const pos = @import("text/positions.zig");
++const pos = @import("../text/positions.zig");
+ const attributes = @import("attributes.zig");
+ pub const Kind = enum(u4) { none, header, graph_kind, body, endpoint, attr_graph, attr_node, attr_edge, attr_subgraph, attr_cluster };
+ const Anchor = struct { byte: u32, cursor: u32, kind: Kind };
+-const text_coordinates = @import("text/coordinates.zig");
++const text_coordinates = @import("../text/coordinates.zig");
+ pub const max_bytes = 64 * 1024 * 1024;
+ pub const Index = struct {
+     events: []u8 = &.{},
+--- a/src/references.zig
++++ b/src/features/references.zig
+@@ -1,7 +1,7 @@
+ //! Source spans are captured during parsing; identity and ranges are built later.
+ const std = @import("std");
+ const dot = @import("dot_parser");
+-const pos = @import("text/positions.zig");
++const pos = @import("../text/positions.zig");
+ pub const Range = struct { start: pos.Position, end: pos.Position };
+ const End = struct { line: u32, character: u32 };
+ const extended: u32 = 0x80000000;
+--- a/src/outline.zig
++++ b/src/features/outline.zig
+@@ -1,8 +1,8 @@
+ //! Compact declaration outline. No retained source, attributes, edges or AST.
+ const std = @import("std");
+ const dot = @import("dot_parser");
+-const text_coordinates = @import("text/coordinates.zig");
+-const pos = @import("text/positions.zig");
++const text_coordinates = @import("../text/coordinates.zig");
++const pos = @import("../text/positions.zig");
+ const Span = dot.Span;
+ pub const max_entries = 250_000;
+ pub const max_bytes = 32 * 1024 * 1024;
+--- a/src/code_actions.zig
++++ b/src/features/code_actions.zig
+@@ -1,8 +1,8 @@
+ //! Compact parser fix offers. No source, syntax tree, or diagnostic text retained.
+ const std = @import("std");
+ const dot = @import("dot_parser");
+-const pos = @import("text/positions.zig");
+-pub const Range = @import("text/types.zig").Range;
++const pos = @import("../text/positions.zig");
++pub const Range = @import("../text/types.zig").Range;
+ const Point = struct {
+     line: u32,
+     character: u32,
+--- a/src/analysis.zig
++++ b/src/analysis/dot.zig
+@@ -12,13 +12,13 @@
+ pub fn run(text: []const u8, scratch: Events.ParseScratch, bag: *Bag, cancellation: dot.Cancellation) dot.events.Result {
+     return runIndexed(text, scratch, bag, cancellation, null);
+ }
+-pub fn runIndexed(text: []const u8, scratch: Events.ParseScratch, bag: *Bag, cancellation: dot.Cancellation, builder: ?*@import("references.zig").Builder) dot.events.Result {
++pub fn runIndexed(text: []const u8, scratch: Events.ParseScratch, bag: *Bag, cancellation: dot.Cancellation, builder: ?*@import("../features/references.zig").Builder) dot.events.Result {
+     return runObserved(text, scratch, bag, cancellation, builder, null);
+ }
+-pub fn runObserved(text: []const u8, scratch: Events.ParseScratch, bag: *Bag, cancellation: dot.Cancellation, builder: ?*@import("references.zig").Builder, labels: ?*@import("labels.zig").Collector) dot.events.Result {
++pub fn runObserved(text: []const u8, scratch: Events.ParseScratch, bag: *Bag, cancellation: dot.Cancellation, builder: ?*@import("../features/references.zig").Builder, labels: ?*@import("../features/labels.zig").Collector) dot.events.Result {
+     return runOutline(text, scratch, bag, cancellation, builder, labels, null);
+ }
+-pub fn runOutline(text: []const u8, scratch: Events.ParseScratch, bag: *Bag, cancellation: dot.Cancellation, builder: ?*@import("references.zig").Builder, labels: ?*@import("labels.zig").Collector, outline: ?*@import("outline.zig").Builder) dot.events.Result {
++pub fn runOutline(text: []const u8, scratch: Events.ParseScratch, bag: *Bag, cancellation: dot.Cancellation, builder: ?*@import("../features/references.zig").Builder, labels: ?*@import("../features/labels.zig").Collector, outline: ?*@import("../features/outline.zig").Builder) dot.events.Result {
+     var consumer: Consumer = .{ .checks = .{ .source = text, .bag = bag }, .builder = builder, .labels = labels, .outline = outline };
+     var session = Events.Session.init(text, scratch, &consumer, bag.sink(), .{ .cancellation = cancellation });
+     defer session.deinit();
+@@ -68,7 +68,7 @@
+     var failure = std.testing.FailingAllocator.init(std.testing.allocator, .{ .fail_index = 0 });
+     var cancel: std.atomic.Value(bool) = .init(false);
+     const text = "digraph { a -> b }";
+-    var builder = @import("references.zig").Builder.init(failure.allocator(), text, &cancel);
++    var builder = @import("../features/references.zig").Builder.init(failure.allocator(), text, &cancel);
+     defer builder.deinit();
+     var bag: Bag = .{};
+     var scratch: Scratch = .{};
+@@ -173,7 +173,7 @@
+ 
+ test "outline allocation failure does not change syntax diagnostics" {
+     const text = "digraph G { a; broken -> ; b; }";
+-    var builder: @import("outline.zig").Builder = .{ .allocator = std.testing.failing_allocator, .source = text };
++    var builder: @import("../features/outline.zig").Builder = .{ .allocator = std.testing.failing_allocator, .source = text };
+     defer builder.deinit();
+     var expected: Bag = .{};
+     var actual: Bag = .{};
+@@ -188,11 +188,11 @@
+ const Consumer = struct {
+     pub const wants_begin_statement = false;
+     checks: validation.State,
+-    builder: ?*@import("references.zig").Builder = null,
+-    labels: ?*@import("labels.zig").Collector = null,
+-    outline: ?*@import("outline.zig").Builder = null,
++    builder: ?*@import("../features/references.zig").Builder = null,
++    labels: ?*@import("../features/labels.zig").Collector = null,
++    outline: ?*@import("../features/outline.zig").Builder = null,
+     pub fn onOutline(self: *@This(), event: dot.OutlineEvent) void {
+-        if (self.outline) |o| @import("outline.zig").Builder.emit(o, event);
++        if (self.outline) |o| @import("../features/outline.zig").Builder.emit(o, event);
+     }
+     pub fn onAbort(self: *@This(), _: dot.events.Abort) void {
+         self.checks.clearStatement();
+@@ -201,15 +201,15 @@
+         validation.State.emit(&self.checks, event);
+         switch (event) {
+             .commit_node => |v| {
+-                if (self.builder) |b| @import("references.zig").Builder.emit(b, v.value.identifier);
++                if (self.builder) |b| @import("../features/references.zig").Builder.emit(b, v.value.identifier);
+             },
+             .commit_edge, .commit_edge_chain => |v| if (self.builder) |b| {
+-                if (v.value.left_scope == null) @import("references.zig").Builder.emit(b, v.value.left);
+-                if (v.value.right_scope == null) @import("references.zig").Builder.emit(b, v.value.right);
++                if (v.value.left_scope == null) @import("../features/references.zig").Builder.emit(b, v.value.left);
++                if (v.value.right_scope == null) @import("../features/references.zig").Builder.emit(b, v.value.right);
+             },
+-            .edge_link => |v| if (self.builder) |b| @import("references.zig").Builder.emit(b, v.link.right),
+-            .attribute => |v| if (self.labels) |l| @import("labels.zig").Collector.emit(l, v.pair.key, v.pair.value),
+-            .commit_assignment => |v| if (self.labels) |l| @import("labels.zig").Collector.emit(l, v.value.key, v.value.value),
++            .edge_link => |v| if (self.builder) |b| @import("../features/references.zig").Builder.emit(b, v.link.right),
++            .attribute => |v| if (self.labels) |l| @import("../features/labels.zig").Collector.emit(l, v.pair.key, v.pair.value),
++            .commit_assignment => |v| if (self.labels) |l| @import("../features/labels.zig").Collector.emit(l, v.value.key, v.value.value),
+             else => {},
+         }
+         return .proceed;
+--- a/src/main.zig
++++ b/src/main.zig
+@@ -2,15 +2,15 @@
+ const build_options = @import("build_options");
+ const json_message = @import("json_message.zig");
+ const pos = @import("text/positions.zig");
+-const diagnostic_text = @import("diagnostic_text.zig");
+-const completion = @import("completion.zig");
+-const attributes = @import("attributes.zig");
+-const context = @import("completion_context.zig");
+-const references = @import("references.zig");
+-const labels = @import("labels.zig");
+-const analysis = @import("analysis.zig");
+-const outline = @import("outline.zig");
+-const actions = @import("code_actions.zig");
++const diagnostic_text = @import("analysis/diagnostic_text.zig");
++const completion = @import("features/completion.zig");
++const attributes = @import("features/attributes.zig");
++const context = @import("features/completion_context.zig");
++const references = @import("features/references.zig");
++const labels = @import("features/labels.zig");
++const analysis = @import("analysis/dot.zig");
++const outline = @import("features/outline.zig");
++const actions = @import("features/code_actions.zig");
+ const max_file = 200 * 1024 * 1024;
+ const max_message = 256 * 1024 * 1024;
+ const max_sources = 512 * 1024 * 1024;
+@@ -971,18 +971,6 @@
+     }
+     if (exit_requested and !server.shutdown) std.process.exit(1);
+ }
+-test {
+-    _ = outline;
+-    _ = labels;
+-    _ = context;
+-    _ = references;
+-    _ = diagnostic_text;
+-    _ = actions;
+-    _ = pos;
+-    _ = analysis;
+-    _ = json_message;
+-    _ = @import("parser_session_tests.zig");
+-}
+ 
+ test "fix snapshot allocation failure leaves diagnostics publication independent" {
+     var server: Server = .{ .allocator = std.testing.failing_allocator, .html_allocator = std.testing.failing_allocator, .io = undefined, .writer = undefined };
+--- a/build.zig
++++ b/build.zig
+@@ -16,7 +16,9 @@
+     b.installArtifact(exe);
+     // Temporary executable compatibility alias for existing editor setups.
+     b.getInstallStep().dependOn(&b.addInstallArtifact(exe, .{ .dest_sub_path = "dotls" }).step);
+-    const tests = b.addTest(.{ .root_module = root });
++    const test_root = b.createModule(.{ .root_source_file = b.path("src/tests.zig"), .target = target, .optimize = optimize, .imports = &.{ .{ .name = "dot_parser", .module = parser }, .{ .name = "markup_parser", .module = markup } } });
++    test_root.addOptions("build_options", options);
++    const tests = b.addTest(.{ .root_module = test_root });
+     b.step("test", "Run unit tests").dependOn(&b.addRunArtifact(tests).step);
+     const parser_tests = b.addTest(.{ .root_module = parser });
+     b.step("test-parser", "Run vendored parser unit and regression tests").dependOn(&b.addRunArtifact(parser_tests).step);
+--- /dev/null
++++ b/src/tests.zig
+@@ -0,0 +1,20 @@
++//! Unit-test entry point. Not imported by the production executable.
++test {
++    _ = @import("main.zig");
++    _ = @import("json_message.zig");
++    _ = @import("analysis/dot.zig");
++    _ = @import("analysis/parser_policy.zig");
++    _ = @import("analysis/validation.zig");
++    _ = @import("analysis/diagnostic_text.zig");
++    _ = @import("features/labels.zig");
++    _ = @import("features/attributes.zig");
++    _ = @import("features/completion_context.zig");
++    _ = @import("features/completion.zig");
++    _ = @import("features/references.zig");
++    _ = @import("features/outline.zig");
++    _ = @import("features/code_actions.zig");
++    _ = @import("text/types.zig");
++    _ = @import("text/positions.zig");
++    _ = @import("text/coordinates.zig");
++    _ = @import("tests/parser_sessions.zig");
++}

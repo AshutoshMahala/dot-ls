@@ -1,0 +1,47 @@
+{
+  "completed_steps": [
+    0,
+    1
+  ],
+  "next_step": 2,
+  "compiler": "Zig 0.17.0",
+  "mode": "safe",
+  "unit_safe": "47/47 passed",
+  "unit_debug": "47/47 passed",
+  "protocol_before": "8 suites passed",
+  "protocol_after": "8 suites passed",
+  "vendor": "75ce950b356d341fba2cdcf4fcd6c224cb049a67; unchanged, integrity passed",
+  "extra_full_source_scans": 0,
+  "extra_coordinate_tables": 0,
+  "source_copy_added": false,
+  "scan_accounting_method": "Structural comparison: the same lexer scan and coordinate scan remain; source-backed diagnostic/reference conversion stays in its existing phases. No runtime profiling was added.",
+  "behavior_fix": "Guard truncated UTF-8 before std.unicode.utf8Decode; isolated in utf8-guard.patch. Benchmark includes this guard as well as the extraction.",
+  "source_sha256": {
+    "analysis.zig": "80023e1bd5e6e8146646d119e2ec4d9d318e237637a23e1a08f49b25cb309227",
+    "attributes.zig": "78a321e0eda87f1a97a65d2bea9775b1dc70ae1aa4d499554241723e03115cc6",
+    "code_actions.zig": "e3929f73566d8824c9dfb0fd7b7e128b7e62bfc59052a520bc84c922bfed2493",
+    "completion.zig": "2d8ed442480a8a61026a4bd46d93f67c954462aab2ffb631700a2c9ebd1f1b62",
+    "completion_context.zig": "2ca6784efad4fe2fa260e7ec17b55ae86b300bb360f83637977235fb3d707baf",
+    "diagnostic_text.zig": "6b3a780524a2cf25e43dd0000507dc15cc9b3dedcb9a45dff7a57a41b32c77c2",
+    "json_message.zig": "c37b6298e20578bdf1dd0f210e63772b487b52ba34a543162332665535b38793",
+    "labels.zig": "ed2395ce9bfddafa2cdbac9486205818b108f472fa983b7685179414b7ea9c4b",
+    "main.zig": "c89a57a55146f1149593918c2f2df24ce9d6e7a869ee3272381d32b7fa007a95",
+    "outline.zig": "61768dd8c6d4fc85da2513890720115343a962aec573f87f5513d85be6842475",
+    "parser_policy.zig": "94bdf8b8317691271194212fddd3ae248b90bff71226af0d36b1c58fccb47ed8",
+    "parser_session_tests.zig": "4f6ab347a40e32a4e9334318c13d425acbeab7e90c88c70a6dbff97910279e17",
+    "references.zig": "7a3258132ae5f3a6ed332d5551c32ea60b3c87baa3c1d92feacd480193950663",
+    "text/coordinates.zig": "808630a38f70bda73a914bf2f5cbe3796a669c94f1f568b2eaa42aaa6f1a7966",
+    "text/positions.zig": "02883a3566430150a51242a48aecfd57272da1ac27e5be7026b9073a041c84a1",
+    "text/types.zig": "f08e3894657b6b6953cb4c65a6db0ad6cd4a6ceebf63477b84cfc006c123300c",
+    "validation.zig": "03b5f85ecad815d9afee2b6a81da3162aa6fc2d50dceb946d66ccd622cc12ac7"
+  },
+  "active_binary_sha256": "73e1df5e9c1352aae26fe2c72840c49fbeb204836b718e52e1d4639dd2a832ae",
+  "active_matches_measured": true,
+  "compatibility_alias_identical": true,
+  "review_notes": [
+    "Coordinate extraction preserves the two published arrays and their element sizes. Completion remains the sole owner; outline borrows the shared text index while the job is alive.",
+    "All eight protocol suites pass before and after. Unit count increased from 44 to 47 with coordinate and decoding regressions.",
+    "Repeated 20 MB comparison with unchanged binaries: the earlier HTML median increase did not persist; settled RSS stayed effectively unchanged. Both raw rounds are retained."
+  ],
+  "repeat_20_summary": "repeat-20/summary.json"
+}

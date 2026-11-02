@@ -1,0 +1,72 @@
+{
+  "workload": "edges",
+  "source_bytes": 39999996,
+  "wire_bytes": 45000149,
+  "summary": [
+    {
+      "name": "before",
+      "median_ms": 311.022,
+      "min_ms": 304.084583,
+      "max_ms": 319.791209,
+      "samples": 10
+    },
+    {
+      "name": "inplace",
+      "median_ms": 293.408583,
+      "min_ms": 285.756125,
+      "max_ms": 314.933416,
+      "samples": 10
+    }
+  ],
+  "runs": [
+    {
+      "name": "before",
+      "repeat": 0,
+      "request_ms": [
+        309.811333,
+        319.791209,
+        314.966334,
+        312.397,
+        312.232667
+      ],
+      "binary_bytes": 638488
+    },
+    {
+      "name": "inplace",
+      "repeat": 0,
+      "request_ms": [
+        314.933416,
+        293.877833,
+        292.72875,
+        288.163584,
+        285.756125
+      ],
+      "binary_bytes": 638104
+    },
+    {
+      "name": "inplace",
+      "repeat": 1,
+      "request_ms": [
+        295.058333,
+        294.043625,
+        293.745791,
+        293.071375,
+        287.612167
+      ],
+      "binary_bytes": 638104
+    },
+    {
+      "name": "before",
+      "repeat": 1,
+      "request_ms": [
+        306.331167,
+        304.084583,
+        318.750292,
+        304.977375,
+        307.161542
+      ],
+      "binary_bytes": 638488
+    }
+  ],
+  "notes": "ReleaseSafe. Sequential runs, reverse order on second pass. Pre-encoded full-sync request to diagnostic receipt. Excludes client encoding. No RSS sampling or profiling in timed servers."
+}

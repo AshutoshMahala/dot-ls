@@ -1,0 +1,123 @@
+--- a/vendor/dot-parser/src/root.zig
++++ b/vendor/dot-parser/src/root.zig
+@@ -33,6 +33,8 @@
+ const scratch_impl = @import("dot/scratch.zig");
+ const policy_impl = @import("dot/policy.zig");
+ 
++// Local dot-ls bridge; experimental, not an upstream API promise.
++pub const SyntaxEvent = @import("dot/syntax_event.zig").Event;
+ pub const Policy = policy_impl.Policy;
+ pub const presets = policy_impl.presets;
+ pub const Acceptance = policy_impl.Acceptance;
+--- a/vendor/dot-parser/src/dot/profile.zig
++++ b/vendor/dot-parser/src/dot/profile.zig
+@@ -221,6 +221,16 @@
+                 return .{ .driver = if (runtime_policy) switch (variantOf(effective)) {
+                     inline else => |variant| @unionInit(Drivers, @tagName(variant), EngineFor(variant).MeasureSession.init(source, scratch, diagnostics, engineOptions(EngineFor(variant), effective, hook))),
+                 } else FixedEngine.MeasureSession.init(source, scratch, diagnostics, engineOptions(FixedEngine, effective, hook)) };
++            }
++            /// Local dot-ls streaming validation bridge. Does not retain events.
++            pub fn observeValidation(self: *Self, context: *anyopaque, emit: *const fn (*anyopaque, api.SyntaxEvent) void) void {
++                if (runtime_policy) {
++                    switch (self.driver) {
++                        inline else => |*driver| {
++                            driver.counting.validation_observer = .{ .context = context, .emit = emit };
++                        },
++                    }
++                } else self.driver.counting.validation_observer = .{ .context = context, .emit = emit };
+             }
+             /// Local delayed-label bridge. Only complete parser-accepted pairs.
+             pub fn observeAttributes(self: *Self, context: *anyopaque, emit: *const fn (*anyopaque, api.Span, api.Span) void) void {
+--- a/vendor/dot-parser/src/dot/syntax.zig
++++ b/vendor/dot-parser/src/dot/syntax.zig
+@@ -1376,10 +1376,14 @@
+     // Local optional observer. It cannot stop syntax analysis on index failure.
+     observer: ?struct { context: *anyopaque, emit: *const fn (*anyopaque, location.Span) void } = null,
+     attribute_observer: ?struct { context: *anyopaque, emit: *const fn (*anyopaque, location.Span, location.Span) void } = null,
++    validation_observer: ?struct { context: *anyopaque, emit: *const fn (*anyopaque, syntax_event.Event) void } = null,
+     counts: Capacities = .{},
+     scope_state: syntax_event.ScopeState = .{},
+     phase: enum { idle, building, committed, terminal } = .idle,
+ 
++    fn validation(self: *CountingSink, event: syntax_event.Event) void {
++        if (self.validation_observer) |o| o.emit(o.context, event);
++    }
+     fn occurrence(self: *CountingSink, span: location.Span) void {
+         if (self.observer) |o| o.emit(o.context, span);
+     }
+@@ -1393,28 +1397,33 @@
+         self.counts.comments += 1;
+     }
+ 
+-    pub fn beginDocument(self: *CountingSink, _: syntax_event.BeginDocument) Error!void {
++    pub fn beginDocument(self: *CountingSink, event: syntax_event.BeginDocument) Error!void {
++        self.validation(.{ .begin_document = event });
+         std.debug.assert(self.phase == .idle);
+         self.phase = .building;
+     }
+     pub fn nodeStatement(self: *CountingSink, event: syntax_event.NodeStatement) Error!void {
++        self.validation(.{ .node_statement = event });
+         self.occurrence(event.identifier);
+         self.counts.nodes += 1;
+         self.counts.statements += 1;
+     }
+     pub fn edgeStatement(self: *CountingSink, event: syntax_event.EdgeStatement) Error!void {
++        self.validation(.{ .edge_statement = event });
+         self.endpoints(event);
+         if (self.isScoped(event)) return self.finishScopedEdge();
+         self.counts.edges += 1;
+         self.counts.statements += 1;
+     }
+     pub fn edgeChainStatement(self: *CountingSink, event: syntax_event.EdgeStatement) Error!void {
++        self.validation(.{ .edge_chain_statement = event });
+         self.endpoints(event);
+         if (self.isScoped(event)) return self.finishScopedEdge();
+         self.counts.edge_chains += 1;
+         self.counts.statements += 1;
+     }
+     pub fn edgeLink(self: *CountingSink, event: syntax_event.EdgeLink) Error!void {
++        self.validation(.{ .edge_link = event });
+         self.occurrence(event.right);
+         if (self.scope_state.scoped_owner != null) {
+             self.counts.scoped_edge_links += 1;
+@@ -1423,6 +1432,7 @@
+         }
+     }
+     pub fn beginSubgraph(self: *CountingSink, event: syntax_event.BeginSubgraph) Error!syntax_event.ScopeEntry {
++        self.validation(.{ .begin_subgraph = event });
+         if (event.role == .left) {
+             self.scope_state.reserved_order = @intCast(self.counts.statements);
+             self.counts.statements += 1;
+@@ -1436,9 +1446,11 @@
+         return entry;
+     }
+     pub fn endSubgraph(self: *CountingSink, event: syntax_event.EndSubgraph) Error!void {
++        self.validation(.{ .end_subgraph = event });
+         self.scope_state = event.entry.state;
+     }
+-    pub fn subgraphStatement(self: *CountingSink, _: u32) Error!void {
++    pub fn subgraphStatement(self: *CountingSink, id: u32) Error!void {
++        self.validation(.{ .subgraph_statement = id });
+         self.scope_state = .{};
+     }
+     pub fn portedReference(self: *CountingSink, _: syntax_event.PortedReference) Error!u32 {
+@@ -1447,15 +1459,18 @@
+         return index;
+     }
+     pub fn attribute(self: *CountingSink, event: syntax_event.Attribute) Error!void {
++        self.validation(.{ .attribute = event });
+         if (self.attribute_observer) |o| o.emit(o.context, event.key, event.value);
+         self.counts.attributes += 1;
+     }
+     pub fn assignment(self: *CountingSink, event: syntax_event.Attribute) Error!void {
++        self.validation(.{ .assignment = event });
+         if (self.attribute_observer) |o| o.emit(o.context, event.key, event.value);
+         self.counts.assignments += 1;
+         self.counts.statements += 1;
+     }
+-    pub fn attributeStatement(self: *CountingSink, _: syntax_event.AttributeStatement) Error!void {
++    pub fn attributeStatement(self: *CountingSink, event: syntax_event.AttributeStatement) Error!void {
++        self.validation(.{ .attribute_statement = event });
+         self.counts.attribute_statements += 1;
+         self.counts.statements += 1;
+     }

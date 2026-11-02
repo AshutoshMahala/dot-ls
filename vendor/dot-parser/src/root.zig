@@ -1,0 +1,398 @@
+//! Public surface of the dot-parser package (milestone 1, step 8).
+//!
+//! Everything exported here is experimental `0.x` API: usable, tested, and
+//! subject to change (R-ARCH-009). The API is layered — the façade functions
+//! below are conveniences over public building blocks, never a gate in front
+//! of them (R-ARCH-006):
+//!
+//! - `parseBorrowed` / `parseAndValidate` / `validate` — the front door.
+//! - `Document` and friends — what linters and analyzers actually program
+//!   against: statements in source order, compact borrowed ranges.
+//! - `BoundedSession` / `Profile.Session` — fixed-storage resumable execution.
+//! - `location`, `diagnostic`, `console` — underlying modules, exported whole.
+//! - `lexer` — public lexical vocabulary and ordinary cursor, selected here.
+//!
+//! `Events(Sink)` / `Profile.Events(Sink)` expose compile-time consumer output.
+//! Builders use the same event contract; their storage and the low-level
+//! machine remain private.
+//!
+//! ## Ownership at a glance
+//!
+//! - `source` is caller-owned and borrowed: every range and span indexes it,
+//!   and it must outlive any returned document (R-MEM-004).
+//! - Trees use the explicit caller allocator; release with `deinit` (bulk,
+//!   no per-node walk) or by resetting the caller's arena (R-MEM-005).
+//! - Diagnostics flow into the caller's sink — one uniform reporting surface
+//!   for every phase; results carry only small outcome values (R-DIAG-003).
+
+const std = @import("std");
+
+const parser_impl = @import("dot/parser.zig");
+const syntax_impl = @import("dot/syntax.zig");
+const validate_impl = @import("dot/validate.zig");
+const scratch_impl = @import("dot/scratch.zig").For(syntax_impl.Builder.ScopeContext);
+const policy_impl = @import("dot/policy.zig");
+
+pub const Policy = policy_impl.Policy;
+/// Optional Graphviz metadata; never applied as defaults or linked when unused.
+pub const attribute_catalog = @import("dot/attribute_catalog.zig");
+/// Optional semantic topology, lowered explicitly from an accepted Document.
+pub const ir = @import("ir.zig");
+pub const presets = policy_impl.presets;
+pub const Acceptance = policy_impl.Acceptance;
+pub const BareDashInterpretation = policy_impl.BareDashInterpretation;
+pub const PolicyValidation = policy_impl.Check;
+pub const PolicyIssue = policy_impl.Issue;
+pub const PolicyError = policy_impl.Error;
+pub const PolicyConfig = policy_impl.Config;
+pub const GraphKind = policy_impl.GraphKind;
+pub const GraphTreatment = policy_impl.GraphTreatment;
+pub const RuleSeverity = policy_impl.RuleSeverity;
+pub const OperatorReading = policy_impl.OperatorReading;
+pub const ScannerBackend = policy_impl.ScannerBackend;
+pub const MarkupMode = policy_impl.MarkupMode;
+pub const Fixes = policy_impl.Fixes;
+pub const OnError = policy_impl.OnError;
+pub const Unsupported = policy_impl.Unsupported;
+pub const encoding = @import("parser_support").encoding;
+pub const SourceEncoding = encoding.Encoding;
+pub const InputEncoding = encoding.Actual;
+const DefaultProfile = Profile(.{});
+/// Optional positioned encoding admission, without parsing or content checks.
+pub const inspectSource = DefaultProfile.inspectSource;
+
+/// Policy-bound parsing, execution, validation and interpretation. Runtime
+/// overrides are off by default; every supported setting has full parity.
+pub fn Profile(comptime config: anytype) type {
+    const routing = @import("parser_support").string_routing;
+    const base = routing.hostConfig(PolicyConfig, config);
+    if (!routing.Routes(config).active) return @import("dot/profile.zig").Profile(@This(), base);
+    return @import("dot/string_profile.zig").Profile(@This(), config, base);
+}
+
+/// Library-default policy verification is compile-time-only.
+pub const validatePolicy = Profile(.{}).validatePolicy;
+
+pub const location = @import("parser_support").location;
+pub const diagnostic = @import("dot/diagnostic.zig");
+/// Typed processor-independent diagnostic destinations.
+pub const reporting = @import("parser_support").reporting;
+/// Shared compile-time diagnostic metadata and optional presentation engine.
+pub const wdp = @import("parser_support").wdp;
+pub const presentation = @import("parser_support").console;
+/// Compile-time policy preparation and checked raw-fragment coordinates.
+/// Opt-in one-shot scheduling is selected with Profile.processors; ordinary DOT
+/// profiles neither import markup grammar nor retain processor metadata.
+pub const processor = @import("parser_support").processor;
+const lexer_impl = @import("dot/lexer/lexer.zig");
+pub const lexer = struct {
+    pub const Token = lexer_impl.Token;
+    pub const Result = lexer_impl.Result;
+    /// Ordinary lexing with the library-default scalar backend.
+    pub const Lexer = lexer_impl.Lexer;
+    /// Low-level fixed-backend lexer. Parsing selects through Policy.scanner.
+    pub const For = lexer_impl.For;
+    pub const WithComments = lexer_impl.WithComments;
+};
+/// Explicit raw-identifier decoding into caller storage or a writer.
+pub const identifier = @import("dot/identifier.zig");
+pub const Name = @import("dot/name.zig").Name;
+pub const logical = @import("parser_support").logical;
+pub const events = @import("dot/events.zig");
+pub const Events = DefaultProfile.Events;
+
+/// Default console presentation for diagnostics — one way to render, shipped
+/// out of the box. Consumers bring their own reporting by implementing
+/// `DiagnosticSink`; the core never renders anything itself.
+pub const console = @import("dot/console.zig");
+
+// Source positions.
+pub const Location = location.Location;
+pub const Span = location.Span;
+pub const Range = location.Range;
+
+// WDP diagnostics.
+pub const wdp_namespace = diagnostic.namespace;
+pub const Severity = diagnostic.Severity;
+pub const Code = diagnostic.Code;
+pub const Details = diagnostic.Details;
+pub const Diagnostic = diagnostic.Diagnostic;
+pub const DiagnosticSink = diagnostic.Sink;
+pub const DiagnosticSinkError = diagnostic.SinkError;
+pub const DiagnosticAction = diagnostic.Action;
+pub const FixedDiagnosticBag = diagnostic.FixedBag;
+pub const GrowableDiagnosticBag = diagnostic.GrowableBag;
+
+// The borrowed syntax document and its vocabulary.
+/// The original header, never reclassified by a policy.
+pub const DeclaredGraphKind = syntax_impl.GraphKind;
+pub const EdgeOperator = syntax_impl.EdgeOperator;
+pub const ParseScratch = scratch_impl.Storage;
+pub const FixedParseScratch = scratch_impl.Fixed;
+pub const ScopeId = syntax_impl.ScopeId;
+pub const SkippedRange = syntax_impl.SkippedRange;
+pub const ScopeView = syntax_impl.ScopeView;
+pub const Subgraph = syntax_impl.Subgraph;
+pub const Traversal = syntax_impl.Traversal;
+pub const Document = syntax_impl.Document;
+pub const Comment = @import("dot/comment.zig").Comment;
+pub const CommentKind = @import("dot/comment.zig").Kind;
+pub const Statement = syntax_impl.Statement;
+pub const StatementId = syntax_impl.StatementId;
+pub const ScopedStatement = syntax_impl.ScopedStatement;
+pub const StatementRange = syntax_impl.StatementRange;
+pub const NodeStatement = syntax_impl.NodeStatement;
+pub const NodeReference = syntax_impl.NodeReference;
+pub const NodeReferenceView = syntax_impl.NodeReferenceView;
+pub const PortSyntax = syntax_impl.PortSyntax;
+pub const PortedReference = syntax_impl.PortedReference;
+pub const Endpoint = syntax_impl.Endpoint;
+pub const EdgeView = syntax_impl.EdgeView;
+pub const EdgeChainView = syntax_impl.EdgeChainView;
+pub const EdgeLinkSource = syntax_impl.EdgeLinkSource;
+pub const ScopedEdgeStatement = syntax_impl.ScopedEdgeStatement;
+pub const ScopedEdgeLink = syntax_impl.ScopedEdgeLink;
+pub const EdgeStatement = syntax_impl.EdgeStatement;
+pub const EdgeChainStatement = syntax_impl.EdgeChainStatement;
+pub const EdgeLink = syntax_impl.EdgeLink;
+pub const EdgeLinkRange = syntax_impl.EdgeLinkRange;
+pub const Attribute = syntax_impl.Attribute;
+pub const AttributeRange = syntax_impl.AttributeRange;
+pub const AttributeTarget = syntax_impl.AttributeTarget;
+pub const AttributeStatement = syntax_impl.AttributeStatement;
+pub const Assignment = syntax_impl.Assignment;
+
+// Façade option/result types.
+pub const ValidateOptions = DefaultProfile.Options;
+pub const ValidationResult = validate_impl.Result;
+pub const ValidationScratch = validate_impl.Scratch;
+pub const AttributeKeyScratch = validate_impl.AttributeKeyScratch;
+/// Exact number of temporary AttributeKeyScratch entries for repeated-key
+/// validation of retained syntax. No allocation or source-byte scan. Returns
+/// zero when every retained owner has fewer than two attributes; the caller
+/// needs no scratch when its repeated_attribute policy is off either way.
+pub const requiredValidationScratch = validate_impl.requiredScratch;
+
+pub const DocumentCapacities = syntax_impl.Capacities;
+pub const DocumentStorage = syntax_impl.DocumentStorage;
+pub const FixedDocumentStorage = syntax_impl.FixedDocumentStorage;
+
+/// Independent retained-output and temporary-nesting storage.
+pub const ParseMemory = struct { document: DocumentStorage, scratch: ParseScratch = .{} };
+
+/// Allocator/storage choices are explicit resources, not behavioral policies.
+pub const ParseResources = struct {
+    /// Temporary nesting frames; null uses the explicit document allocator.
+    scratch_allocator: ?std.mem.Allocator = null,
+    /// Preallocate output pools, not temporary nesting frames. A hint, not an
+    /// acceptance limit. `measure` reports exact capacities; fixed pools and
+    /// ParseMemory provide the allocation-free path.
+    document_capacities: DocumentCapacities = .{},
+};
+pub const ParseOptions = DefaultProfile.ParseOptions;
+
+/// Why document or temporary storage could not hold the parse. A façade-level taxonomy:
+/// the private event-sink machinery never leaks into the public API.
+pub const StorageFailure = enum {
+    /// The document or temporary-scratch allocator ran out of memory.
+    out_of_memory,
+    /// A caller-provided document pool or nesting scratch filled up.
+    pool_exhausted,
+    /// A statement pool or global order exceeds the compact index/count domain.
+    statement_index_overflow,
+    /// An unexpected internal failure — please report a bug. Never produced
+    /// by the documented builder error sets; exists so an unmapped future
+    /// error is visible instead of being mislabeled.
+    internal,
+    /// Attribute-pool indices exceed the compact representation.
+    attribute_index_overflow,
+    /// Continuation-link indices exceed the compact representation.
+    edge_link_index_overflow,
+    ported_reference_index_overflow,
+};
+
+/// The public parse outcome. Diagnostics explaining failures travel through
+/// the caller's diagnostic sink, never through this value.
+pub const ParseOutcome = union(enum) {
+    success,
+    /// A bound child stopped during-DOT composition; see the composed report.
+    processor_stopped,
+    /// A cancellation-enabled operation or a session was cancelled.
+    cancelled,
+    /// Diagnostic destination stopped unfinished work. Retention is policy-selected.
+    diagnostic_stopped: diagnostic.StopReason,
+    /// The input is not accepted by the selected syntax policy.
+    invalid_syntax,
+    /// Parsing stopped at a policy-disabled DOT construct; validity
+    /// beyond that boundary is unknown.
+    unsupported_feature,
+    /// A caller-configured limit was reached; the input may still be valid.
+    resource_exhausted,
+    /// Document or temporary storage could not hold the parse.
+    storage_failure: StorageFailure,
+};
+
+/// Completion of parsing/recovery, not a claim of valid or supported input.
+pub const Completion = parser_impl.Completion;
+pub const Completeness = @import("parser_support").Completeness;
+const partial_impl = @import("dot/partial.zig");
+
+fn releaseDocument(document: *Document, allocator: std.mem.Allocator, lengths: ?*partial_impl.AllocationLengths) void {
+    const owned = lengths orelse return syntax_impl.deinitOwnedDocument(document, allocator);
+    inline for (partial_impl.pools, 0..) |field, i| {
+        const value = @field(document, partial_impl.documentField(field));
+        if (comptime std.mem.eql(u8, field, "comments")) {
+            if (value) |slice| allocator.free(slice.ptr[0..owned[i]]);
+        } else allocator.free(value.ptr[0..owned[i]]);
+    }
+    allocator.destroy(owned);
+    document.* = undefined;
+}
+
+/// Result of `parseBorrowed`. Successful parses publish a complete document;
+/// opt-in partial retention may publish completed regions on failure. The caller
+/// owns its pools, not source bytes. Presence alone is not a success check.
+pub const ParseResult = struct {
+    document: ?Document = null,
+    _allocation_lengths: ?*partial_impl.AllocationLengths = null,
+    outcome: ParseOutcome,
+    completion: Completion = .incomplete,
+    /// Discovered syntax rejections, including undelivered findings. Preserved
+    /// through later stops; zero with incomplete work does not establish validity.
+    syntax_errors: u32 = 0,
+    diagnostic_delivery: diagnostic.Delivery,
+    /// Sink acknowledgment, even when reporting an already-terminal failure.
+    /// The original outcome is preserved; do not start child work after a stop.
+    diagnostic_stop: ?diagnostic.StopReason = null,
+    /// Accepted syntax deviations, including silent acceptances before failure.
+    accepted_deviations: u32 = 0,
+    /// Parse warnings (including unsupported reporting), independent of delivery.
+    warnings: u32 = 0,
+
+    pub fn deinit(self: *ParseResult, allocator: std.mem.Allocator) void {
+        if (self.document) |*document| releaseDocument(document, allocator, self._allocation_lengths);
+        self.* = undefined;
+    }
+};
+
+/// Default fixed policy; select a Profile to change behavioral settings.
+pub const parseBorrowed = DefaultProfile.parseBorrowed;
+
+/// Validate a parsed document against the milestone rules. Positions come from
+/// the source the document itself borrows — there is no separate source
+/// parameter to mismatch. Without an operational stop, validation is a complete analysis pass: it
+/// continues past every violation and reports all of them into
+/// `diagnostics` in source order; the result separates pass completion from
+/// document validity (R-FUNC-008).
+pub const validate = DefaultProfile.validate;
+
+pub const FixedParseOptions = DefaultProfile.FixedParseOptions;
+
+/// Result of `parseBorrowedIn` and fixed sessions. Unlike `ParseResult` there is deliberately
+/// no `deinit`: the document is backed entirely by the caller's storage —
+/// release it by reusing or discarding that storage.
+pub const FixedParseResult = struct {
+    document: ?Document = null,
+    outcome: ParseOutcome,
+    completion: Completion = .incomplete,
+    syntax_errors: u32 = 0,
+    diagnostic_delivery: diagnostic.Delivery,
+    diagnostic_stop: ?diagnostic.StopReason = null,
+    accepted_deviations: u32 = 0,
+    warnings: u32 = 0,
+};
+
+pub const Cancellation = @import("parser_support").execution.Cancellation;
+pub const ExecutionPhase = parser_impl.Phase;
+
+/// By-value progress, never a partial document. Accepted counts can describe
+/// staged output that is later discarded; frontier includes lexical lookahead.
+pub const SessionProgress = struct {
+    phase: ExecutionPhase,
+    /// One past the highest examined byte offset; zero before any byte read.
+    /// EOF examination costs work but does not move this frontier.
+    source_frontier: usize,
+    completed_statements: usize,
+    completed_pairs: usize,
+    work_used: usize,
+    outcome: ?ParseOutcome,
+    syntax_errors: u32 = 0,
+    diagnostic_delivery: diagnostic.Delivery,
+    diagnostic_stop: ?diagnostic.StopReason = null,
+    accepted_deviations: u32 = 0,
+    warnings: u32 = 0,
+};
+
+/// A named policy preset, not a separate execution configuration mechanism.
+pub const BoundedSession = Profile(.{ .policy = .{ .execution = .{ .metering = true } } }).Session;
+
+/// Allocation-free one-shot parsing under the library-default fixed policy.
+pub const parseBorrowedIn = DefaultProfile.parseBorrowedIn;
+
+/// Result of `measure` / `measureIn`. `capacities` is present exactly when
+/// the outcome is `.success`: the exact pool sizes a retained parse of the
+/// same source needs, nothing more.
+pub const MeasureResult = struct {
+    capacities: ?DocumentCapacities = null,
+    outcome: ParseOutcome,
+    completion: Completion = .incomplete,
+    syntax_errors: u32 = 0,
+    diagnostic_delivery: diagnostic.Delivery,
+    diagnostic_stop: ?diagnostic.StopReason = null,
+    accepted_deviations: u32 = 0,
+    warnings: u32 = 0,
+};
+
+/// Count-only parsing with the same policy as retained parsing. Capacities are
+/// published only on success; allocator backs nesting scratch, never output.
+pub const measure = DefaultProfile.measure;
+pub const measureIn = DefaultProfile.measureIn;
+pub const CheckOptions = DefaultProfile.CheckOptions;
+
+/// Result of `parseAndValidate`. Validation follows successful parsing, or
+/// retained-region syntax failure with collect. Operational/fail-fast stops
+/// never automatically start another stage.
+pub const CheckResult = struct {
+    document: ?Document = null,
+    _allocation_lengths: ?*partial_impl.AllocationLengths = null,
+    outcome: ParseOutcome,
+    /// Parse/recovery completion only; validation has its own result.
+    completion: Completion = .incomplete,
+    syntax_errors: u32 = 0,
+    validation: ?ValidationResult = null,
+    diagnostic_delivery: diagnostic.Delivery,
+    diagnostic_stop: ?diagnostic.StopReason = null,
+    accepted_deviations: u32 = 0,
+    /// Total syntax and validation warnings produced, including dropped ones.
+    // Independent rules may report the same byte: the aggregate is not bounded
+    // by the u32 source length, unlike the parse-only warning counter.
+    warnings: u64 = 0,
+
+    /// The document parsed completely AND validation found no violations.
+    pub fn documentValid(self: *const CheckResult) bool {
+        if (self.outcome != .success or self.document == null or !self.document.?.scopeComplete()) return false;
+        const validation = self.validation orelse return false;
+        return validation.documentValid();
+    }
+
+    pub fn deinit(self: *CheckResult, allocator: std.mem.Allocator) void {
+        if (self.document) |*document| releaseDocument(document, allocator, self._allocation_lengths);
+        self.* = undefined;
+    }
+};
+
+/// One-shot parse and validation under the library-default fixed policy.
+pub const parseAndValidate = DefaultProfile.parseAndValidate;
+
+test {
+    std.testing.refAllDecls(@This());
+    // Include private implementation tests as well as public declarations.
+    _ = @import("dot/events.zig");
+    _ = @import("dot/parser.zig");
+    _ = @import("dot/syntax.zig");
+    _ = @import("dot/validate.zig");
+    _ = @import("dot/lexer/lexer.zig");
+    _ = @import("dot/policy.zig");
+    _ = @import("ir/adjacency_rows.zig");
+    _ = @import("ir/attribute_primitives.zig");
+}

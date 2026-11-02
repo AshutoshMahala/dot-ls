@@ -1,0 +1,1766 @@
+{
+  "label": "chains-before",
+  "source_bytes": 1000002,
+  "notes": "Temporary instrumented parser/index-only build. Five samples. Requested allocator bytes, not RSS. No protocol/JSON intake. Categories show live bytes and cumulative peaks; independent peaks must not be summed.",
+  "median_ms": {
+    "parser_only": 4.645,
+    "collection": 6.623,
+    "sort": 1.575,
+    "conversion": 1.587,
+    "finish": 3.162,
+    "retained": 0.0,
+    "released": 0.0
+  },
+  "events": [
+    {
+      "stage": "parser_only",
+      "us": 4752,
+      "total_peak_bytes": 1500131,
+      "categories": [
+        {
+          "name": "misc",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "source",
+          "live": 1000002,
+          "peak": 1500131,
+          "allocations": 1
+        },
+        {
+          "name": "names",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "decoded",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "occurrences",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "sort",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "entries",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        }
+      ],
+      "json_used_bytes": 0
+    },
+    {
+      "stage": "collection",
+      "us": 6988,
+      "total_peak_bytes": 6043506,
+      "categories": [
+        {
+          "name": "misc",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "source",
+          "live": 1000002,
+          "peak": 1500131,
+          "allocations": 1
+        },
+        {
+          "name": "names",
+          "live": 192,
+          "peak": 192,
+          "allocations": 1
+        },
+        {
+          "name": "decoded",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "occurrences",
+          "live": 3026040,
+          "peak": 5043312,
+          "allocations": 14
+        },
+        {
+          "name": "sort",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "entries",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        }
+      ],
+      "json_used_bytes": 0
+    },
+    {
+      "stage": "sort",
+      "us": 1393,
+      "total_peak_bytes": 6692874,
+      "categories": [
+        {
+          "name": "misc",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "source",
+          "live": 1000002,
+          "peak": 1500131,
+          "allocations": 1
+        },
+        {
+          "name": "names",
+          "live": 192,
+          "peak": 192,
+          "allocations": 1
+        },
+        {
+          "name": "decoded",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "occurrences",
+          "live": 3026040,
+          "peak": 5043312,
+          "allocations": 14
+        },
+        {
+          "name": "sort",
+          "live": 2666640,
+          "peak": 2666640,
+          "allocations": 1
+        },
+        {
+          "name": "entries",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        }
+      ],
+      "json_used_bytes": 0
+    },
+    {
+      "stage": "conversion",
+      "us": 1625,
+      "total_peak_bytes": 11137274,
+      "categories": [
+        {
+          "name": "misc",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "source",
+          "live": 1000002,
+          "peak": 1500131,
+          "allocations": 1
+        },
+        {
+          "name": "names",
+          "live": 192,
+          "peak": 192,
+          "allocations": 1
+        },
+        {
+          "name": "decoded",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "occurrences",
+          "live": 3026040,
+          "peak": 5043312,
+          "allocations": 14
+        },
+        {
+          "name": "sort",
+          "live": 2666640,
+          "peak": 2666640,
+          "allocations": 1
+        },
+        {
+          "name": "entries",
+          "live": 4444400,
+          "peak": 4444400,
+          "allocations": 1
+        }
+      ],
+      "json_used_bytes": 0
+    },
+    {
+      "stage": "finish",
+      "us": 3066,
+      "total_peak_bytes": 11137274,
+      "categories": [
+        {
+          "name": "misc",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "source",
+          "live": 1000002,
+          "peak": 1500131,
+          "allocations": 1
+        },
+        {
+          "name": "names",
+          "live": 192,
+          "peak": 192,
+          "allocations": 1
+        },
+        {
+          "name": "decoded",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "occurrences",
+          "live": 3026040,
+          "peak": 5043312,
+          "allocations": 14
+        },
+        {
+          "name": "sort",
+          "live": 0,
+          "peak": 2666640,
+          "allocations": 1
+        },
+        {
+          "name": "entries",
+          "live": 4444400,
+          "peak": 4444400,
+          "allocations": 1
+        }
+      ],
+      "json_used_bytes": 0
+    },
+    {
+      "stage": "retained",
+      "us": 0,
+      "total_peak_bytes": 11137274,
+      "categories": [
+        {
+          "name": "misc",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "source",
+          "live": 1000002,
+          "peak": 1500131,
+          "allocations": 1
+        },
+        {
+          "name": "names",
+          "live": 0,
+          "peak": 192,
+          "allocations": 1
+        },
+        {
+          "name": "decoded",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "occurrences",
+          "live": 0,
+          "peak": 5043312,
+          "allocations": 14
+        },
+        {
+          "name": "sort",
+          "live": 0,
+          "peak": 2666640,
+          "allocations": 1
+        },
+        {
+          "name": "entries",
+          "live": 4444400,
+          "peak": 4444400,
+          "allocations": 1
+        }
+      ],
+      "json_used_bytes": 0
+    },
+    {
+      "stage": "released",
+      "us": 0,
+      "total_peak_bytes": 11137274,
+      "categories": [
+        {
+          "name": "misc",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "source",
+          "live": 1000002,
+          "peak": 1500131,
+          "allocations": 1
+        },
+        {
+          "name": "names",
+          "live": 0,
+          "peak": 192,
+          "allocations": 1
+        },
+        {
+          "name": "decoded",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "occurrences",
+          "live": 0,
+          "peak": 5043312,
+          "allocations": 14
+        },
+        {
+          "name": "sort",
+          "live": 0,
+          "peak": 2666640,
+          "allocations": 1
+        },
+        {
+          "name": "entries",
+          "live": 0,
+          "peak": 4444400,
+          "allocations": 1
+        }
+      ],
+      "json_used_bytes": 0
+    },
+    {
+      "stage": "parser_only",
+      "us": 4551,
+      "total_peak_bytes": 11137274,
+      "categories": [
+        {
+          "name": "misc",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "source",
+          "live": 1000002,
+          "peak": 1500131,
+          "allocations": 1
+        },
+        {
+          "name": "names",
+          "live": 0,
+          "peak": 192,
+          "allocations": 1
+        },
+        {
+          "name": "decoded",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "occurrences",
+          "live": 0,
+          "peak": 5043312,
+          "allocations": 14
+        },
+        {
+          "name": "sort",
+          "live": 0,
+          "peak": 2666640,
+          "allocations": 1
+        },
+        {
+          "name": "entries",
+          "live": 0,
+          "peak": 4444400,
+          "allocations": 1
+        }
+      ],
+      "json_used_bytes": 0
+    },
+    {
+      "stage": "collection",
+      "us": 6626,
+      "total_peak_bytes": 11137274,
+      "categories": [
+        {
+          "name": "misc",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "source",
+          "live": 1000002,
+          "peak": 1500131,
+          "allocations": 1
+        },
+        {
+          "name": "names",
+          "live": 192,
+          "peak": 192,
+          "allocations": 2
+        },
+        {
+          "name": "decoded",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "occurrences",
+          "live": 3026040,
+          "peak": 5043312,
+          "allocations": 28
+        },
+        {
+          "name": "sort",
+          "live": 0,
+          "peak": 2666640,
+          "allocations": 1
+        },
+        {
+          "name": "entries",
+          "live": 0,
+          "peak": 4444400,
+          "allocations": 1
+        }
+      ],
+      "json_used_bytes": 0
+    },
+    {
+      "stage": "sort",
+      "us": 1575,
+      "total_peak_bytes": 11137274,
+      "categories": [
+        {
+          "name": "misc",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "source",
+          "live": 1000002,
+          "peak": 1500131,
+          "allocations": 1
+        },
+        {
+          "name": "names",
+          "live": 192,
+          "peak": 192,
+          "allocations": 2
+        },
+        {
+          "name": "decoded",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "occurrences",
+          "live": 3026040,
+          "peak": 5043312,
+          "allocations": 28
+        },
+        {
+          "name": "sort",
+          "live": 2666640,
+          "peak": 2666640,
+          "allocations": 2
+        },
+        {
+          "name": "entries",
+          "live": 0,
+          "peak": 4444400,
+          "allocations": 1
+        }
+      ],
+      "json_used_bytes": 0
+    },
+    {
+      "stage": "conversion",
+      "us": 1587,
+      "total_peak_bytes": 11137274,
+      "categories": [
+        {
+          "name": "misc",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "source",
+          "live": 1000002,
+          "peak": 1500131,
+          "allocations": 1
+        },
+        {
+          "name": "names",
+          "live": 192,
+          "peak": 192,
+          "allocations": 2
+        },
+        {
+          "name": "decoded",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "occurrences",
+          "live": 3026040,
+          "peak": 5043312,
+          "allocations": 28
+        },
+        {
+          "name": "sort",
+          "live": 2666640,
+          "peak": 2666640,
+          "allocations": 2
+        },
+        {
+          "name": "entries",
+          "live": 4444400,
+          "peak": 4444400,
+          "allocations": 2
+        }
+      ],
+      "json_used_bytes": 0
+    },
+    {
+      "stage": "finish",
+      "us": 3208,
+      "total_peak_bytes": 11137274,
+      "categories": [
+        {
+          "name": "misc",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "source",
+          "live": 1000002,
+          "peak": 1500131,
+          "allocations": 1
+        },
+        {
+          "name": "names",
+          "live": 192,
+          "peak": 192,
+          "allocations": 2
+        },
+        {
+          "name": "decoded",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "occurrences",
+          "live": 3026040,
+          "peak": 5043312,
+          "allocations": 28
+        },
+        {
+          "name": "sort",
+          "live": 0,
+          "peak": 2666640,
+          "allocations": 2
+        },
+        {
+          "name": "entries",
+          "live": 4444400,
+          "peak": 4444400,
+          "allocations": 2
+        }
+      ],
+      "json_used_bytes": 0
+    },
+    {
+      "stage": "retained",
+      "us": 0,
+      "total_peak_bytes": 11137274,
+      "categories": [
+        {
+          "name": "misc",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "source",
+          "live": 1000002,
+          "peak": 1500131,
+          "allocations": 1
+        },
+        {
+          "name": "names",
+          "live": 0,
+          "peak": 192,
+          "allocations": 2
+        },
+        {
+          "name": "decoded",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "occurrences",
+          "live": 0,
+          "peak": 5043312,
+          "allocations": 28
+        },
+        {
+          "name": "sort",
+          "live": 0,
+          "peak": 2666640,
+          "allocations": 2
+        },
+        {
+          "name": "entries",
+          "live": 4444400,
+          "peak": 4444400,
+          "allocations": 2
+        }
+      ],
+      "json_used_bytes": 0
+    },
+    {
+      "stage": "released",
+      "us": 0,
+      "total_peak_bytes": 11137274,
+      "categories": [
+        {
+          "name": "misc",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "source",
+          "live": 1000002,
+          "peak": 1500131,
+          "allocations": 1
+        },
+        {
+          "name": "names",
+          "live": 0,
+          "peak": 192,
+          "allocations": 2
+        },
+        {
+          "name": "decoded",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "occurrences",
+          "live": 0,
+          "peak": 5043312,
+          "allocations": 28
+        },
+        {
+          "name": "sort",
+          "live": 0,
+          "peak": 2666640,
+          "allocations": 2
+        },
+        {
+          "name": "entries",
+          "live": 0,
+          "peak": 4444400,
+          "allocations": 2
+        }
+      ],
+      "json_used_bytes": 0
+    },
+    {
+      "stage": "parser_only",
+      "us": 4645,
+      "total_peak_bytes": 11137274,
+      "categories": [
+        {
+          "name": "misc",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "source",
+          "live": 1000002,
+          "peak": 1500131,
+          "allocations": 1
+        },
+        {
+          "name": "names",
+          "live": 0,
+          "peak": 192,
+          "allocations": 2
+        },
+        {
+          "name": "decoded",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "occurrences",
+          "live": 0,
+          "peak": 5043312,
+          "allocations": 28
+        },
+        {
+          "name": "sort",
+          "live": 0,
+          "peak": 2666640,
+          "allocations": 2
+        },
+        {
+          "name": "entries",
+          "live": 0,
+          "peak": 4444400,
+          "allocations": 2
+        }
+      ],
+      "json_used_bytes": 0
+    },
+    {
+      "stage": "collection",
+      "us": 6623,
+      "total_peak_bytes": 11137274,
+      "categories": [
+        {
+          "name": "misc",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "source",
+          "live": 1000002,
+          "peak": 1500131,
+          "allocations": 1
+        },
+        {
+          "name": "names",
+          "live": 192,
+          "peak": 192,
+          "allocations": 3
+        },
+        {
+          "name": "decoded",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "occurrences",
+          "live": 3026040,
+          "peak": 5043312,
+          "allocations": 42
+        },
+        {
+          "name": "sort",
+          "live": 0,
+          "peak": 2666640,
+          "allocations": 2
+        },
+        {
+          "name": "entries",
+          "live": 0,
+          "peak": 4444400,
+          "allocations": 2
+        }
+      ],
+      "json_used_bytes": 0
+    },
+    {
+      "stage": "sort",
+      "us": 1581,
+      "total_peak_bytes": 11137274,
+      "categories": [
+        {
+          "name": "misc",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "source",
+          "live": 1000002,
+          "peak": 1500131,
+          "allocations": 1
+        },
+        {
+          "name": "names",
+          "live": 192,
+          "peak": 192,
+          "allocations": 3
+        },
+        {
+          "name": "decoded",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "occurrences",
+          "live": 3026040,
+          "peak": 5043312,
+          "allocations": 42
+        },
+        {
+          "name": "sort",
+          "live": 2666640,
+          "peak": 2666640,
+          "allocations": 3
+        },
+        {
+          "name": "entries",
+          "live": 0,
+          "peak": 4444400,
+          "allocations": 2
+        }
+      ],
+      "json_used_bytes": 0
+    },
+    {
+      "stage": "conversion",
+      "us": 1537,
+      "total_peak_bytes": 11137274,
+      "categories": [
+        {
+          "name": "misc",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "source",
+          "live": 1000002,
+          "peak": 1500131,
+          "allocations": 1
+        },
+        {
+          "name": "names",
+          "live": 192,
+          "peak": 192,
+          "allocations": 3
+        },
+        {
+          "name": "decoded",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "occurrences",
+          "live": 3026040,
+          "peak": 5043312,
+          "allocations": 42
+        },
+        {
+          "name": "sort",
+          "live": 2666640,
+          "peak": 2666640,
+          "allocations": 3
+        },
+        {
+          "name": "entries",
+          "live": 4444400,
+          "peak": 4444400,
+          "allocations": 3
+        }
+      ],
+      "json_used_bytes": 0
+    },
+    {
+      "stage": "finish",
+      "us": 3162,
+      "total_peak_bytes": 11137274,
+      "categories": [
+        {
+          "name": "misc",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "source",
+          "live": 1000002,
+          "peak": 1500131,
+          "allocations": 1
+        },
+        {
+          "name": "names",
+          "live": 192,
+          "peak": 192,
+          "allocations": 3
+        },
+        {
+          "name": "decoded",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "occurrences",
+          "live": 3026040,
+          "peak": 5043312,
+          "allocations": 42
+        },
+        {
+          "name": "sort",
+          "live": 0,
+          "peak": 2666640,
+          "allocations": 3
+        },
+        {
+          "name": "entries",
+          "live": 4444400,
+          "peak": 4444400,
+          "allocations": 3
+        }
+      ],
+      "json_used_bytes": 0
+    },
+    {
+      "stage": "retained",
+      "us": 0,
+      "total_peak_bytes": 11137274,
+      "categories": [
+        {
+          "name": "misc",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "source",
+          "live": 1000002,
+          "peak": 1500131,
+          "allocations": 1
+        },
+        {
+          "name": "names",
+          "live": 0,
+          "peak": 192,
+          "allocations": 3
+        },
+        {
+          "name": "decoded",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "occurrences",
+          "live": 0,
+          "peak": 5043312,
+          "allocations": 42
+        },
+        {
+          "name": "sort",
+          "live": 0,
+          "peak": 2666640,
+          "allocations": 3
+        },
+        {
+          "name": "entries",
+          "live": 4444400,
+          "peak": 4444400,
+          "allocations": 3
+        }
+      ],
+      "json_used_bytes": 0
+    },
+    {
+      "stage": "released",
+      "us": 0,
+      "total_peak_bytes": 11137274,
+      "categories": [
+        {
+          "name": "misc",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "source",
+          "live": 1000002,
+          "peak": 1500131,
+          "allocations": 1
+        },
+        {
+          "name": "names",
+          "live": 0,
+          "peak": 192,
+          "allocations": 3
+        },
+        {
+          "name": "decoded",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "occurrences",
+          "live": 0,
+          "peak": 5043312,
+          "allocations": 42
+        },
+        {
+          "name": "sort",
+          "live": 0,
+          "peak": 2666640,
+          "allocations": 3
+        },
+        {
+          "name": "entries",
+          "live": 0,
+          "peak": 4444400,
+          "allocations": 3
+        }
+      ],
+      "json_used_bytes": 0
+    },
+    {
+      "stage": "parser_only",
+      "us": 4788,
+      "total_peak_bytes": 11137274,
+      "categories": [
+        {
+          "name": "misc",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "source",
+          "live": 1000002,
+          "peak": 1500131,
+          "allocations": 1
+        },
+        {
+          "name": "names",
+          "live": 0,
+          "peak": 192,
+          "allocations": 3
+        },
+        {
+          "name": "decoded",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "occurrences",
+          "live": 0,
+          "peak": 5043312,
+          "allocations": 42
+        },
+        {
+          "name": "sort",
+          "live": 0,
+          "peak": 2666640,
+          "allocations": 3
+        },
+        {
+          "name": "entries",
+          "live": 0,
+          "peak": 4444400,
+          "allocations": 3
+        }
+      ],
+      "json_used_bytes": 0
+    },
+    {
+      "stage": "collection",
+      "us": 6619,
+      "total_peak_bytes": 11137274,
+      "categories": [
+        {
+          "name": "misc",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "source",
+          "live": 1000002,
+          "peak": 1500131,
+          "allocations": 1
+        },
+        {
+          "name": "names",
+          "live": 192,
+          "peak": 192,
+          "allocations": 4
+        },
+        {
+          "name": "decoded",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "occurrences",
+          "live": 3026040,
+          "peak": 5043312,
+          "allocations": 56
+        },
+        {
+          "name": "sort",
+          "live": 0,
+          "peak": 2666640,
+          "allocations": 3
+        },
+        {
+          "name": "entries",
+          "live": 0,
+          "peak": 4444400,
+          "allocations": 3
+        }
+      ],
+      "json_used_bytes": 0
+    },
+    {
+      "stage": "sort",
+      "us": 1387,
+      "total_peak_bytes": 11137274,
+      "categories": [
+        {
+          "name": "misc",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "source",
+          "live": 1000002,
+          "peak": 1500131,
+          "allocations": 1
+        },
+        {
+          "name": "names",
+          "live": 192,
+          "peak": 192,
+          "allocations": 4
+        },
+        {
+          "name": "decoded",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "occurrences",
+          "live": 3026040,
+          "peak": 5043312,
+          "allocations": 56
+        },
+        {
+          "name": "sort",
+          "live": 2666640,
+          "peak": 2666640,
+          "allocations": 4
+        },
+        {
+          "name": "entries",
+          "live": 0,
+          "peak": 4444400,
+          "allocations": 3
+        }
+      ],
+      "json_used_bytes": 0
+    },
+    {
+      "stage": "conversion",
+      "us": 1533,
+      "total_peak_bytes": 11137274,
+      "categories": [
+        {
+          "name": "misc",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "source",
+          "live": 1000002,
+          "peak": 1500131,
+          "allocations": 1
+        },
+        {
+          "name": "names",
+          "live": 192,
+          "peak": 192,
+          "allocations": 4
+        },
+        {
+          "name": "decoded",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "occurrences",
+          "live": 3026040,
+          "peak": 5043312,
+          "allocations": 56
+        },
+        {
+          "name": "sort",
+          "live": 2666640,
+          "peak": 2666640,
+          "allocations": 4
+        },
+        {
+          "name": "entries",
+          "live": 4444400,
+          "peak": 4444400,
+          "allocations": 4
+        }
+      ],
+      "json_used_bytes": 0
+    },
+    {
+      "stage": "finish",
+      "us": 2971,
+      "total_peak_bytes": 11137274,
+      "categories": [
+        {
+          "name": "misc",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "source",
+          "live": 1000002,
+          "peak": 1500131,
+          "allocations": 1
+        },
+        {
+          "name": "names",
+          "live": 192,
+          "peak": 192,
+          "allocations": 4
+        },
+        {
+          "name": "decoded",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "occurrences",
+          "live": 3026040,
+          "peak": 5043312,
+          "allocations": 56
+        },
+        {
+          "name": "sort",
+          "live": 0,
+          "peak": 2666640,
+          "allocations": 4
+        },
+        {
+          "name": "entries",
+          "live": 4444400,
+          "peak": 4444400,
+          "allocations": 4
+        }
+      ],
+      "json_used_bytes": 0
+    },
+    {
+      "stage": "retained",
+      "us": 0,
+      "total_peak_bytes": 11137274,
+      "categories": [
+        {
+          "name": "misc",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "source",
+          "live": 1000002,
+          "peak": 1500131,
+          "allocations": 1
+        },
+        {
+          "name": "names",
+          "live": 0,
+          "peak": 192,
+          "allocations": 4
+        },
+        {
+          "name": "decoded",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "occurrences",
+          "live": 0,
+          "peak": 5043312,
+          "allocations": 56
+        },
+        {
+          "name": "sort",
+          "live": 0,
+          "peak": 2666640,
+          "allocations": 4
+        },
+        {
+          "name": "entries",
+          "live": 4444400,
+          "peak": 4444400,
+          "allocations": 4
+        }
+      ],
+      "json_used_bytes": 0
+    },
+    {
+      "stage": "released",
+      "us": 0,
+      "total_peak_bytes": 11137274,
+      "categories": [
+        {
+          "name": "misc",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "source",
+          "live": 1000002,
+          "peak": 1500131,
+          "allocations": 1
+        },
+        {
+          "name": "names",
+          "live": 0,
+          "peak": 192,
+          "allocations": 4
+        },
+        {
+          "name": "decoded",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "occurrences",
+          "live": 0,
+          "peak": 5043312,
+          "allocations": 56
+        },
+        {
+          "name": "sort",
+          "live": 0,
+          "peak": 2666640,
+          "allocations": 4
+        },
+        {
+          "name": "entries",
+          "live": 0,
+          "peak": 4444400,
+          "allocations": 4
+        }
+      ],
+      "json_used_bytes": 0
+    },
+    {
+      "stage": "parser_only",
+      "us": 4485,
+      "total_peak_bytes": 11137274,
+      "categories": [
+        {
+          "name": "misc",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "source",
+          "live": 1000002,
+          "peak": 1500131,
+          "allocations": 1
+        },
+        {
+          "name": "names",
+          "live": 0,
+          "peak": 192,
+          "allocations": 4
+        },
+        {
+          "name": "decoded",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "occurrences",
+          "live": 0,
+          "peak": 5043312,
+          "allocations": 56
+        },
+        {
+          "name": "sort",
+          "live": 0,
+          "peak": 2666640,
+          "allocations": 4
+        },
+        {
+          "name": "entries",
+          "live": 0,
+          "peak": 4444400,
+          "allocations": 4
+        }
+      ],
+      "json_used_bytes": 0
+    },
+    {
+      "stage": "collection",
+      "us": 6528,
+      "total_peak_bytes": 11137274,
+      "categories": [
+        {
+          "name": "misc",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "source",
+          "live": 1000002,
+          "peak": 1500131,
+          "allocations": 1
+        },
+        {
+          "name": "names",
+          "live": 192,
+          "peak": 192,
+          "allocations": 5
+        },
+        {
+          "name": "decoded",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "occurrences",
+          "live": 3026040,
+          "peak": 5043312,
+          "allocations": 70
+        },
+        {
+          "name": "sort",
+          "live": 0,
+          "peak": 2666640,
+          "allocations": 4
+        },
+        {
+          "name": "entries",
+          "live": 0,
+          "peak": 4444400,
+          "allocations": 4
+        }
+      ],
+      "json_used_bytes": 0
+    },
+    {
+      "stage": "sort",
+      "us": 1579,
+      "total_peak_bytes": 11137274,
+      "categories": [
+        {
+          "name": "misc",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "source",
+          "live": 1000002,
+          "peak": 1500131,
+          "allocations": 1
+        },
+        {
+          "name": "names",
+          "live": 192,
+          "peak": 192,
+          "allocations": 5
+        },
+        {
+          "name": "decoded",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "occurrences",
+          "live": 3026040,
+          "peak": 5043312,
+          "allocations": 70
+        },
+        {
+          "name": "sort",
+          "live": 2666640,
+          "peak": 2666640,
+          "allocations": 5
+        },
+        {
+          "name": "entries",
+          "live": 0,
+          "peak": 4444400,
+          "allocations": 4
+        }
+      ],
+      "json_used_bytes": 0
+    },
+    {
+      "stage": "conversion",
+      "us": 1593,
+      "total_peak_bytes": 11137274,
+      "categories": [
+        {
+          "name": "misc",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "source",
+          "live": 1000002,
+          "peak": 1500131,
+          "allocations": 1
+        },
+        {
+          "name": "names",
+          "live": 192,
+          "peak": 192,
+          "allocations": 5
+        },
+        {
+          "name": "decoded",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "occurrences",
+          "live": 3026040,
+          "peak": 5043312,
+          "allocations": 70
+        },
+        {
+          "name": "sort",
+          "live": 2666640,
+          "peak": 2666640,
+          "allocations": 5
+        },
+        {
+          "name": "entries",
+          "live": 4444400,
+          "peak": 4444400,
+          "allocations": 5
+        }
+      ],
+      "json_used_bytes": 0
+    },
+    {
+      "stage": "finish",
+      "us": 3217,
+      "total_peak_bytes": 11137274,
+      "categories": [
+        {
+          "name": "misc",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "source",
+          "live": 1000002,
+          "peak": 1500131,
+          "allocations": 1
+        },
+        {
+          "name": "names",
+          "live": 192,
+          "peak": 192,
+          "allocations": 5
+        },
+        {
+          "name": "decoded",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "occurrences",
+          "live": 3026040,
+          "peak": 5043312,
+          "allocations": 70
+        },
+        {
+          "name": "sort",
+          "live": 0,
+          "peak": 2666640,
+          "allocations": 5
+        },
+        {
+          "name": "entries",
+          "live": 4444400,
+          "peak": 4444400,
+          "allocations": 5
+        }
+      ],
+      "json_used_bytes": 0
+    },
+    {
+      "stage": "retained",
+      "us": 0,
+      "total_peak_bytes": 11137274,
+      "categories": [
+        {
+          "name": "misc",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "source",
+          "live": 1000002,
+          "peak": 1500131,
+          "allocations": 1
+        },
+        {
+          "name": "names",
+          "live": 0,
+          "peak": 192,
+          "allocations": 5
+        },
+        {
+          "name": "decoded",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "occurrences",
+          "live": 0,
+          "peak": 5043312,
+          "allocations": 70
+        },
+        {
+          "name": "sort",
+          "live": 0,
+          "peak": 2666640,
+          "allocations": 5
+        },
+        {
+          "name": "entries",
+          "live": 4444400,
+          "peak": 4444400,
+          "allocations": 5
+        }
+      ],
+      "json_used_bytes": 0
+    },
+    {
+      "stage": "released",
+      "us": 0,
+      "total_peak_bytes": 11137274,
+      "categories": [
+        {
+          "name": "misc",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "source",
+          "live": 1000002,
+          "peak": 1500131,
+          "allocations": 1
+        },
+        {
+          "name": "names",
+          "live": 0,
+          "peak": 192,
+          "allocations": 5
+        },
+        {
+          "name": "decoded",
+          "live": 0,
+          "peak": 0,
+          "allocations": 0
+        },
+        {
+          "name": "occurrences",
+          "live": 0,
+          "peak": 5043312,
+          "allocations": 70
+        },
+        {
+          "name": "sort",
+          "live": 0,
+          "peak": 2666640,
+          "allocations": 5
+        },
+        {
+          "name": "entries",
+          "live": 0,
+          "peak": 4444400,
+          "allocations": 5
+        }
+      ],
+      "json_used_bytes": 0
+    }
+  ]
+}

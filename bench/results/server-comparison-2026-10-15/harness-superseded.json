@@ -1,0 +1,145 @@
+[
+  {
+    "raw_line": 55,
+    "record": {
+      "server": "dot-ls",
+      "kind": "html",
+      "mb": 20,
+      "case": "single-error",
+      "trial": 1,
+      "phases": [],
+      "startup_ms": 3.755500000011125,
+      "initialized_idle": {
+        "t": 112.813722458,
+        "rss_bytes": 2162688,
+        "footprint_bytes": 1360208,
+        "cpu_seconds": 0.0018550416666666667,
+        "start_ticks": 1321899358859
+      },
+      "failure": "AssertionError: {'phase': 'open', 'inserted_errors': 0, 'version': 1, 'first_diagnostics_ms': 94.79191600000547, 'final_diagnostics_ms': 95.45033300000227, 'write_ms': 14.378125000007458, 'notifications': [{'ms': 94.79191600000547, 'wire_bytes': 149, 'diagnostics': 0, 'errors': 0, 'incomplete': False, 'codes': {}, 'examples': []}, {'ms': 95.45033300000227, 'wire_bytes': 385, 'diagnostics': 1, 'errors': 0, 'incomplete': True, 'codes': {'dot-ls:html-incomplete': 1}, 'examples': [{'range': {'start': {'line': 0, 'character': 0}, 'end': {'line': 0, 'character': 0}}, 'severity': 3, 'code': 'dot-ls:html-incomplete', 'source': 'dot-ls', 'relatedInformation': [], 'message': 'HTML label checking is incomplete. Further errors may remain.'}]}], 'settled_rss_bytes': 12288000, 'settled_footprint_bytes': 11420032, 'cpu_through_settle_seconds': 0.14960337499999998}",
+      "resources": {
+        "exit_code": -15,
+        "actual_peak_rss_bytes": 63717376,
+        "sampled_peak_rss_bytes": 39469056,
+        "sampled_peak_footprint_bytes": 38601088,
+        "cpu_user_seconds": 0.13991599999999998,
+        "cpu_system_seconds": 0.011552999999999999,
+        "safety_stop": null,
+        "stderr": ""
+      },
+      "passed": false
+    }
+  },
+  {
+    "raw_line": 58,
+    "record": {
+      "server": "dot-ls",
+      "kind": "html",
+      "mb": 20,
+      "case": "single-error",
+      "trial": 2,
+      "passed": false,
+      "skipped": true,
+      "phases": [],
+      "failure": "Earlier case for this server/workload did not pass the responsiveness gate"
+    }
+  },
+  {
+    "raw_line": 59,
+    "record": {
+      "server": "dot-ls",
+      "kind": "html",
+      "mb": 20,
+      "case": "single-error",
+      "trial": 3,
+      "passed": false,
+      "skipped": true,
+      "phases": [],
+      "failure": "Earlier case for this server/workload did not pass the responsiveness gate"
+    }
+  },
+  {
+    "raw_line": 61,
+    "record": {
+      "server": "dot-ls",
+      "kind": "html",
+      "mb": 20,
+      "case": "errors-0",
+      "trial": 1,
+      "passed": false,
+      "skipped": true,
+      "phases": [],
+      "failure": "Earlier case for this server/workload did not pass the responsiveness gate"
+    }
+  },
+  {
+    "raw_line": 63,
+    "record": {
+      "server": "dot-ls",
+      "kind": "html",
+      "mb": 20,
+      "case": "errors-1",
+      "trial": 1,
+      "passed": false,
+      "skipped": true,
+      "phases": [],
+      "failure": "Earlier case for this server/workload did not pass the responsiveness gate"
+    }
+  },
+  {
+    "raw_line": 65,
+    "record": {
+      "server": "dot-ls",
+      "kind": "html",
+      "mb": 20,
+      "case": "errors-10",
+      "trial": 1,
+      "passed": false,
+      "skipped": true,
+      "phases": [],
+      "failure": "Earlier case for this server/workload did not pass the responsiveness gate"
+    }
+  },
+  {
+    "raw_line": 67,
+    "record": {
+      "server": "dot-ls",
+      "kind": "html",
+      "mb": 20,
+      "case": "errors-100",
+      "trial": 1,
+      "passed": false,
+      "skipped": true,
+      "phases": [],
+      "failure": "Earlier case for this server/workload did not pass the responsiveness gate"
+    }
+  },
+  {
+    "raw_line": 69,
+    "record": {
+      "server": "dot-ls",
+      "kind": "html",
+      "mb": 20,
+      "case": "errors-1000",
+      "trial": 1,
+      "passed": false,
+      "skipped": true,
+      "phases": [],
+      "failure": "Earlier case for this server/workload did not pass the responsiveness gate"
+    }
+  },
+  {
+    "raw_line": 71,
+    "record": {
+      "server": "dot-ls",
+      "kind": "html",
+      "mb": 20,
+      "case": "errors-1200",
+      "trial": 1,
+      "passed": false,
+      "skipped": true,
+      "phases": [],
+      "failure": "Earlier case for this server/workload did not pass the responsiveness gate"
+    }
+  }
+]

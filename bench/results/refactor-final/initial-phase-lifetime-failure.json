@@ -1,0 +1,55 @@
+{
+  "sha256": "18e0dcb13a94f018050a047d3719dfb63ff9532c01791b270ac95d82a48f7c4e",
+  "suites": [
+    {
+      "suite": "lsp",
+      "code": 0,
+      "output": "{\n  \"checks\": \"passed\",\n  \"binary_bytes\": 965352,\n  \"startup_ms_median\": 2.3223329999999542,\n  \"startup_ms_max\": 2.450583000000006,\n  \"edit_bytes\": 800012,\n  \"edit_ms_median\": 7.676541499999995,\n  \"edit_ms_max\": 8.263624999999998\n}\n"
+    },
+    {
+      "suite": "protocol",
+      "code": 0,
+      "output": "Protocol boundaries passed: framing, lifecycle/error order, IDs, source updates and 26 captured replies/findings; exact baseline parity.\n"
+    },
+    {
+      "suite": "validation",
+      "code": 1,
+      "output": "Traceback (most recent call last):\n  File \"/Users/ash/dev/dotls/dotls/tests/validation.py\", line 45, in <module>\n    if __name__=='__main__':check()\n  File \"/Users/ash/dev/dotls/dotls/tests/validation.py\", line 38, in check\n    first=c.diag(1);final=c.diag(1)\n  File \"/Users/ash/dev/dotls/dotls/tests/lsp.py\", line 40, in diag\n    v=self.get(); assert v.get('method')=='textDocument/publishDiagnostics',v\n  File \"/Users/ash/dev/dotls/dotls/tests/lsp.py\", line 27, in get\n    v=self.q.get(timeout=15)\n  File \"/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/queue.py\", line 179, in get\n    raise Empty\n_queue.Empty\n"
+    },
+    {
+      "suite": "completion",
+      "code": 0,
+      "output": "Completion: contexts, partial input, UTF-8/16/32, line endings, limits and deferred lifecycle passed\n"
+    },
+    {
+      "suite": "attributes",
+      "code": 1,
+      "output": "Traceback (most recent call last):\n  File \"/Users/ash/dev/dotls/dotls/tests/attributes.py\", line 43, in <module>\n    reply=request(c,'completion',point(prefix,encoding))\n  File \"/Users/ash/dev/dotls/dotls/tests/attributes.py\", line 8, in request\n    reply=c.get()\n  File \"/Users/ash/dev/dotls/dotls/tests/lsp.py\", line 27, in get\n    v=self.q.get(timeout=15)\n  File \"/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/queue.py\", line 179, in get\n    raise Empty\n_queue.Empty\n"
+    },
+    {
+      "suite": "references",
+      "code": 0,
+      "output": "Node references: identities, chains, scopes, encodings, limits, invalid syntax and lifecycle passed\n"
+    },
+    {
+      "suite": "html",
+      "code": 1,
+      "output": "Traceback (most recent call last):\n  File \"/Users/ash/dev/dotls/dotls/tests/html.py\", line 24, in <module>\n    c.open(base);d=merged(c,1)\n  File \"/Users/ash/dev/dotls/dotls/tests/html.py\", line 7, in merged\n    second=c.diag(version)\n  File \"/Users/ash/dev/dotls/dotls/tests/lsp.py\", line 40, in diag\n    v=self.get(); assert v.get('method')=='textDocument/publishDiagnostics',v\n  File \"/Users/ash/dev/dotls/dotls/tests/lsp.py\", line 27, in get\n    v=self.q.get(timeout=15)\n  File \"/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/queue.py\", line 179, in get\n    raise Empty\n_queue.Empty\n"
+    },
+    {
+      "suite": "code_actions",
+      "code": 1,
+      "output": "Traceback (most recent call last):\n  File \"/Users/ash/dev/dotls/dotls/tests/code_actions.py\", line 87, in <module>\n    if __name__=='__main__':checks()\n  File \"/Users/ash/dev/dotls/dotls/tests/code_actions.py\", line 63, in checks\n    c.open(source);assert c.diag(1)==[];ds=c.diag(1)\n  File \"/Users/ash/dev/dotls/dotls/tests/lsp.py\", line 40, in diag\n    v=self.get(); assert v.get('method')=='textDocument/publishDiagnostics',v\n  File \"/Users/ash/dev/dotls/dotls/tests/lsp.py\", line 27, in get\n    v=self.q.get(timeout=15)\n  File \"/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/queue.py\", line 179, in get\n    raise Empty\n_queue.Empty\n"
+    },
+    {
+      "suite": "outline",
+      "code": 0,
+      "output": "document outline protocol checks passed\n"
+    },
+    {
+      "suite": "output",
+      "code": 0,
+      "output": "Output: partial intake, paused/resumed reader, intact large reply, close/cancel input, bounded exit and broken pipe passed.\n"
+    }
+  ]
+}

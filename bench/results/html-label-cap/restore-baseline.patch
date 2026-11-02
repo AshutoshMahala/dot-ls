@@ -1,0 +1,259 @@
+--- a/src/labels.zig
++++ b/src/labels.zig
+@@ -13,76 +13,13 @@
+ };
+ pub const max_cache_bytes = 8 * 1024 * 1024;
+ pub const max_entries = 4096;
+-/// Ordered spans encoded as unsigned varints: gap after the previous body, length.
+-/// A selected attribute needs at least eight source bytes (label=<>). Gap and
+-/// length varints fit in one quarter of the source, plus first-record allowance.
+-pub const Spans = struct {
+-    encoded: std.ArrayList(u8) = .empty,
+-    count: usize = 0,
+-    end: u32 = 0,
+-    pub fn deinit(self: *Spans, gpa: std.mem.Allocator) void {
+-        self.encoded.deinit(gpa);
+-    }
+-    fn encode(buffer: []u8, input: u32) usize {
+-        var value = input;
+-        var used: usize = 0;
+-        while (true) {
+-            buffer[used] = @as(u8, @intCast(value & 127)) | (if (value >= 128) @as(u8, 128) else 0);
+-            used += 1;
+-            value >>= 7;
+-            if (value == 0) return used;
+-        }
+-    }
+-    pub fn append(self: *Spans, gpa: std.mem.Allocator, span: dot.Span, limit: usize) !void {
+-        if (span.start < self.end) return error.UnorderedLabelSpan;
+-        const end = @addWithOverflow(span.start, span.len);
+-        if (end[1] != 0) return error.LabelSpanOverflow;
+-        var bytes: [10]u8 = undefined;
+-        const gap_len = encode(&bytes, span.start - self.end);
+-        const len = gap_len + encode(bytes[gap_len..], span.len);
+-        if (len > limit -| self.encoded.items.len) return error.LabelSpanBudget;
+-        const needed = self.encoded.items.len + len;
+-        if (needed > self.encoded.capacity) {
+-            // Bound capacity as well as used bytes; no oversized geometric reserve.
+-            try self.encoded.ensureTotalCapacityPrecise(gpa, @min(limit, @max(needed, self.encoded.capacity + self.encoded.capacity / 2 + 64)));
+-        }
+-        self.encoded.appendSliceAssumeCapacity(bytes[0..len]);
+-        self.count += 1;
+-        self.end = end[0];
+-    }
+-    pub const Iterator = struct {
+-        offset: usize = 0,
+-        end: u32 = 0,
+-        fn decode(self: *Iterator, bytes: []const u8) u32 {
+-            var value: u32 = 0;
+-            var shift: u5 = 0;
+-            while (true) {
+-                const byte = bytes[self.offset];
+-                self.offset += 1;
+-                value |= @as(u32, byte & 127) << shift;
+-                if (byte < 128) return value;
+-                shift += 7;
+-            }
+-        }
+-        pub fn next(self: *Iterator, spans: *const Spans) ?dot.Span {
+-            if (self.offset == spans.encoded.items.len) return null;
+-            const start = self.end + self.decode(spans.encoded.items);
+-            const len = self.decode(spans.encoded.items);
+-            self.end = start + len;
+-            return .{ .start = start, .len = len };
+-        }
+-    };
+-};
+ pub const Collector = struct {
+     allocator: std.mem.Allocator,
+     source: []const u8,
+-    spans: Spans = .{},
++    spans: std.ArrayList(dot.Span) = .empty,
+     incomplete: bool = false,
+     pub fn deinit(self: *Collector) void {
+         self.spans.deinit(self.allocator);
+-    }
+-    pub fn add(self: *Collector, span: dot.Span) !void {
+-        try self.spans.append(self.allocator, span, self.source.len / 4 + 16);
+     }
+     pub fn emit(ctx: *anyopaque, key: dot.Span, value: dot.Span) void {
+         const self: *Collector = @ptrCast(@alignCast(ctx));
+@@ -93,8 +30,12 @@
+             if (dot.identifier.valueOrderAssumeValid(raw, name) == .eq) selected = true;
+         }
+         if (!selected) return;
++        if (self.spans.items.len == 65536) {
++            self.incomplete = true;
++            return;
++        }
+         // DOT's wrapper is not part of the embedded markup fragment.
+-        self.add(.{ .start = value.start + 1, .len = value.len - 2 }) catch {
++        self.spans.append(self.allocator, .{ .start = value.start + 1, .len = value.len - 2 }) catch {
+             self.incomplete = true;
+         };
+     }
+@@ -218,7 +159,6 @@
+     cache: ?*Cache,
+     diagnostics: std.ArrayList(Located) = .empty,
+     cursor: usize = 0,
+-    positions: Spans.Iterator = .{},
+     checked: usize = 0,
+     reused: usize = 0,
+     incomplete: bool = false,
+@@ -232,11 +172,10 @@
+     /// False yields to new DOT work. Complete labels survive a yield.
+     pub fn advance(self: *Work, collector: *const Collector, previous: ?*Cache, cancel: *const std.atomic.Value(bool), waiting: *const std.atomic.Value(usize)) !bool {
+         var hook: Hook = .{ .cancel = cancel, .waiting = waiting };
+-        while (self.cursor < collector.spans.count) {
++        while (self.cursor < collector.spans.items.len) {
+             if (cancel.load(.acquire)) return error.Cancelled;
+             if (waiting.load(.acquire) != 0) return false;
+-            var next = self.positions;
+-            const span = next.next(&collector.spans).?;
++            const span = collector.spans.items[self.cursor];
+             const text = collector.source[span.start..][0..span.len];
+             const current = self.cache.?.entries.get(text);
+             const cached = current orelse if (previous) |old| old.entries.get(text) else null;
+@@ -264,11 +203,10 @@
+                 }
+                 try self.diagnostics.append(self.allocator, .{ .origin = span.start, .diagnostic = d });
+             }
+-            self.positions = next;
+             self.cursor += 1;
+             if (self.diagnostics.items.len == 1000) {
+                 self.incomplete = true;
+-                self.cursor = collector.spans.count;
++                self.cursor = collector.spans.items.len;
+             }
+         }
+         self.incomplete = self.incomplete or collector.incomplete;
+@@ -283,7 +221,7 @@
+     Collector.emit(&collector, .{ .start = 11, .len = 5 }, .{ .start = 17, .len = 8 });
+     Collector.emit(&collector, .{ .start = 27, .len = 5 }, .{ .start = 33, .len = 3 });
+     Collector.emit(&collector, .{ .start = 38, .len = 10 }, .{ .start = 49, .len = 3 });
+-    try std.testing.expectEqual(@as(usize, 2), collector.spans.count);
++    try std.testing.expectEqual(@as(usize, 2), collector.spans.items.len);
+ }
+ 
+ test "delayed checks reuse exact HTML bytes, share duplicates and keep local spans" {
+@@ -292,8 +230,7 @@
+     var waiting: std.atomic.Value(usize) = .init(0);
+     var collector: Collector = .{ .allocator = gpa, .source = "<B>x</I><B>x</I>" };
+     defer collector.deinit();
+-    try collector.add(.{ .start = 0, .len = 8 });
+-    try collector.add(.{ .start = 8, .len = 8 });
++    try collector.spans.appendSlice(gpa, &.{ .{ .start = 0, .len = 8 }, .{ .start = 8, .len = 8 } });
+     var first = try Work.init(gpa);
+     defer first.deinit();
+     try std.testing.expect(try first.advance(&collector, null, &cancel, &waiting));
+@@ -328,7 +265,7 @@
+             const waiting: std.atomic.Value(usize) = .init(0);
+             var collector: Collector = .{ .allocator = gpa, .source = "<B>x</I>" };
+             defer collector.deinit();
+-            try collector.add(.{ .start = 0, .len = 8 });
++            try collector.spans.append(gpa, .{ .start = 0, .len = 8 });
+             var work = try Work.init(gpa);
+             work.budget = &budget;
+             defer work.deinit();
+@@ -343,7 +280,7 @@
+     const waiting: std.atomic.Value(usize) = .init(0);
+     var collector: Collector = .{ .allocator = std.testing.allocator, .source = "<B>x</I>" };
+     defer collector.deinit();
+-    try collector.add(.{ .start = 0, .len = 8 });
++    try collector.spans.append(std.testing.allocator, .{ .start = 0, .len = 8 });
+     var work = try Work.init(std.testing.allocator);
+     defer work.deinit();
+     try std.testing.expectError(error.Cancelled, work.advance(&collector, null, &cancel, &waiting));
+@@ -370,7 +307,7 @@
+     const waiting: std.atomic.Value(usize) = .init(0);
+     var collector: Collector = .{ .allocator = gpa, .source = "<B>x</B>" };
+     defer collector.deinit();
+-    try collector.add(.{ .start = 0, .len = 8 });
++    try collector.spans.append(gpa, .{ .start = 0, .len = 8 });
+     var first = try Work.init(gpa);
+     first.budget = &budget;
+     _ = try first.advance(&collector, null, &cancel, &waiting);
+@@ -393,65 +330,3 @@
+     try std.testing.expectEqual(@as(u32, 0), capped.cache.?.entries.count());
+     try std.testing.expect(!capped.incomplete); // Cache pressure must not skip checking.
+ }
+-
+-test "compact label spans preserve varint boundaries and reject partial records" {
+-    var spans: Spans = .{};
+-    defer spans.deinit(std.testing.allocator);
+-    const expected = [_]dot.Span{
+-        .{ .start = 0, .len = 0 },
+-        .{ .start = 127, .len = 128 },
+-        .{ .start = 16384, .len = 16383 },
+-        .{ .start = 1 << 21, .len = 1 << 21 },
+-        .{ .start = std.math.maxInt(u32), .len = 0 },
+-    };
+-    for (expected) |span| try spans.append(std.testing.allocator, span, 64);
+-    var it: Spans.Iterator = .{};
+-    for (expected) |span| try std.testing.expectEqual(span, it.next(&spans).?);
+-    try std.testing.expect(it.next(&spans) == null);
+-    const bytes = spans.encoded.items.len;
+-    try std.testing.expectError(error.LabelSpanOverflow, spans.append(std.testing.allocator, .{ .start = std.math.maxInt(u32), .len = 1 }, 64));
+-    try std.testing.expectError(error.UnorderedLabelSpan, spans.append(std.testing.allocator, .{ .start = 0, .len = 1 }, 64));
+-    try std.testing.expectError(error.LabelSpanBudget, spans.append(std.testing.allocator, .{ .start = std.math.maxInt(u32), .len = 0 }, bytes + 1));
+-    try std.testing.expectEqual(expected.len, spans.count);
+-    try std.testing.expectEqual(bytes, spans.encoded.items.len);
+-}
+-
+-test "compact selection checks more than 65536 labels within source-derived storage" {
+-    const gpa = std.testing.allocator;
+-    const record = "label=<>";
+-    const count = 70000;
+-    const source = try gpa.alloc(u8, record.len * count);
+-    defer gpa.free(source);
+-    var collector: Collector = .{ .allocator = gpa, .source = source };
+-    defer collector.deinit();
+-    for (0..count) |i| {
+-        const at: u32 = @intCast(i * record.len);
+-        @memcpy(source[at..][0..record.len], record);
+-        Collector.emit(&collector, .{ .start = at, .len = 5 }, .{ .start = at + 6, .len = 2 });
+-    }
+-    try std.testing.expect(!collector.incomplete);
+-    try std.testing.expectEqual(@as(usize, count), collector.spans.count);
+-    try std.testing.expectEqual(@as(usize, count * 2), collector.spans.encoded.items.len);
+-    try std.testing.expect(collector.spans.encoded.capacity <= source.len / 4 + 16);
+-    var work = try Work.init(gpa);
+-    defer work.deinit();
+-    const cancel: std.atomic.Value(bool) = .init(false);
+-    const waiting: std.atomic.Value(usize) = .init(0);
+-    try std.testing.expect(try work.advance(&collector, null, &cancel, &waiting));
+-    try std.testing.expectEqual(@as(usize, count), work.cursor);
+-    try std.testing.expect(!work.incomplete);
+-    try std.testing.expectEqual(@as(usize, 1), work.checked);
+-    try std.testing.expectEqual(@as(usize, count - 1), work.reused);
+-}
+-
+-test "compact label span growth releases allocations on failure" {
+-    try std.testing.checkAllAllocationFailures(std.testing.allocator, struct {
+-        fn run(gpa: std.mem.Allocator) !void {
+-            var spans: Spans = .{};
+-            defer spans.deinit(gpa);
+-            for (0..1000) |i| try spans.append(gpa, .{ .start = @intCast(i * 128), .len = 4 }, 4096);
+-            var it: Spans.Iterator = .{};
+-            for (0..1000) |i| try std.testing.expectEqual(dot.Span{ .start = @intCast(i * 128), .len = 4 }, it.next(&spans).?);
+-        }
+-    }.run, .{});
+-}
+--- a/src/main.zig
++++ b/src/main.zig
+@@ -467,13 +467,13 @@
+         const i = self.find(job.uri) orelse return false;
+         if (self.stopping or self.documents.items[i].generation != job.generation) return false;
+         try self.send(.{ .jsonrpc = "2.0", .method = "textDocument/publishDiagnostics", .params = .{ .uri = job.uri, .version = job.version, .diagnostics = diagnostics.items } });
+-        if (job.labels.?.spans.count == 0 and !job.labels.?.incomplete) self.dropHtmlCache(&self.documents.items[i]);
++        if (job.labels.?.spans.items.len == 0 and !job.labels.?.incomplete) self.dropHtmlCache(&self.documents.items[i]);
+         job.want_references = result.outcome == .success and result.completion == .complete and !builder.failed;
+         if (!job.want_references) {
+             builder.deinit();
+             job.builder = null;
+         }
+-        job.phase = if (job.labels.?.spans.count > 0 or job.labels.?.incomplete) .html else .context;
++        job.phase = if (job.labels.?.spans.items.len > 0 or job.labels.?.incomplete) .html else .context;
+         return true;
+     }
+     fn handle(self: *Server, message: *json_message.Message, packet: *?[]u8) !bool {

@@ -1,0 +1,11 @@
+// Put the cursor on build, then run Find References in the editor.
+// Quoted and bare node IDs match. Ports and label text do not count.
+digraph pipeline {
+    build [label="Build"];
+    source -> build;
+    "build" -> test;
+    subgraph release {
+        test -> build:input;
+        build -> package;
+    }
+}

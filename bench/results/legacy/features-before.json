@@ -1,0 +1,124 @@
+{
+  "label": "before",
+  "binary_bytes": 638456,
+  "runs": [
+    {
+      "mb": 5,
+      "source_bytes": 4999953,
+      "startup_ms": 323.18179200000003,
+      "idle_rss_bytes": 2097152,
+      "peak_rss_bytes": 17661952,
+      "samples": [
+        {
+          "phase": "open",
+          "ms": 24.483583
+        },
+        {
+          "phase": "error",
+          "ms": 24.567584
+        },
+        {
+          "phase": "repair",
+          "ms": 19.332875
+        },
+        {
+          "phase": "error",
+          "ms": 21.5075
+        },
+        {
+          "phase": "repair",
+          "ms": 18.543125
+        },
+        {
+          "phase": "error",
+          "ms": 22.015375
+        },
+        {
+          "phase": "repair",
+          "ms": 18.524625
+        }
+      ],
+      "completion_ms": [],
+      "time_output": "        0.49 real         0.13 user         0.01 sys\n            17661952  maximum resident set size\n                   0  average shared memory size\n                   0  average unshared data size\n                   0  average unshared stack size\n                7247  page reclaims\n                   0  page faults\n                   0  swaps\n                   0  block input operations\n                   0  block output operations\n                   0  messages sent\n                   0  messages received\n                   0  signals received\n                 568  voluntary context switches\n                  44  involuntary context switches\n          3781954812  instructions retired\n           594829148  cycles elapsed\n            16925032  peak memory footprint\n"
+    },
+    {
+      "mb": 20,
+      "source_bytes": 19999979,
+      "startup_ms": 5.0378749999999695,
+      "idle_rss_bytes": 2097152,
+      "peak_rss_bytes": 63569920,
+      "samples": [
+        {
+          "phase": "open",
+          "ms": 73.343792
+        },
+        {
+          "phase": "error",
+          "ms": 81.608666
+        },
+        {
+          "phase": "repair",
+          "ms": 74.205
+        },
+        {
+          "phase": "error",
+          "ms": 84.023542
+        },
+        {
+          "phase": "repair",
+          "ms": 74.068208
+        },
+        {
+          "phase": "error",
+          "ms": 84.571042
+        },
+        {
+          "phase": "repair",
+          "ms": 73.384833
+        }
+      ],
+      "completion_ms": [],
+      "time_output": "        0.56 real         0.49 user         0.03 sys\n            63569920  maximum resident set size\n                   0  average shared memory size\n                   0  average unshared data size\n                   0  average unshared stack size\n               27632  page reclaims\n                   0  page faults\n                   0  swaps\n                   0  block input operations\n                   0  block output operations\n                   0  messages sent\n                   0  messages received\n                   0  signals received\n                2271  voluntary context switches\n                  30  involuntary context switches\n         15127120018  instructions retired\n          2342604137  cycles elapsed\n            62882224  peak memory footprint\n"
+    },
+    {
+      "mb": 40,
+      "source_bytes": 40000000,
+      "startup_ms": 5.553249999999954,
+      "idle_rss_bytes": 2097152,
+      "peak_rss_bytes": 124796928,
+      "samples": [
+        {
+          "phase": "open",
+          "ms": 152.158375
+        },
+        {
+          "phase": "error",
+          "ms": 171.242209
+        },
+        {
+          "phase": "repair",
+          "ms": 148.5185
+        },
+        {
+          "phase": "error",
+          "ms": 170.770292
+        },
+        {
+          "phase": "repair",
+          "ms": 154.314125
+        },
+        {
+          "phase": "error",
+          "ms": 176.620583
+        },
+        {
+          "phase": "repair",
+          "ms": 152.069666
+        }
+      ],
+      "completion_ms": [],
+      "time_output": "        1.14 real         1.02 user         0.07 sys\n           124796928  maximum resident set size\n                   0  average shared memory size\n                   0  average unshared data size\n                   0  average unshared stack size\n               55156  page reclaims\n                   0  page faults\n                   0  swaps\n                   0  block input operations\n                   0  block output operations\n                   0  messages sent\n                   0  messages received\n                   0  signals received\n                4538  voluntary context switches\n                  69  involuntary context switches\n         30213576662  instructions retired\n          4777681003  cycles elapsed\n           124125640  peak memory footprint\n"
+    }
+  ],
+  "notes": "Zig 0.16 ReleaseSafe. Pre-encoded full-sync request through diagnostics. Single fresh process per size, three error/repair pairs. Actual macOS time -l peak RSS; idle ps sample before requests. Completion includes small Python encoding. No editor, builds or background benchmarking during runs."
+}

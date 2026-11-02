@@ -1,0 +1,161 @@
+{
+  "platform": "macOS-27.0.1-arm64-arm-64bit",
+  "build": "Both Zig 0.17.0 safe; parser 75ce950 and outline patch unchanged; page allocator, packed HTML entries, buffered JSON. After: shared-text extraction plus truncated-UTF-8 decoding guard.",
+  "method": "Three fresh processes per size/layout/build, alternating order. Pre-encoded open/broken/repair. Readiness includes the completion reply after diagnostics. Settled RSS waits for all background work. Actual peak RSS uses wait4; editor and harness memory excluded. No concurrent builds/tests/UI actions during measurement. Check each run for feature support; unsupported-method error timing is not a hover baseline.",
+  "builds": {
+    "before": {
+      "binary": "/private/tmp/dot-ls-refactor-text-hq9fj6g4/before",
+      "sha256": "1e5523456aedff808b235a903315cd17b7f9104e7c9db0bd53569caccb4a3000"
+    },
+    "after": {
+      "binary": "/Users/ash/dev/dotls/dotls/zig-out/bin/dot-ls",
+      "sha256": "73e1df5e9c1352aae26fe2c72840c49fbeb204836b718e52e1d4639dd2a832ae"
+    }
+  },
+  "rows": [
+    {
+      "mb": 5,
+      "kind": "plain",
+      "before": {
+        "open_diagnostics_ms": 21.166958000000236,
+        "edit_diagnostics_ms": 22.83195849999986,
+        "open_completion_ready_ms": 40.03212499999975,
+        "settled_rss_bytes": 7503872,
+        "peak_rss_bytes": 18038784,
+        "idle_rss_bytes": 2342912,
+        "startup_ms": 3.6129169999998823,
+        "hover_ms": 0.05787500000042911
+      },
+      "after": {
+        "open_diagnostics_ms": 21.725208999999968,
+        "edit_diagnostics_ms": 22.776895999999436,
+        "open_completion_ready_ms": 41.17479200000007,
+        "settled_rss_bytes": 7487488,
+        "peak_rss_bytes": 18038784,
+        "idle_rss_bytes": 2326528,
+        "startup_ms": 3.493917000000124,
+        "hover_ms": 0.059542000000245565
+      }
+    },
+    {
+      "mb": 5,
+      "kind": "html",
+      "before": {
+        "open_diagnostics_ms": 30.68016699999987,
+        "edit_diagnostics_ms": 38.01037449999978,
+        "open_completion_ready_ms": 54.12766699999949,
+        "settled_rss_bytes": 7340032,
+        "peak_rss_bytes": 18169856,
+        "idle_rss_bytes": 2342912,
+        "startup_ms": 5.75070800000077,
+        "hover_ms": 0.05445799999925782
+      },
+      "after": {
+        "open_diagnostics_ms": 31.137499999999818,
+        "edit_diagnostics_ms": 35.30281249999945,
+        "open_completion_ready_ms": 54.69812499999982,
+        "settled_rss_bytes": 7323648,
+        "peak_rss_bytes": 18153472,
+        "idle_rss_bytes": 2326528,
+        "startup_ms": 3.73087499999869,
+        "hover_ms": 0.05729100000095855
+      }
+    },
+    {
+      "mb": 20,
+      "kind": "plain",
+      "before": {
+        "open_diagnostics_ms": 85.15862499999827,
+        "edit_diagnostics_ms": 95.1456455000006,
+        "open_completion_ready_ms": 161.86508299999858,
+        "settled_rss_bytes": 21872640,
+        "peak_rss_bytes": 64028672,
+        "idle_rss_bytes": 2342912,
+        "startup_ms": 3.7903750000012337,
+        "hover_ms": 0.06820799999829319
+      },
+      "after": {
+        "open_diagnostics_ms": 83.51775000000217,
+        "edit_diagnostics_ms": 94.07837499999872,
+        "open_completion_ready_ms": 160.57716699999958,
+        "settled_rss_bytes": 21856256,
+        "peak_rss_bytes": 64012288,
+        "idle_rss_bytes": 2326528,
+        "startup_ms": 7.382416999998753,
+        "hover_ms": 0.08733399999982794
+      }
+    },
+    {
+      "mb": 20,
+      "kind": "html",
+      "before": {
+        "open_diagnostics_ms": 78.99262499999793,
+        "edit_diagnostics_ms": 81.21347950000057,
+        "open_completion_ready_ms": 159.16058300000202,
+        "settled_rss_bytes": 20856832,
+        "peak_rss_bytes": 64143360,
+        "idle_rss_bytes": 2342912,
+        "startup_ms": 4.317958000001454,
+        "hover_ms": 0.06883300000026793
+      },
+      "after": {
+        "open_diagnostics_ms": 87.43083400000273,
+        "edit_diagnostics_ms": 94.49429100000017,
+        "open_completion_ready_ms": 166.2467499999991,
+        "settled_rss_bytes": 20824064,
+        "peak_rss_bytes": 64110592,
+        "idle_rss_bytes": 2326528,
+        "startup_ms": 4.91266600000273,
+        "hover_ms": 0.0740000000050145
+      }
+    },
+    {
+      "mb": 40,
+      "kind": "plain",
+      "before": {
+        "open_diagnostics_ms": 188.94599999999429,
+        "edit_diagnostics_ms": 194.91475000000236,
+        "open_completion_ready_ms": 341.1538749999963,
+        "settled_rss_bytes": 40992768,
+        "peak_rss_bytes": 125255680,
+        "idle_rss_bytes": 2342912,
+        "startup_ms": 4.647499999997251,
+        "hover_ms": 0.07629200000280889
+      },
+      "after": {
+        "open_diagnostics_ms": 185.8058749999998,
+        "edit_diagnostics_ms": 203.0650835000003,
+        "open_completion_ready_ms": 339.8991249999952,
+        "settled_rss_bytes": 40976384,
+        "peak_rss_bytes": 125255680,
+        "idle_rss_bytes": 2326528,
+        "startup_ms": 4.921375000002115,
+        "hover_ms": 0.07366700000233095
+      }
+    },
+    {
+      "mb": 40,
+      "kind": "html",
+      "before": {
+        "open_diagnostics_ms": 173.70312499999585,
+        "edit_diagnostics_ms": 181.39808300000126,
+        "open_completion_ready_ms": 331.93608400000585,
+        "settled_rss_bytes": 38862848,
+        "peak_rss_bytes": 125435904,
+        "idle_rss_bytes": 2342912,
+        "startup_ms": 7.180417000000716,
+        "hover_ms": 0.07454199999301636
+      },
+      "after": {
+        "open_diagnostics_ms": 171.14695899999788,
+        "edit_diagnostics_ms": 183.4663755000001,
+        "open_completion_ready_ms": 326.5645410000033,
+        "settled_rss_bytes": 38846464,
+        "peak_rss_bytes": 125419520,
+        "idle_rss_bytes": 2326528,
+        "startup_ms": 7.612749999999835,
+        "hover_ms": 0.07087499999869351
+      }
+    }
+  ]
+}

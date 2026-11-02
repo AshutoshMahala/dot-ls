@@ -1,0 +1,3774 @@
+//! Parser state machine (milestone 1, step 5).
+//!
+//! Current grammar (subgraph endpoints, attributes, ports and mixed chains):
+//!
+//! ```text
+//! document  := "strict"? ("graph" | "digraph") identifier? "{" statement* "}" EOF
+//! statement := (node_ref attributes? | endpoint (edgeop endpoint)+ attributes?
+//!            | identifier "=" identifier | ("graph" | "node" | "edge") attributes
+//!            | subgraph) ";"?
+//! subgraph  := ("subgraph" identifier?)? "{" statement* "}"
+//! endpoint  := node_ref | subgraph
+//! node_ref  := identifier (":" identifier (":" identifier)?)?
+//! attributes := ("[" (identifier "=" identifier (";" | ",")?)* "]")+
+//! edgeop    := "--" | "->"
+//! ```
+//!
+//! Statement terminators are optional, per DOT. The document header is
+//! complete at `{`; `beginDocument` fires there carrying kind, strict, and
+//! the optional name. Unquoted keywords are not valid names (`graph graph`
+//! is a syntax error, matching Graphviz; a keyword name requires quoting,
+//! which is supported as an identifier).
+//!
+//! The parser is kind-agnostic: both edge operators parse structurally and
+//! the syntax operator is preserved in the emitted event. Accepted malformed
+//! spellings are normalized under syntax policy; their original spans remain.
+//! Whether an
+//! operator is legal for the document's kind is validation policy (step 7),
+//! never a parse error.
+//!
+//! ## Reporting surface
+//!
+//! Every phase of this library reports problems the same way: diagnostics
+//! are emitted into a caller-owned `diagnostic.Sink` (a fixed/growable bag or
+//! streaming destination), and the function returns only a small control-flow result
+//! (R-DIAG-003). The default policy collects diagnostics at statement boundaries
+//! (R-FUNC-007); explicit fail-fast stops at the first syntax failure.
+//! Lexical warnings and recovery use that same reporting surface.
+//!
+//! Guarantees:
+//! - Instance-owned state, no mutable globals (R-ROB-003).
+//! - Stop at unrecoverable syntax; recover body statements by default. The sink
+//!   lifecycle from `events.zig` is honored: abort after delivered output when
+//!   the document cannot commit, including an attempted begin_document that
+//!   itself failed. Opt-in comments, early document names and token previews
+//!   may precede the complete header; ordinary syntax events still require
+//!   its opening brace.
+//! - With `Policy.on_error = .collect`, a syntax error inside the body
+//!   aborts an ordinary document sink once, then continues for diagnostics only.
+//!   Opt-in partial builders and public event consumers instead abort just the
+//!   unfinished statement, report skipped regions and retain later statements:
+//!   tokens are skipped to the next `;` or `}` at the same brace depth
+//!   (a skipped `{` is matched by counting), the next statement parses
+//!   normally, and every further syntax error is reported the same way.
+//!   The outcome is `invalid_syntax` if a syntax error was found, otherwise
+//!   `unsupported_feature` for excluded HTML-like identifiers. Only an opt-in
+//!   retaining sink may publish incomplete regions; it sees exactly one terminal event. Lexical errors resume
+//!   through `Scanner.resumeAfterFailure`; end of input, header errors,
+//!   trailing tokens and limits still stop the parse.
+//! - Iterative state-machine parsing has no recursion, so input size and shape
+//!   cannot exhaust the call stack (R-PERF-002).
+//! - Work is a single linear scan of the input (R-PERF-001, R-SEC-003);
+//!   `Policy.limits.max_statements` additionally bounds statements processed.
+//! - HTML identifiers use passthrough by default; an explicit none policy rejects
+//!   the complete expression. Attributes are parsed and retained
+//!   without default resolution, key deduplication or value interpretation.
+//!   Malformed supported attribute syntax is invalid, not unsupported.
+//!   Unsupported boundaries still make no claim about validity beyond the
+//!   detected construct.
+//!
+//! One policy-specialized machine serves one-shot parsing and sessions through
+//! parse_engine.zig. The metered specialization retains lexical, grammar,
+//! and pending-dispatch state. Each private `advance` credit buys one source
+//! examination, grammar transition, or normal callback attempt (R-MOD-010).
+//! The ordinary specialization shares the grammar with immediate callbacks;
+//! pending work and progress counters compile out. Fixed-storage sessions and
+//! optional cancellation are exposed through root.zig.
+
+const std = @import("std");
+const location = @import("parser_support").location;
+const diagnostic = @import("diagnostic.zig");
+const lex = @import("lexer/lexer.zig");
+// Tests pin each backend explicitly; production selects through Policy.scanner.
+const scalar_lex = @import("lexer/scalar.zig");
+const block_lex = @import("lexer/block.zig");
+const execution = @import("parser_support").execution;
+const event_types = @import("events.zig");
+const scratch_impl = @import("scratch.zig");
+const policy = @import("policy.zig");
+const previews = @import("lexer/preview.zig");
+const recognizedName = @import("name.zig").recognized;
+
+/// The parse outcome category. The diagnostics explaining a failure travel
+/// through the caller's diagnostic sink, never through this value.
+pub const Outcome = union(enum) {
+    scratch_failure: scratch_impl.For(void).Stack.Error,
+    /// The document parsed completely and the event sink committed.
+    success,
+    /// Explicit cancellation or an observed caller request. Cancellation itself
+    /// emits no diagnostic; findings already detected remain reported.
+    cancelled,
+    /// A compile-time-bound child stopped the enclosing operation.
+    processor_stopped,
+    diagnostic_stopped: diagnostic.StopReason,
+    /// The input is not accepted by the selected syntax policy.
+    invalid_syntax,
+    /// Parsing reached a recognized DOT construct that this profile cannot
+    /// process (a deferred feature) and stopped at that boundary. Neither
+    /// the construct itself nor anything beyond it has been checked, so
+    /// this outcome makes no claim that the whole input is valid DOT.
+    unsupported_feature,
+    /// A caller-configured limit was reached; the input may still be valid.
+    resource_exhausted,
+    /// The event sink refused an event. The sink owns the underlying cause,
+    /// so no diagnostic is emitted for it.
+    sink_failure: anyerror,
+    sink_stopped,
+};
+
+/// Whether every diagnostic emitted during a parse actually reached the
+/// caller's diagnostic sink.
+pub const DiagnosticDelivery = diagnostic.Delivery;
+pub const Completion = enum { incomplete, complete };
+
+pub const Result = struct {
+    outcome: Outcome,
+    completion: Completion = .incomplete,
+    syntax_errors: u32 = 0,
+    diagnostic_delivery: DiagnosticDelivery = .complete,
+    diagnostic_stop: ?diagnostic.StopReason = null,
+    accepted_deviations: u32 = 0,
+    warnings: u32 = 0,
+};
+
+/// Internal step outcome: a pointer to the latched terminal `Result`. Eight bytes,
+/// so it is returned in a register on every grammar call (a full `?Result` is not).
+const Done = ?*const Result;
+
+// Internal execution vocabulary, not re-exported from root.zig.
+pub const Phase = enum { scan, grammar, dispatch, terminal };
+const Progress = struct {
+    result: ?Result,
+    work_used: usize,
+    source_frontier: usize,
+    phase: Phase,
+    completed_statements: usize,
+    completed_pairs: usize,
+};
+
+/// Fixed policies capture limits/recovery in code; only scratch is retained as
+/// a resource. Runtime policies retain the resolved parse-stage settings once.
+pub fn Machine(comptime EventsPtr: type, comptime metered: bool, comptime audited: bool, comptime cancellable: bool, comptime ScannerOf: fn (comptime bool, comptime bool, comptime ?bool) type, comptime fixed: ?policy.ParseSettings) type {
+    return MachineWithProcessor(EventsPtr, metered, audited, cancellable, ScannerOf, fixed, void, false, false);
+}
+
+/// For runtime settings, single_poll requires the caller to bind interval 1
+/// before constructing this machine. Fixed settings always own their interval.
+pub fn MachineWithProcessor(comptime EventsPtr: type, comptime metered: bool, comptime audited: bool, comptime cancellable: bool, comptime ScannerOf: fn (comptime bool, comptime bool, comptime ?bool) type, comptime fixed: ?policy.ParseSettings, comptime Processor: type, comptime single_poll: bool, comptime source_metadata: bool) type {
+    if (Processor != void and metered) @compileError("during-DOT composition is run-to-completion; child validation is not work-metered");
+    comptime {
+        const info = @typeInfo(EventsPtr);
+        if (info != .pointer or info.pointer.size != .one) {
+            @compileError("events must be a single-item pointer to a syntax sink, e.g. `&my_sink`");
+        }
+        event_types.assertSink(info.pointer.child);
+    }
+    const Sink = @typeInfo(EventsPtr).pointer.child;
+    const observations: event_types.Observations = if (@hasDecl(Sink, "observations")) Sink.observations else .none;
+    const preview_notifications = observations.token_preview;
+    const delimiters = observations.delimiter;
+    const extents = @hasDecl(Sink, "statement_extents") and Sink.statement_extents;
+    const coverage = @hasDecl(Sink, "coverage") and Sink.coverage;
+    const BaseScanner = ScannerOf(metered, audited, if (fixed) |v| v.ambiguous_numeral != .off else null);
+    const Scanner = if (preview_notifications) BaseScanner.WithPreviews() else BaseScanner;
+    const actual = if (@hasDecl(Scanner, "source_encoding")) Scanner.source_encoding else @import("parser_support").encoding.Actual.utf8;
+    const enc = @import("parser_support").encoding.Reader(actual);
+    const recovery_enabled = if (fixed) |value| value.on_error == .collect or (value.markup == .none and value.unsupported != .err) else true;
+    const deviations_enabled = if (fixed) |value| value.syntax.acceptsDeviations() else true;
+    const operators_enabled = if (fixed) |value| value.syntax.acceptsOperators() else true;
+    const comments_enabled = if (fixed) |value| value.retention.comments else true;
+    // Only retaining builders and public event consumers opt into statement
+    // transactions. Ordinary parsing keeps its existing dispatch/state layout.
+    const ScopeScratch = scratch_impl.For(event_types.Context(Sink));
+    const statement_recovery = if (@hasDecl(Sink, "recover_statements")) Sink.recover_statements else true;
+    const begin_notifications = if (@hasDecl(Sink, "wants_begin_statement")) Sink.wants_begin_statement else true;
+    const observing = observations.enabled();
+    const transactional = statement_recovery or begin_notifications or observing;
+    return struct {
+        const Self = @This();
+
+        // Preserve commit's original ordinal before optional comment dispatch.
+        // This order affects generated hot-path code; benchmark before changing it.
+        const AllAction = enum { begin, begin_subgraph, end_subgraph, subgraph_statement, node, edge, edge_chain, edge_link, ported_reference, attribute_statement, assignment, attribute, commit, comment, begin_statement, skipped, name_left, name_right, name_link, document_name, subgraph_name, head_node, head_edge, head_assignment, head_attributes, head_node_commit, head_subgraph_commit, delimiter, preview_pause, preview_eof, preview_end_token, preview_end_failure };
+        const CoreAction = blk: {
+            // Keep the disabled driver's original tag range/bit width. Merely
+            // unreachable extra switch arms change Zig/LLVM's hot-loop code.
+            const count = @backingInt(AllAction.name_left);
+            const Tag = std.math.IntFittingRange(0, count - 1);
+            break :blk @Enum(Tag, .exhaustive, @typeInfo(AllAction).@"enum".field_names[0..count], &std.simd.iota(Tag, count));
+        };
+        const Action = if (observing) AllAction else CoreAction;
+        const Work = struct {
+            token: lex.Token = undefined,
+            action: Action = undefined,
+            phase: Phase = .scan,
+            replay: bool = false,
+            completed_statements: if (metered) usize else void = if (metered) 0 else {},
+            completed_pairs: if (metered) usize else void = if (metered) 0 else {},
+        };
+        // Statement starts are strictly below the bounded source length, so the
+        // maximum u32 value is available as an absent occurrence (not a span).
+        const no_statement = std.math.maxInt(u32);
+        const Control = struct {
+            source_info: if (source_metadata) @import("parser_support").encoding.Info else void = if (source_metadata) .{} else {},
+            grammar: if (audited) usize else void = if (audited) 0 else {},
+            dispatch: if (audited) usize else void = if (audited) 0 else {},
+            active_statement: if (transactional) u32 else void = if (transactional) no_statement else {},
+            recovery_start: if (transactional) u32 else void = if (transactional) no_statement else {},
+            rejected: if (transactional) bool else void = if (transactional) false else {},
+            observation_delivered: if (observing) bool else void = if (observing) false else {},
+            extent: if (extents) struct { previous: u32 = 0, current: u32 = 0 } else void = if (extents) .{} else {},
+            coverage: if (coverage) event_types.Coverage else void = if (coverage) .{} else {},
+            delimiter: if (delimiters) struct {
+                value: event_types.Delimiter = undefined,
+                pending: bool = false,
+                following: ?Action = null,
+            } else void = if (delimiters) .{} else {},
+            preview: if (preview_notifications) struct {
+                snapshot: previews.Snapshot = undefined,
+                active: bool = false,
+            } else void = if (preview_notifications) .{} else {},
+        };
+
+        processor: Processor = if (Processor == void) {} else undefined,
+        tokens: Scanner,
+        work: if (metered or cancellable) Work else void = if (metered or cancellable) .{} else {},
+        cancellation: if (cancellable) ?execution.Cancellation else void = if (cancellable) null else {},
+        // Reuse the optional control slot: even adding top-level void fields
+        // reorders Zig's auto-layout and changes disabled-profile codegen.
+        control: if (audited or transactional or source_metadata or extents or coverage) Control else void = if (audited or transactional or source_metadata or extents or coverage) .{} else {},
+        events: EventsPtr,
+        diagnostics: diagnostic.Sink,
+        settings: if (fixed == null) policy.ParseSettings else void = if (fixed == null) .{} else {},
+        /// Borrowed temporary storage; the machine never owns an allocator.
+        scratch: ?*ScopeScratch.Stack = null,
+        statements: usize = 0,
+        // Both totals are bounded by distinct consumed bytes in a u32 source.
+        // Pack them in the former usize counter slot, with its alignment.
+        counts: extern struct { attributes: u32 = 0, references: u32 = 0 } align(@alignOf(usize)) = .{},
+        comments_count: if (comments_enabled) u32 else void = if (comments_enabled) 0 else {},
+        attribute_key: location.Span = undefined,
+        attribute_target: event_types.AttributeTarget = .graph,
+        open_bracket_span: ?location.Span = null,
+        pending: enum { node, edge, edge_chain, attributes } = .node,
+        delivery: DiagnosticDelivery = .complete,
+        /// At most one acceptance per consumed nonempty span in a u32 source.
+        deviations: if (deviations_enabled) u32 else void = if (deviations_enabled) 0 else {},
+        warnings: u32 = 0,
+        /// Span of the innermost scope's `{`, once consumed — the related location
+        /// reported when the input ends inside the body.
+        open_brace_span: ?location.Span = null,
+        /// The first `}` that closed a scope while sitting at a smaller
+        /// indentation than the line that opened it. Brace matching alone
+        /// cannot tell which brace is missing when the input ends inside a
+        /// scope; this heuristic usually can, and is reported as the
+        /// `.misindented_close` suspect on the end-of-input diagnostic.
+        suspect_close: ?location.Span = null,
+        /// True once `beginDocument` has been issued; from then on every
+        /// exit path must emit a terminal event.
+        begun: bool = false,
+        /// True once the sink received its terminal abort. Ordinary recovery
+        /// then runs for diagnostics only. Transactional sinks defer document
+        /// abort and continue after statement aborts instead.
+        aborted: bool = false,
+        /// Count discovered syntax rejections, independently of sink delivery.
+        /// Each recovery consumes input; a terminal EOF finding ends the pass.
+        /// Fixed fail-fast profiles retain no recovery classification state.
+        syntax_errors: if (recovery_enabled) u32 else void = if (recovery_enabled) 0 else {},
+        /// Braces skipped (and not yet matched) while resynchronizing.
+        // Each increment consumes a brace byte in the bounded u32 source.
+        skip_depth: if (recovery_enabled) u32 else void = if (recovery_enabled) 0 else {},
+        /// Latched once a terminal result is produced. Further driver calls
+        /// return it unchanged — no re-emitted events or diagnostics. Metered
+        /// calls report zero work used.
+        terminal: ?Result = null,
+
+        // Header state, accumulated until `{` completes the header.
+        kind: event_types.GraphKind = .undigraph,
+        strict: bool = false,
+        keyword_span: location.Span = undefined,
+        name_span: ?location.Span = null,
+
+        // Continuation state. Everything a suspended parse needs lives in
+        // the machine itself — never in `runToCompletion` locals. Metered
+        // execution also retains one lookahead token and its pending action.
+        state: State = .prologue,
+        /// First identifier of the statement being parsed.
+        left: location.Span = undefined,
+        /// Operator of the edge statement being parsed.
+        operator: event_types.EdgeOperator = undefined,
+        operator_span: location.Span = undefined,
+        /// Right endpoint of the edge statement being parsed.
+        right: location.Span = undefined,
+
+        link_operator: event_types.EdgeOperator = undefined,
+        link_operator_span: location.Span = undefined,
+
+        left_scope: ?u32 = null,
+        right_scope: ?u32 = null,
+        subgraph_role: event_types.ScopeRole = .left,
+        scope_count: u32 = 0,
+        left_port: ?u32 = null,
+        right_port: ?u32 = null,
+        link_port: ?u32 = null,
+        link_right: location.Span = undefined,
+        port_first: location.Span = undefined,
+        port_second: ?location.Span = null,
+        port_colon: location.Span = undefined,
+        port_target: enum { left, right, link } = .left,
+        port_resume: State = .after_identifier,
+
+        subgraph_start: location.Span = undefined,
+        subgraph_name: ?location.Span = null,
+
+        const State = enum {
+            subgraph_name,
+            subgraph_open,
+            after_subgraph,
+            port_first,
+            port_after_first,
+            port_second,
+            port_after_second,
+            chain_after_identifier,
+            chain_right,
+            /// Expect `strict` or the kind keyword.
+            prologue,
+            /// After `strict`: expect the kind keyword.
+            kind_keyword,
+            /// After the kind keyword: expect an optional name or `{`.
+            header_name,
+            /// After the name: expect `{`.
+            header_open,
+            /// Expect a statement's first identifier or the closing `}`.
+            statement,
+            /// After a statement's first identifier.
+            after_identifier,
+            /// After an edge operator: the right endpoint identifier.
+            edge_right,
+            /// After a complete edge: `;`, or whatever starts next.
+            edge_terminate,
+            /// After the closing `}`: end of input.
+            epilogue,
+            assignment_value,
+            completed,
+            attribute_open,
+            attribute_key_or_close,
+            attribute_equals,
+            attribute_value,
+            attribute_after_value,
+            after_attributes,
+            /// Skipping to the next statement boundary after a syntax error.
+            recovering,
+            starting_statement,
+            recovery_boundary,
+        };
+
+        fn limit(self: *const Self, comptime name: []const u8) @FieldType(@FieldType(policy.ParseSettings, "limits"), name) {
+            return if (fixed) |value| @field(value.limits, name) else @field(self.settings.limits, name);
+        }
+
+        fn onError(self: *const Self) policy.OnError {
+            return if (fixed) |value| value.on_error else self.settings.on_error;
+        }
+
+        fn retainComments(self: *const Self) bool {
+            return if (fixed) |value| value.retention.comments else self.settings.retention.comments;
+        }
+        fn unsupported(self: *const Self) policy.Unsupported {
+            return if (fixed) |value| value.unsupported else self.settings.unsupported;
+        }
+
+        fn syntax(self: *const Self) policy.SyntaxSettings {
+            return if (fixed) |value| value.syntax else self.settings.syntax;
+        }
+
+        pub fn acceptedDeviations(self: *const Self) u32 {
+            return if (deviations_enabled) self.deviations else 0;
+        }
+
+        fn deliver(self: *Self, d: diagnostic.Diagnostic) ?diagnostic.StopReason {
+            const fixes = if (fixed) |value| value.fixes else self.settings.fixes;
+            const action = self.diagnostics.emit(d.withFixes(fixes)) catch |err| {
+                self.delivery = .failed;
+                return .fromError(err);
+            };
+            return if (action == .stop) .requested else null;
+        }
+
+        fn report(self: *Self, d: diagnostic.Diagnostic) Done {
+            return if (self.deliver(d)) |reason| self.stopDiagnostics(reason) else null;
+        }
+
+        fn stopDiagnostics(self: *Self, reason: diagnostic.StopReason) *const Result {
+            self.abortEvents(.diagnostic_stopped);
+            return self.finish(.{ .diagnostic_stopped = reason });
+        }
+
+        fn warn(self: *Self, d: diagnostic.Diagnostic) Done {
+            self.warnings += 1;
+            return self.report(d);
+        }
+
+        fn acceptDeviation(self: *Self, acceptance: policy.Acceptance, d: diagnostic.Diagnostic) Done {
+            if (!deviations_enabled) unreachable;
+            std.debug.assert(acceptance != .reject);
+            self.deviations += 1;
+            return if (acceptance == .warn) self.warn(d) else null;
+        }
+
+        /// Reuse scanners' exact malformed-operator recognition on the cold
+        /// failure path. No scanner flags, new token tags, source rescans or
+        /// extra per-byte branches. A candidate is consumed/diagnosed only by
+        /// its grammar transition, including after a port/link lookahead replay.
+        fn operatorCandidate(self: *Self, d: diagnostic.Diagnostic) ?lex.Token {
+            if (!operators_enabled) return null;
+            if (d.details != .invalid_operator) return null;
+            switch (self.state) {
+                .after_identifier, .after_subgraph, .edge_terminate, .chain_after_identifier, .port_after_first, .port_after_second => {},
+                else => return null,
+            }
+            const tag: lex.Token.Tag = switch (d.details.invalid_operator.shape) {
+                .spaced => return null,
+                .long => blk: {
+                    if (self.syntax().long_operator == .reject) return null;
+                    break :blk if (d.details.invalid_operator.found == '>') .edge_directed else .edge_undirected;
+                },
+                .lone => blk: {
+                    if (self.syntax().bare_dash.acceptance == .reject) return null;
+                    break :blk switch (self.syntax().bare_dash.interpretation) {
+                        .from_keyword => if (self.kind == .digraph) .edge_directed else .edge_undirected,
+                    };
+                },
+            };
+            self.tokens.resumeAfterFailure();
+            return .{ .tag = tag, .span = d.span };
+        }
+
+        fn readOperator(self: *Self, token: lex.Token) ?event_types.EdgeOperator {
+            const operator: event_types.EdgeOperator = if (token.tag == .edge_undirected) .undirected else .directed;
+            if (operators_enabled and token.span.len != 2 * enc.width) {
+                const bare = token.span.len == enc.width;
+                if (self.acceptDeviation(if (bare) self.syntax().bare_dash.acceptance else self.syntax().long_operator, .{
+                    .code = .syntax_operator_accepted,
+                    .span = token.span,
+                    .details = .{ .accepted_operator = .{
+                        .operator = if (operator == .directed) .directed else .undirected,
+                        .reason = if (bare) .from_keyword else .long_shape,
+                    } },
+                    .fix = .{
+                        .span = token.span,
+                        .edit = .{ .replace = if (operator == .directed) .directed_operator else .undirected_operator },
+                        .applicability = .machine_applicable,
+                    },
+                }) != null) return null;
+            }
+            return operator;
+        }
+
+        pub fn runToCompletion(self: *Self) Result {
+            self.tokens.setRetainComments(self.retainComments());
+            self.tokens.setNumeralCheck(self.numeralSeverity() != .off);
+            if (metered) {
+                while (true) {
+                    if (comptime preview_notifications) {
+                        // A caller asked to finish, not to observe suspension.
+                        // Drain an already queued preview, but don't create
+                        // pause snapshots at internal max-budget boundaries.
+                        _ = self.drive(true, std.math.maxInt(usize));
+                        if (self.terminal) |result| return result;
+                        continue;
+                    }
+                    if (self.advance(std.math.maxInt(usize)).result) |result| return result;
+                }
+            } else if (cancellable) {
+                _ = self.drive(false, 0);
+                return self.terminal.?;
+            } else {
+                while (true) {
+                    if (self.step()) |result| return result.*;
+                }
+            }
+        }
+
+        /// Ordinary immediate driver: one token, shared grammar, direct events.
+        /// It has no pending-token storage, work counter or progress counters.
+        fn step(self: *Self) Done {
+            if (metered or cancellable) @compileError("controlled machines use drive");
+            if (self.terminal) |*result| return result;
+            const token = switch (self.tokens.next()) {
+                .token => |token| token,
+                .failure => blk: {
+                    const d = self.tokens.failureDiagnostic();
+                    if (preview_notifications and self.previewFailure()) return self.done();
+                    break :blk self.operatorCandidate(d) orelse return self.fail(d);
+                },
+            };
+            if (extents) self.noteToken(token);
+            if (self.forwardWarning()) return self.done();
+            if (self.processIdentifier(token)) |result| return result;
+            if (delimiters) {
+                if (self.transition(token)) |result| return result;
+                return self.flushDelimiter(token);
+            }
+            return self.transition(token);
+        }
+
+        fn processIdentifier(self: *Self, token: lex.Token) Done {
+            if (Processor == void) return null;
+            const markup = if (fixed) |value| value.markup else self.settings.markup;
+            if (markup != .process or !token.flags.has_html) return null;
+            const on_error = if (fixed) |value| value.on_error else self.settings.on_error;
+            if (self.processor.processIdentifier(self.tokens.source, token, on_error)) |stop| {
+                if (stop.delivery == .failed) self.delivery = .failed;
+                // A shared destination stops the same operation regardless of
+                // which processor was emitting. Preserve its cause and abort
+                // lifecycle without attempting another diagnostic delivery.
+                if (stop.diagnostic_stop) |reason| return self.stopDiagnostics(reason);
+                self.abortEvents(.processor_stopped);
+                return self.finish(.processor_stopped);
+            }
+            return null;
+        }
+
+        fn numeralSeverity(self: *const Self) policy.RuleSeverity {
+            return if (fixed) |value| value.ambiguous_numeral else self.settings.ambiguous_numeral;
+        }
+
+        /// True when the token was rejected. Error policy participates in the
+        /// ordinary failure/recovery lifecycle, not just presentation severity.
+        fn forwardWarning(self: *Self) bool {
+            if (self.tokens.takeWarning()) |finding| {
+                switch (self.numeralSeverity()) {
+                    .warning => if (self.warn(finding) != null) return true,
+                    .off => unreachable, // scanner did not run this check
+                    .err => {
+                        var failure = finding;
+                        failure.code = .syntax_ambiguous_numeral_rejected;
+                        _ = self.fail(failure);
+                        return true;
+                    },
+                }
+            }
+            return false;
+        }
+
+        /// Private bounded driver. A credit buys a lexical examination, one
+        /// grammar transition, or one normal event attempt; never two classes.
+        pub inline fn advance(self: *Self, budget: usize) Progress {
+            if (!metered) @compileError("advance requires metering; use runToCompletion");
+            if (comptime !preview_notifications) return self.advanceCore(budget);
+            // Retire a pending preview before scanning a quoted run. This uses
+            // the same dispatch continuation as every other observation.
+            var used: usize = if (budget != 0 and self.previewPending()) self.drive(true, 1) else 0;
+            used += self.advanceCore(budget - used).work_used;
+            // Queue without reading bytes or borrowing an extra credit.
+            if (budget != 0 and self.terminal == null and !self.aborted and self.work.phase == .scan) {
+                if (previews.unfinished(&self.tokens, false)) |snapshot| {
+                    const old = &self.control.preview;
+                    if (!old.active or old.snapshot.span.start != snapshot.span.start or old.snapshot.span.len != snapshot.span.len or old.snapshot.kind != snapshot.kind) {
+                        old.snapshot = snapshot;
+                        _ = self.schedule(.preview_pause, undefined);
+                    }
+                }
+            }
+            return self.progress(used);
+        }
+
+        inline fn advanceCore(self: *Self, budget: usize) Progress {
+            // One shared driver. Speed modes need the direct no-run return;
+            // Small's outlining instead favors the merged accumulator. These
+            // equivalent shapes avoid budget-one regressions in both modes.
+            // Probe once per resume, never once per token/grammar transition.
+            const compact = @import("builtin").mode == .small;
+            var scanned: usize = 0;
+            if (comptime !cancellable and @hasDecl(Scanner, "advanceQuoted")) {
+                if (budget >= 16 and self.terminal == null and self.work.phase == .scan) {
+                    const run = self.tokens.advanceQuoted(budget);
+                    if (run.failed and !(preview_notifications and self.previewFailure())) _ = self.fail(self.tokens.failureDiagnostic());
+                    if (comptime compact) {
+                        scanned = run.work;
+                    } else return self.progress(run.work + self.drive(true, budget - run.work));
+                }
+            }
+            if (comptime compact) return self.progress(scanned + self.drive(true, budget - scanned));
+            return self.progress(self.drive(true, budget));
+        }
+
+        fn drive(self: *Self, comptime bounded: bool, budget: usize) usize {
+            // Runtime profiles select the polling class at init/reset, just as
+            // they select scanner and metering. Each machine has one hot loop.
+            const fixed_interval: ?u32 = if (fixed) |p| p.cancellation_interval else if (single_poll) 1 else null;
+            if (self.terminal != null) return 0;
+            self.tokens.setRetainComments(self.retainComments());
+            self.tokens.setNumeralCheck(self.numeralSeverity() != .off);
+            var remaining = if (bounded) budget else {};
+            var polling: execution.CancellationPolling(cancellable, fixed_interval) = .{};
+            const interval = fixed_interval orelse self.settings.cancellation_interval;
+            while (true) {
+                // Every entry checks, including zero-budget calls. Failures and
+                // successful commits still latch before another poll.
+                if (cancellable and (fixed_interval == 1 or polling.due(interval))) {
+                    if (self.cancellation) |hook| {
+                        if (hook.requested()) _ = self.cancel();
+                        // A hook can cancel explicitly while returning false.
+                        if (self.terminal != null) break;
+                    }
+                }
+                if (bounded and remaining == 0) break;
+                switch (self.work.phase) {
+                    .scan => {
+                        // The fixed default stays a constant one-credit call.
+                        // Batching never exceeds the independent caller budget.
+                        // Runtime policies also compile the batched scanner.
+                        // Give their interval-1 path an explicit single step,
+                        // sharing microstep semantics, not the general loop.
+                        const scanned = if (cancellable and fixed_interval == 1 and fixed == null)
+                            self.tokens.nextStep()
+                        else if (cancellable)
+                            @call(.always_inline, Scanner.drive, .{ &self.tokens, true, if (comptime fixed_interval == 1) 1 else if (bounded) @min(remaining, polling.allowance()) else polling.allowance() })
+                        else
+                            self.tokens.nextBounded(remaining);
+                        if (bounded) remaining -= scanned.work_used;
+                        if (comptime cancellable and fixed_interval != 1) polling.spend(scanned.work_used);
+                        if (scanned.result) |result| switch (result) {
+                            .token => |token| {
+                                if (extents) self.noteToken(token);
+                                if (preview_notifications and self.control.preview.active and token.comment() == null) {
+                                    self.work.token = token;
+                                    _ = self.schedule(.preview_end_token, token);
+                                    continue;
+                                }
+                                if (self.forwardWarning()) {
+                                    if (self.terminal != null) break;
+                                    continue;
+                                }
+                                if (self.processIdentifier(token) != null) break;
+                                self.work.token = token;
+                                self.work.phase = .grammar;
+                            },
+                            .failure => {
+                                if (preview_notifications and self.previewFailure()) continue;
+                                const d = self.tokens.failureDiagnostic();
+                                if (self.operatorCandidate(d)) |token| {
+                                    if (extents) self.noteToken(token);
+                                    self.work.token = token;
+                                    self.work.phase = .grammar;
+                                } else _ = self.fail(d);
+                            },
+                        };
+                    },
+                    .grammar => {
+                        if (bounded) remaining -= 1;
+                        if (comptime cancellable and fixed_interval != 1) polling.spend(1);
+                        self.work.phase = .scan;
+                        self.work.replay = false;
+                        _ = self.transition(self.work.token);
+                        if (delimiters) _ = self.flushDelimiter(self.work.token);
+                    },
+                    .dispatch => {
+                        if (bounded) remaining -= 1;
+                        if (comptime cancellable and fixed_interval != 1) polling.spend(1);
+                        if (comptime observing) {
+                            // Names, heads and previews share one continuation.
+                            // A head may schedule a commit; a retired preview
+                            // resumes grammar. Each callback has its own credit.
+                            self.work.phase = if (self.work.replay) .grammar else .scan;
+                            _ = self.dispatch(self.work.action, self.work.token);
+                            if (delimiters) _ = self.flushDelimiter(self.work.token);
+                        } else {
+                            _ = self.dispatch(self.work.action, self.work.token);
+                            if (self.terminal == null)
+                                self.work.phase = if (self.work.replay) .grammar else .scan;
+                        }
+                    },
+                    .terminal => unreachable,
+                }
+                if (self.terminal != null) break;
+            }
+            return if (bounded) budget - remaining else 0;
+        }
+
+        /// Explicit cleanup works even without a polling hook or positive budget.
+        pub fn cancel(self: *Self) Result {
+            if (self.terminal) |result| return result;
+            if (comptime preview_notifications and (metered or cancellable)) {
+                // A preview dispatch may be waiting behind a lexical failure
+                // already found by a charged scanner step. Drop the observation,
+                // not that failure. No normal callback or new scan is performed.
+                switch (if (self.previewPending()) self.work.action else Action.preview_pause) {
+                    .preview_end_token => {
+                        _ = self.forwardWarning();
+                        if (self.terminal) |result| return result;
+                    },
+                    .preview_eof, .preview_end_failure => {
+                        const d = self.tokens.failureDiagnostic();
+                        if (self.operatorCandidate(d) == null) {
+                            if (self.fail(d)) |result| return result.*;
+                        }
+                    },
+                    else => {},
+                }
+            }
+            // Keep cancellation visible without erasing prior syntax findings.
+            self.abortEvents(.cancelled);
+            return self.finish(.cancelled).*;
+        }
+
+        fn continuesAfterError(self: *const Self) bool {
+            if (!statement_recovery) return false;
+            return if (@hasDecl(Sink, "parser_retention")) Sink.parser_retention.continuesAfterError(self.events) else true;
+        }
+
+        /// An opted-in observation that a terminal sink abort has not retired.
+        /// Comptime-false selections fold away; aborted sinks spend no credit.
+        inline fn observes(self: *const Self, comptime kind: std.meta.FieldEnum(event_types.Observations)) bool {
+            return @field(observations, @tagName(kind)) and !self.aborted;
+        }
+
+        fn tracksStatements(self: *const Self) bool {
+            return begin_notifications or observations.statementTracking() or self.continuesAfterError();
+        }
+
+        fn currentScope(self: *const Self) event_types.ScopeId {
+            const stack = self.scratch orelse return .root;
+            return if (stack.len == 0) .root else stack.frames[stack.len - 1].id;
+        }
+
+        fn owner(self: *const Self) event_types.Owner {
+            return .{ .statement = @fromBackingInt(@intCast(self.left.start)), .scope = self.currentScope() };
+        }
+
+        inline fn publish(self: *Self, comptime tag: event_types.Kind, payload: @FieldType(event_types.Event, @tagName(tag))) Done {
+            const action = self.events.onEvent(@unionInit(event_types.Event, @tagName(tag), payload)) catch |err| return self.sinkFailure(err);
+            if (action == .stop) {
+                self.abortEvents(.sink_stopped);
+                return self.finish(.sink_stopped);
+            }
+            return null;
+        }
+
+        /// The sink's one terminal abort, if it has begun and not yet
+        /// received one.
+        fn abortEvents(self: *Self, reason: event_types.AbortReason) void {
+            const started = self.begun or (comments_enabled and self.comments_count != 0) or (observing and self.control.observation_delivered);
+            if (transactional and started and !self.aborted) {
+                if (self.control.active_statement != no_statement) {
+                    const start = self.control.active_statement;
+                    // A terminal abort does not certify a complete source range.
+                    // Normal skipped-range events carry exact synchronization.
+                    self.events.onAbort(.{ .statement = .{ .owner = .{ .statement = @fromBackingInt(@intCast(start)), .scope = self.currentScope() }, .span = .{ .start = start, .len = 0 }, .reason = reason } });
+                    self.control.active_statement = no_statement;
+                }
+            }
+            if (started and !self.aborted) self.events.onAbort(.{ .document = reason });
+            self.aborted = self.aborted or started;
+            if (preview_notifications and self.aborted) {
+                self.control.preview.active = false;
+            }
+        }
+
+        fn progress(self: *const Self, used: usize) Progress {
+            return .{
+                .result = self.terminal,
+                .work_used = used,
+                .source_frontier = self.tokens.source_frontier,
+                .phase = self.work.phase,
+                .completed_statements = self.work.completed_statements,
+                .completed_pairs = self.work.completed_pairs,
+            };
+        }
+
+        fn transition(self: *Self, token: lex.Token) Done {
+            if (comments_enabled and token.comment() != null) return self.schedule(.comment, token);
+            if (audited) self.control.grammar += 1;
+            const markup = if (fixed) |value| value.markup else self.settings.markup;
+            if (markup == .none and token.flags.has_html and self.state != .recovering) {
+                // Scanning already consumed the entire expression. Recovery
+                // can skip it without reading its bytes again.
+                return self.unsupportedAt(token.span, .html_identifier);
+            }
+            // Ordinary parsing replays only a finished suffix/link lookahead.
+            // Controlled parsing returns after one transition and charges the
+            // replay separately through Work; no recursion or hot-path flag.
+            while (true) {
+                switch (self.state) {
+                    .prologue => switch (token.tag) {
+                        .keyword_strict => {
+                            self.strict = true;
+                            self.state = .kind_keyword;
+                        },
+                        .keyword_graph => self.acceptKind(.undigraph, token),
+                        .keyword_digraph => self.acceptKind(.digraph, token),
+                        else => return self.unexpected(.{
+                            .strict_keyword = true,
+                            .graph_keyword = true,
+                            .digraph_keyword = true,
+                        }, .document_header, token),
+                    },
+                    .kind_keyword => switch (token.tag) {
+                        .keyword_graph => self.acceptKind(.undigraph, token),
+                        .keyword_digraph => self.acceptKind(.digraph, token),
+                        else => return self.unexpected(.{
+                            .graph_keyword = true,
+                            .digraph_keyword = true,
+                        }, .document_header, token),
+                    },
+                    .header_name => switch (token.tag) {
+                        .identifier => {
+                            self.name_span = token.span;
+                            self.state = .header_open;
+                            if (self.observes(.document_name)) return self.schedule(.document_name, token);
+                        },
+                        .left_brace => return self.beginBody(token),
+                        // Unquoted keywords are not valid names (Graphviz
+                        // rejects `graph graph`); a keyword name needs quoting.
+                        else => return self.unexpected(.{
+                            .identifier = true,
+                            .left_brace = true,
+                        }, .document_header, token),
+                    },
+                    .header_open => switch (token.tag) {
+                        .left_brace => return self.beginBody(token),
+                        else => return self.unexpected(.{ .left_brace = true }, .document_header, token),
+                    },
+                    .subgraph_name => switch (token.tag) {
+                        .identifier => {
+                            self.subgraph_name = token.span;
+                            self.state = .subgraph_open;
+                            if (self.observes(.subgraph_name)) return self.schedule(.subgraph_name, token);
+                        },
+                        .left_brace => return self.beginSubgraphBody(token),
+                        else => return self.unexpected(.{ .identifier = true, .left_brace = true }, .subgraph_header, token),
+                    },
+                    .subgraph_open => {
+                        if (token.tag != .left_brace) return self.unexpected(.{ .left_brace = true }, .subgraph_header, token);
+                        return self.beginSubgraphBody(token);
+                    },
+                    .after_subgraph => {
+                        if (token.tag == .edge_directed or token.tag == .edge_undirected) {
+                            self.operator = self.readOperator(token) orelse return self.done();
+                            self.operator_span = token.span;
+                            self.state = .edge_right;
+                            if (self.observes(.statement_head)) return self.schedule(.head_edge, token);
+                        } else if (token.tag == .colon or token.tag == .left_bracket) {
+                            // `{ a }:n` / `{ a } [x=1]`: a rule violation the
+                            // renderer can state, not merely an expected set.
+                            var expected = statementEndExpected(false);
+                            expected.undirected_operator = true;
+                            expected.directed_operator = true;
+                            return self.unexpected(expected, .subgraph_suffix, token);
+                        } else {
+                            self.state = .completed;
+                            if (self.dispatchThenReplay(if (self.observes(.statement_head)) .head_subgraph_commit else .subgraph_statement, token)) |result| return result;
+                            if (!metered and !cancellable) return self.continueAfterStatement(token);
+                            return null;
+                        }
+                    },
+                    .statement => return if (metered or cancellable or fixed == null)
+                        self.beginNext(token)
+                    else
+                        @call(.auto, beginNext, .{ self, token }),
+                    .after_identifier => switch (token.tag) {
+                        .colon => {
+                            if (self.left_port != null) return self.unexpected(nodeEndExpected(false), .statement, token);
+                            self.startPort(.left, .after_identifier, token.span);
+                        },
+                        .equals => {
+                            if (self.left_port != null) return self.unexpected(nodeEndExpected(false), .statement, token);
+                            if (self.countAttribute(self.left)) |result| return result;
+                            self.state = .assignment_value;
+                            if (self.observes(.statement_head)) return self.schedule(.head_assignment, token);
+                        },
+                        .left_bracket => {
+                            self.openAttributes(token);
+                            if (self.observes(.statement_head)) return self.schedule(.head_node, token);
+                        },
+                        .edge_undirected, .edge_directed => {
+                            self.operator = self.readOperator(token) orelse return self.done();
+                            self.operator_span = token.span;
+                            self.state = .edge_right;
+                            if (self.observes(.statement_head)) return self.schedule(.head_edge, token);
+                        },
+                        else => return if (metered or cancellable or fixed == null)
+                            self.finishPending(token, nodeEndExpected(self.left_port == null), .statement)
+                        else
+                            @call(.auto, finishPending, .{ self, token, nodeEndExpected(self.left_port == null), .statement }),
+                    },
+                    .edge_right => switch (token.tag) {
+                        .identifier => {
+                            self.right = token.span;
+                            self.right_port = null;
+                            self.right_scope = null;
+                            self.pending = .edge;
+                            self.state = .edge_terminate;
+                            if (self.observes(.identifier)) return self.schedule(.name_right, token);
+                        },
+                        .left_brace, .keyword_subgraph => return self.startSubgraph(token, .right),
+                        else => return self.unexpected(.{ .identifier = true, .left_brace = true, .subgraph_keyword = true }, .edge_endpoint, token),
+                    },
+                    .edge_terminate => switch (token.tag) {
+                        .colon => {
+                            if (self.pending != .edge or self.right_port != null or self.right_scope != null)
+                                return self.unexpected(edgeEndExpected(false), .statement_terminator, token);
+                            self.startPort(.right, .edge_terminate, token.span);
+                        },
+                        .left_bracket => self.openAttributes(token),
+                        .edge_undirected, .edge_directed => {
+                            self.link_operator = self.readOperator(token) orelse return self.done();
+                            self.link_operator_span = token.span;
+                            self.state = .chain_right;
+                        },
+                        else => {
+                            return if (metered or cancellable or fixed == null)
+                                self.finishPending(token, edgeEndExpected(self.pending == .edge and self.right_port == null and self.right_scope == null), .statement_terminator)
+                            else
+                                @call(.auto, finishPending, .{ self, token, edgeEndExpected(self.pending == .edge and self.right_port == null and self.right_scope == null), .statement_terminator });
+                        },
+                    },
+                    .chain_right => switch (token.tag) {
+                        .identifier => {
+                            self.pending = .edge_chain;
+                            self.link_right = token.span;
+                            self.link_port = null;
+                            self.state = .chain_after_identifier;
+                            if (self.observes(.identifier)) return self.schedule(.name_link, token);
+                        },
+                        .left_brace, .keyword_subgraph => return self.startSubgraph(token, .link),
+                        else => return self.unexpected(.{ .identifier = true, .left_brace = true, .subgraph_keyword = true }, .edge_endpoint, token),
+                    },
+                    .chain_after_identifier => {
+                        if (token.tag == .colon) {
+                            if (self.link_port != null) return self.unexpected(edgeEndExpected(false), .statement_terminator, token);
+                            self.startPort(.link, .chain_after_identifier, token.span);
+                        } else {
+                            self.state = .edge_terminate;
+                            if (self.dispatchThenReplay(.edge_link, token)) |result| return result;
+                            if (!metered and !cancellable) continue;
+                        }
+                    },
+                    .port_first => {
+                        if (token.tag != .identifier) return self.unexpected(.{ .identifier = true }, .port_component, token);
+                        self.port_first = token.span;
+                        self.state = .port_after_first;
+                    },
+                    .port_after_first => {
+                        if (token.tag == .colon) {
+                            self.port_colon = token.span;
+                            self.state = .port_second;
+                        } else {
+                            if (self.finishPort(token)) |result| return result;
+                            if (!metered and !cancellable) continue;
+                        }
+                    },
+                    .port_second => {
+                        if (token.tag != .identifier) return self.unexpected(.{ .identifier = true }, .port_component, token);
+                        self.port_second = token.span;
+                        self.state = .port_after_second;
+                    },
+                    .port_after_second => {
+                        if (self.finishPort(token)) |result| return result;
+                        if (!metered and !cancellable) continue;
+                    },
+                    .assignment_value => {
+                        if (token.tag != .identifier)
+                            return self.unexpected(.{ .identifier = true }, .assignment_value, token);
+                        self.state = .completed;
+                        return if (metered or cancellable or fixed == null)
+                            self.schedule(.assignment, token)
+                        else
+                            @call(.auto, schedule, .{ self, .assignment, token });
+                    },
+                    .completed => return self.continueAfterStatement(token),
+                    .attribute_open => {
+                        if (token.tag != .left_bracket)
+                            return self.unexpected(.{ .left_bracket = true }, .attribute_list, token);
+                        self.openAttributes(token);
+                    },
+                    .attribute_key_or_close => switch (token.tag) {
+                        .right_bracket => self.closeAttributes(token),
+                        .identifier => return self.beginAttribute(token),
+                        else => return self.unexpected(.{ .identifier = true, .right_bracket = true }, .attribute_key, token),
+                    },
+                    .attribute_equals => {
+                        if (token.tag != .equals)
+                            return self.unexpected(.{ .equals = true }, .attribute_key, token);
+                        self.state = .attribute_value;
+                    },
+                    .attribute_value => {
+                        if (token.tag != .identifier)
+                            return self.unexpected(.{ .identifier = true }, .attribute_value, token);
+                        self.state = .attribute_after_value;
+                        return if (metered or cancellable or fixed == null)
+                            self.schedule(.attribute, token)
+                        else
+                            @call(.auto, schedule, .{ self, .attribute, token });
+                    },
+                    .attribute_after_value => switch (token.tag) {
+                        .right_bracket => self.closeAttributes(token),
+                        .comma, .semicolon => self.state = .attribute_key_or_close,
+                        .identifier => return self.beginAttribute(token),
+                        else => return self.unexpected(.{
+                            .identifier = true,
+                            .right_bracket = true,
+                            .comma = true,
+                            .semicolon = true,
+                        }, .attribute_list, token),
+                    },
+                    .after_attributes => {
+                        if (token.tag == .left_bracket) {
+                            self.openAttributes(token);
+                        } else return if (metered or cancellable or fixed == null)
+                            self.finishPending(token, statementEndExpected(true), .statement_terminator)
+                        else
+                            @call(.auto, finishPending, .{ self, token, statementEndExpected(true), .statement_terminator });
+                    },
+                    .epilogue => switch (token.tag) {
+                        .eof => return if (metered or cancellable or fixed == null)
+                            self.schedule(.commit, token)
+                        else
+                            @call(.auto, schedule, .{ self, .commit, token }),
+                        else => return self.unexpected(.{ .end_of_input = true }, .document_epilogue, token),
+                    },
+                    .recovering => return self.recover(token),
+                    .starting_statement => return self.startStatementBody(token),
+                    .recovery_boundary => return self.resumeRecovery(token),
+                }
+                return null;
+            }
+        }
+
+        /// One token of resynchronization: a `;` at the current depth or a
+        /// `}` ends the skip; a skipped `{` is matched by counting so the
+        /// scope stack stays honest. Reaching end of input ends the parse.
+        fn recover(self: *Self, token: lex.Token) Done {
+            if (!recovery_enabled) unreachable;
+            if (transactional and !self.aborted and self.continuesAfterError() and
+                ((token.tag == .semicolon and self.skip_depth == 0) or
+                    (token.tag == .right_brace and self.skip_depth == 0) or token.tag == .eof))
+            {
+                self.state = .recovery_boundary;
+                if (self.dispatchThenReplay(.skipped, token)) |result| return result;
+                if (!metered and !cancellable) return self.resumeRecovery(token);
+                return null;
+            }
+            return self.resumeRecovery(token);
+        }
+
+        fn resumeRecovery(self: *Self, token: lex.Token) Done {
+            if (!recovery_enabled) unreachable;
+            switch (token.tag) {
+                .semicolon => if (self.skip_depth == 0) {
+                    self.state = .statement;
+                },
+                .left_brace => {
+                    if (delimiters) self.queueDelimiter(token, self.currentScope(), true);
+                    self.skip_depth += 1;
+                },
+                .right_brace => {
+                    if (delimiters) self.queueDelimiter(token, self.currentScope(), self.skip_depth > 0);
+                    if (self.skip_depth > 0) {
+                        self.skip_depth -= 1;
+                    } else if (self.nestingDepth() == 0) {
+                        self.state = .epilogue;
+                        self.closeRoot();
+                        if ((transactional or coverage) and !self.aborted) self.retainThrough(@intCast(token.span.endOffset()));
+                    } else {
+                        if (transactional and !self.aborted) {
+                            self.state = .after_subgraph;
+                            return self.schedule(.end_subgraph, token);
+                        }
+                        const stack = self.scratch.?;
+                        self.noteClose(token);
+                        self.leaveScope(stack.pop());
+                    }
+                },
+                .eof => {
+                    self.abortEvents(if (self.syntaxErrors() != 0) .invalid_syntax else .unsupported_feature);
+                    return self.finish(self.recoveredOutcome());
+                },
+                .left_bracket, .right_bracket => if (delimiters) self.queueDelimiter(token, self.currentScope(), true),
+                else => {},
+            }
+            return null;
+        }
+
+        fn acceptKind(self: *Self, kind: event_types.GraphKind, token: lex.Token) void {
+            self.kind = kind;
+            self.keyword_span = token.span;
+            self.state = .header_name;
+        }
+
+        /// Recognize the header, then schedule its separate begin event.
+        /// begun becomes true only when the callback is actually attempted.
+        fn beginBody(self: *Self, token: lex.Token) Done {
+            self.open_brace_span = token.span;
+            self.state = .statement;
+            return if (metered or cancellable or fixed == null)
+                self.schedule(.begin, token)
+            else
+                @call(.auto, schedule, .{ self, .begin, token });
+        }
+
+        /// Start a statement at its identifier or attribute keyword: the place the
+        /// caller-visible statement limit is enforced.
+        fn beginStatement(self: *Self, token: lex.Token) Done {
+            if (self.statements == self.limit("max_statements")) {
+                return self.fail(.{
+                    .code = .resource_capacity_exhausted,
+                    .span = token.span,
+                    .details = .{ .capacity = .{
+                        .resource = .statements,
+                        .limit = self.limit("max_statements"),
+                    } },
+                });
+            }
+            self.statements += 1;
+            self.left = token.span;
+            self.left_port = null;
+            self.left_scope = null;
+            self.right_scope = null;
+            self.pending = .node;
+            self.state = .after_identifier;
+            if (transactional and !begin_notifications and !self.aborted and self.tracksStatements()) self.control.active_statement = token.span.start;
+            return null;
+        }
+
+        // Inline fixed-policy synchronous boundaries to eliminate intermediate
+        // ?Result traffic (20 bytes on arm64 since factual counters were added).
+        // Runtime-policy and metered/cancellable engines retain ordinary calls:
+        // forced inlining has mixed costs in those larger dispatch loops (even
+        // @call(.auto) changed Zig 0.16's code generation in bounded sessions).
+        fn beginNext(self: *Self, token: lex.Token) Done {
+            if (deviations_enabled and token.tag == .semicolon and self.syntax().empty_statement != .reject) {
+                if (self.acceptDeviation(self.syntax().empty_statement, .{
+                    .code = .syntax_empty_statement,
+                    .span = token.span,
+                    .fix = .{ .span = token.span, .edit = .delete, .applicability = .machine_applicable },
+                })) |result| return result;
+                self.state = .statement;
+                return null;
+            }
+            if (begin_notifications and !self.aborted) switch (token.tag) {
+                .identifier, .left_brace, .keyword_subgraph, .keyword_graph, .keyword_node, .keyword_edge => {
+                    if (self.beginStatement(token)) |result| return result;
+                    self.state = .starting_statement;
+                    if (self.dispatchThenReplay(.begin_statement, token)) |result| return result;
+                    if (!metered and !cancellable) return self.startStatementBody(token);
+                    return null;
+                },
+                else => {},
+            };
+            switch (token.tag) {
+                .identifier => {
+                    if (!self.observes(.identifier)) return self.beginStatement(token);
+                    if (self.beginStatement(token)) |result| return result;
+                    return self.schedule(.name_left, token);
+                },
+                .right_brace => {
+                    if (delimiters) self.queueDelimiter(token, self.currentScope(), false);
+                    if (self.nestingDepth() == 0) {
+                        self.state = .epilogue;
+                        self.closeRoot();
+                        if ((transactional or coverage) and !self.aborted) self.retainThrough(@intCast(token.span.endOffset()));
+                    } else {
+                        self.state = .after_subgraph;
+                        return if (metered or cancellable or fixed == null)
+                            self.schedule(.end_subgraph, token)
+                        else
+                            @call(.auto, schedule, .{ self, .end_subgraph, token });
+                    }
+                },
+                .left_brace, .keyword_subgraph => {
+                    if (self.beginStatement(token)) |result| return result;
+                    return self.startSubgraph(token, .left);
+                },
+                .keyword_graph, .keyword_node, .keyword_edge => {
+                    if (self.beginStatement(token)) |result| return result;
+                    self.pending = .attributes;
+                    self.attribute_target = switch (token.tag) {
+                        .keyword_graph => .graph,
+                        .keyword_node => .node,
+                        else => .edge,
+                    };
+                    self.state = .attribute_open;
+                    if (self.observes(.statement_head)) return self.schedule(.head_attributes, token);
+                },
+                else => return self.unexpected(.{
+                    .identifier = true,
+                    .right_brace = true,
+                    .left_brace = true,
+                    .graph_keyword = true,
+                    .node_keyword = true,
+                    .edge_keyword = true,
+                    .subgraph_keyword = true,
+                }, .document_body, token),
+            }
+            return null;
+        }
+
+        fn startStatementBody(self: *Self, token: lex.Token) Done {
+            if (!transactional) unreachable;
+            self.state = .after_identifier;
+            switch (token.tag) {
+                .identifier => if (self.observes(.identifier)) return self.schedule(.name_left, token),
+                .left_brace, .keyword_subgraph => return self.startSubgraph(token, .left),
+                .keyword_graph, .keyword_node, .keyword_edge => {
+                    self.pending = .attributes;
+                    self.attribute_target = switch (token.tag) {
+                        .keyword_graph => .graph,
+                        .keyword_node => .node,
+                        else => .edge,
+                    };
+                    self.state = .attribute_open;
+                    if (self.observes(.statement_head)) return self.schedule(.head_attributes, token);
+                },
+                else => unreachable,
+            }
+            return null;
+        }
+
+        fn nestingDepth(self: *const Self) u32 {
+            return if (self.scratch) |scratch| scratch.len else 0;
+        }
+
+        fn firstEdge(self: *const Self) event_types.Edge {
+            return .{ .left = self.left, .left_port = self.left_port, .left_scope = self.left_scope, .operator = self.operator, .operator_span = self.operator_span, .right = self.right, .right_port = self.right_port, .right_scope = self.right_scope };
+        }
+
+        fn startSubgraph(self: *Self, token: lex.Token, role: event_types.ScopeRole) Done {
+            self.subgraph_role = role;
+            self.subgraph_start = token.span;
+            self.subgraph_name = null;
+            if (token.tag == .left_brace) return self.beginSubgraphBody(token);
+            self.state = .subgraph_name;
+            return null;
+        }
+
+        fn beginSubgraphBody(self: *Self, token: lex.Token) Done {
+            if (self.nestingDepth() == self.limit("max_nesting")) return self.fail(.{
+                .code = .resource_capacity_exhausted,
+                .span = token.span,
+                .details = .{ .capacity = .{ .resource = .nesting_depth, .limit = self.limit("max_nesting") } },
+            });
+            const scratch = self.scratch orelse return self.scratchFailure(error.NestingStorageExhausted, token.span);
+            scratch.push(.{
+                .parent_open = self.open_brace_span.?,
+                // Until begin_scope is acknowledged, the active output scope
+                // is still the parent (including a pause/cancel before dispatch).
+                .id = self.currentScope(),
+                .start = self.subgraph_start,
+                .role = self.subgraph_role,
+                .edge = if (self.subgraph_role == .left) null else if (self.subgraph_role == .link) self.firstEdge() else .{
+                    .left = self.left,
+                    .left_port = self.left_port,
+                    .left_scope = self.left_scope,
+                    .operator = self.operator,
+                    .operator_span = self.operator_span,
+                    .right = self.left,
+                },
+                .link_operator = if (self.subgraph_role == .link) self.link_operator else null,
+                .link_operator_span = if (self.subgraph_role == .link) self.link_operator_span else null,
+            }) catch |err| return self.scratchFailure(err, token.span);
+            self.open_brace_span = token.span;
+            self.state = .statement;
+            return if (metered or cancellable or fixed == null)
+                self.schedule(.begin_subgraph, token)
+            else
+                @call(.auto, schedule, .{ self, .begin_subgraph, token });
+        }
+
+        fn scratchFailure(self: *Self, err: ScopeScratch.Stack.Error, span: location.Span) *const Result {
+            // The resource failure is already terminal; preserve its cause.
+            const stop = self.deliver(.{
+                .code = if (err == error.OutOfMemory) .resource_memory_exhausted else .resource_capacity_exhausted,
+                .span = span,
+                .details = if (err == error.OutOfMemory) .none else .{ .capacity = .{ .resource = .nesting_frames, .limit = if (self.scratch) |scratch| scratch.frames.len else 0 } },
+            });
+            self.abortEvents(.scratch_failure);
+            return self.finishReported(.{ .scratch_failure = err }, stop);
+        }
+
+        fn startPort(self: *Self, target: @FieldType(Self, "port_target"), resume_state: State, colon: location.Span) void {
+            self.port_target = target;
+            self.port_resume = resume_state;
+            self.port_colon = colon;
+            self.port_second = null;
+            self.state = .port_first;
+        }
+
+        fn finishPort(self: *Self, token: lex.Token) Done {
+            self.state = self.port_resume;
+            return self.dispatchThenReplay(.ported_reference, token);
+        }
+
+        fn dispatchThenReplay(self: *Self, action: Action, token: lex.Token) Done {
+            if (metered or cancellable) {
+                self.work.replay = true;
+                return self.schedule(action, token);
+            }
+            return if (fixed == null)
+                self.schedule(action, token)
+            else
+                @call(.auto, schedule, .{ self, action, token });
+        }
+
+        fn finishPending(self: *Self, token: lex.Token, expected: std.enums.EnumFieldStruct(diagnostic.SyntaxItem, bool, false), context: diagnostic.ParseContext) Done {
+            switch (token.tag) {
+                .semicolon, .identifier, .right_brace, .left_brace, .keyword_graph, .keyword_node, .keyword_edge, .keyword_subgraph => {},
+                else => return self.unexpected(expected, context, token),
+            }
+            const action: Action = switch (self.pending) {
+                .node => if (self.observes(.statement_head) and self.state == .after_identifier) .head_node_commit else .node,
+                .edge => .edge,
+                .edge_chain => .edge_chain,
+                .attributes => .attribute_statement,
+            };
+            self.state = .completed;
+            if (metered or cancellable) {
+                // Retain this lookahead until the owning statement is emitted.
+                // A separate grammar credit then processes it in .completed.
+                self.work.replay = true;
+                return self.schedule(action, token);
+            }
+            if (comptime @import("builtin").mode == .small and fixed != null and !observing) {
+                // Keep the common node commit out of Small's shared dispatcher:
+                // its larger edge payloads otherwise increase spill/copy costs.
+                // Controlled parsing above still uses the same replay credits.
+                if (action == .node) {
+                    if (@call(.never_inline, commitNode, .{ self, token })) |result| return result;
+                    return self.continueAfterStatement(token);
+                }
+            }
+            if (if (fixed == null) self.schedule(action, token) else @call(.auto, schedule, .{ self, action, token })) |result| return result;
+            return self.continueAfterStatement(token);
+        }
+
+        fn commitNode(self: *Self, token: lex.Token) Done {
+            return @call(.always_inline, dispatch, .{ self, .node, token });
+        }
+
+        fn continueAfterStatement(self: *Self, token: lex.Token) Done {
+            if (token.tag == .semicolon) {
+                self.state = .statement;
+                return null;
+            }
+            return if (metered or cancellable or fixed == null)
+                self.beginNext(token)
+            else
+                @call(.auto, beginNext, .{ self, token });
+        }
+
+        fn openAttributes(self: *Self, token: lex.Token) void {
+            self.open_bracket_span = token.span;
+            self.state = .attribute_key_or_close;
+            if (delimiters) self.queueDelimiter(token, self.currentScope(), false);
+        }
+
+        fn closeAttributes(self: *Self, token: lex.Token) void {
+            self.open_bracket_span = null;
+            self.state = .after_attributes;
+            if (delimiters) self.queueDelimiter(token, self.currentScope(), false);
+        }
+
+        fn noteToken(self: *Self, token: lex.Token) void {
+            if (!extents) unreachable;
+            if (token.comment() != null) return;
+            self.control.extent.previous = self.control.extent.current;
+            self.control.extent.current = @intCast(token.span.endOffset());
+        }
+
+        fn statementExtent(self: *const Self, current: bool) ?location.Span {
+            if (!extents) return null;
+            const end = if (current) self.control.extent.current else self.control.extent.previous;
+            return .{ .start = self.left.start, .len = end - self.left.start };
+        }
+
+        fn queueDelimiter(self: *Self, token: lex.Token, scope: event_types.ScopeId, skipped: bool) void {
+            if (!delimiters) unreachable;
+            if (self.aborted) return;
+            const value = &self.control.delimiter;
+            std.debug.assert(!value.pending);
+            value.value = .{
+                .span = token.span,
+                .kind = if (token.tag == .left_brace or token.tag == .right_brace) .brace else .bracket,
+                .side = if (token.tag == .left_brace or token.tag == .left_bracket) .open else .close,
+                .scope = scope,
+                .skipped = skipped,
+            };
+            value.pending = true;
+        }
+
+        fn flushDelimiter(self: *Self, token: lex.Token) Done {
+            if (!delimiters) unreachable;
+            if (self.terminal != null or self.aborted or !self.control.delimiter.pending) return self.done();
+            if (metered or cancellable) if (self.work.phase == .dispatch) return null;
+            self.control.delimiter.pending = false;
+            return self.schedule(.delimiter, token);
+        }
+
+        fn countAttribute(self: *Self, at: location.Span) Done {
+            if (self.counts.attributes == self.limit("max_attributes")) return self.fail(.{
+                .code = .resource_capacity_exhausted,
+                .span = at,
+                .details = .{ .capacity = .{ .resource = .attributes, .limit = self.limit("max_attributes") } },
+            });
+            self.counts.attributes += 1;
+            return null;
+        }
+
+        fn beginAttribute(self: *Self, token: lex.Token) Done {
+            if (self.countAttribute(token.span)) |result| return result;
+            self.attribute_key = token.span;
+            self.state = .attribute_equals;
+            return null;
+        }
+
+        fn schedule(self: *Self, action: Action, token: lex.Token) Done {
+            if (delimiters and self.control.delimiter.pending) {
+                self.control.delimiter.pending = false;
+                if (metered or cancellable) {
+                    self.control.delimiter.following = action;
+                    self.work.action = .delimiter;
+                    self.work.phase = .dispatch;
+                    return null;
+                }
+                if (self.dispatch(.delimiter, token)) |result| return result;
+            }
+            if (metered or cancellable) {
+                if (preview_notifications and @backingInt(action) >= @backingInt(Action.preview_pause)) std.debug.assert(!self.work.replay);
+                self.work.action = action;
+                self.work.phase = .dispatch;
+                return null;
+            }
+            return self.dispatch(action, token);
+        }
+
+        /// One charged normal callback in the bounded driver. Payloads reuse
+        /// saved spans and the cached token; there is no event queue or copying
+        /// of a source-sized collection. Callback execution is a callout.
+        fn dispatch(self: *Self, pending_action: Action, token: lex.Token) Done {
+            if (audited) self.control.dispatch += 1;
+            if (self.aborted) {
+                // Recovery: the sink is terminal, so no event is attempted;
+                // only the grammar's own scope and port bookkeeping continues.
+                switch (pending_action) {
+                    .end_subgraph => {
+                        const stack = self.scratch.?;
+                        self.noteClose(token);
+                        self.leaveScope(stack.pop());
+                    },
+                    .ported_reference => switch (self.port_target) {
+                        .left => self.left_port = 0,
+                        .right => self.right_port = 0,
+                        .link => self.link_port = 0,
+                    },
+                    .commit => return self.finishComplete(self.recoveredOutcome()),
+                    else => {},
+                }
+                return null;
+            }
+            if (comptime observing) {
+                if (@backingInt(pending_action) >= @backingInt(Action.name_left)) return self.dispatchObservation(pending_action, token);
+            }
+            const action: CoreAction = @fromBackingInt(@intCast(@backingInt(pending_action)));
+            switch (action) {
+                .begin_statement => {
+                    if (!begin_notifications) unreachable;
+                    // Do not abort a begin that was scheduled but never delivered.
+                    self.control.active_statement = token.span.start;
+                    if (self.publish(.begin_statement, .{ .owner = self.owner(), .start = token.span })) |result| return result;
+                },
+                .skipped => {
+                    if (!transactional) unreachable;
+                    const start = self.control.recovery_start;
+                    const end = if (token.tag == .semicolon) token.span.endOffset() else token.span.start;
+                    if (self.publish(.skipped, .{ .span = .{ .start = start, .len = @intCast(end - start) }, .scope = self.currentScope() })) |result| return result;
+                    self.retainThrough(@intCast(end));
+                    self.control.recovery_start = no_statement;
+                },
+                .comment => {
+                    if (comptime !comments_enabled) unreachable;
+                    if (self.comments_count >= self.limit("max_comments")) return self.fail(.{
+                        .code = .resource_capacity_exhausted,
+                        .span = token.span,
+                        .details = .{ .capacity = .{ .resource = .comments, .limit = self.limit("max_comments") } },
+                    });
+                    self.comments_count += 1;
+                    if (self.publish(.comment, token.comment().?)) |result| return result;
+                },
+                .begin => {
+                    self.begun = true;
+                    if (self.publish(.begin_document, .{
+                        .retain_comments = self.retainComments(),
+                        .kind = self.kind,
+                        .strict = self.strict,
+                        .keyword_span = self.keyword_span,
+                        .name_span = if (self.name_span) |v| recognizedName(v) else null,
+                        .source_info = if (source_metadata) self.control.source_info else enc.sourceInfo(self.tokens.source),
+                    })) |result| return result;
+                    if (delimiters) self.queueDelimiter(token, .root, false);
+                },
+                .begin_subgraph => {
+                    const stack = self.scratch.?;
+                    const frame = &stack.frames[stack.len - 1];
+                    // Every scope consumes a distinct opening byte, and the
+                    // source length was bounded to u32 before scanning.
+                    self.scope_count += 1;
+                    const id: event_types.ScopeId = @fromBackingInt(@intCast(self.scope_count));
+                    if (self.publish(.begin_scope, .{
+                        .id = id,
+                        .parent = if (stack.len == 1) .root else stack.frames[stack.len - 2].id,
+                        .statement = @fromBackingInt(@intCast(if (frame.edge) |edge| edge.left.start else frame.start.start)),
+                        .start = frame.start,
+                        .name = if (self.subgraph_name) |v| recognizedName(v) else null,
+                        .role = frame.role,
+                        .edge = if (frame.edge) |prefix| value: {
+                            var edge = prefix;
+                            if (frame.role == .right) {
+                                edge.right = frame.start;
+                                edge.right_scope = @backingInt(id);
+                                edge.right_port = null;
+                            }
+                            break :value edge;
+                        } else null,
+                        .link_operator = frame.link_operator,
+                        .link_operator_span = frame.link_operator_span,
+                    })) |result| return result;
+                    frame.id = id;
+                    if (comptime @hasDecl(Sink, "ScopeContext")) frame.context = self.events.suspendScope();
+                    if (transactional) self.control.active_statement = no_statement;
+                    if (delimiters) self.queueDelimiter(token, id, false);
+                },
+                .end_subgraph => {
+                    const stack = self.scratch.?;
+                    const frame = stack.frames[stack.len - 1];
+                    if (self.publish(.end_scope, .{ .id = frame.id, .close = token.span })) |result| return result;
+                    if (comptime @hasDecl(Sink, "ScopeContext")) self.events.restoreScope(frame.context);
+                    _ = stack.pop();
+                    self.noteClose(token);
+                    self.leaveScope(frame);
+                },
+                .subgraph_statement => {
+                    if (self.publish(.commit_subgraph, .{ .owner = self.owner(), .extent = self.statementExtent(false), .value = @fromBackingInt(@intCast(self.left_scope.?)) })) |result| return result;
+                },
+                .node => {
+                    if (self.publish(.commit_node, .{ .owner = self.owner(), .extent = self.statementExtent(false), .value = .{ .identifier = recognizedName(self.left), .port = self.left_port } })) |result| return result;
+                },
+                .edge => {
+                    if (self.publish(.commit_edge, .{ .owner = self.owner(), .extent = self.statementExtent(false), .value = .{
+                        .left = self.left,
+                        .left_port = self.left_port,
+                        .left_scope = self.left_scope,
+                        .right_scope = self.right_scope,
+                        .operator = self.operator,
+                        .operator_span = self.operator_span,
+                        .right = self.right,
+                        .right_port = self.right_port,
+                    } })) |result| return result;
+                },
+                .ported_reference => {
+                    const identifier_span = switch (self.port_target) {
+                        .left => self.left,
+                        .right => self.right,
+                        .link => self.link_right,
+                    };
+                    const index = self.counts.references;
+                    if (self.publish(.ported_reference, .{ .owner = self.owner(), .id = @fromBackingInt(@intCast(index)), .reference = .{
+                        .identifier = recognizedName(identifier_span),
+                        .first = recognizedName(self.port_first),
+                        .second = if (self.port_second) |v| recognizedName(v) else null,
+                    } })) |result| return result;
+                    self.counts.references += 1;
+                    switch (self.port_target) {
+                        .left => self.left_port = index,
+                        .right => self.right_port = index,
+                        .link => self.link_port = index,
+                    }
+                },
+                .edge_link => {
+                    if (self.publish(.edge_link, .{ .owner = self.owner(), .link = .{
+                        .operator = self.link_operator,
+                        .operator_span = self.link_operator_span,
+                        .right = recognizedName(self.link_right),
+                        .right_port = self.link_port,
+                    } })) |result| return result;
+                },
+                .edge_chain => {
+                    if (self.publish(.commit_edge_chain, .{ .owner = self.owner(), .extent = self.statementExtent(false), .value = .{
+                        .left = self.left,
+                        .left_port = self.left_port,
+                        .left_scope = self.left_scope,
+                        .right_scope = self.right_scope,
+                        .operator = self.operator,
+                        .operator_span = self.operator_span,
+                        .right = self.right,
+                        .right_port = self.right_port,
+                    } })) |result| return result;
+                },
+                .attribute_statement => {
+                    if (self.publish(.commit_attribute_statement, .{ .owner = self.owner(), .extent = self.statementExtent(false), .value = .{
+                        .target = self.attribute_target,
+                        .keyword_span = self.left,
+                    } })) |result| return result;
+                },
+                .assignment => {
+                    if (self.publish(.commit_assignment, .{ .owner = self.owner(), .extent = self.statementExtent(true), .value = .{ .key = recognizedName(self.left), .value = recognizedName(token.span) } })) |result| return result;
+                },
+                .attribute => {
+                    if (self.publish(.attribute, .{ .owner = self.owner(), .pair = .{ .key = recognizedName(self.attribute_key), .value = recognizedName(token.span) } })) |result| return result;
+                },
+                .commit => {
+                    if (transactional and self.control.rejected) {
+                        self.retainThrough(@intCast(self.tokens.source.len));
+                        self.abortEvents(if (self.syntaxErrors() != 0) .invalid_syntax else .unsupported_feature);
+                        return self.finishComplete(self.recoveredOutcome());
+                    }
+                    if (self.publish(.end_document, {})) |result| return result;
+                    if (coverage) self.retainThrough(@intCast(self.tokens.source.len));
+                    return self.finish(.success);
+                },
+            }
+            if (transactional) switch (action) {
+                .node, .edge, .edge_chain, .assignment, .attribute_statement, .subgraph_statement => self.control.active_statement = no_statement,
+                else => {},
+            };
+            if (comptime @hasDecl(Sink, "parser_retention") or coverage) {
+                // Statement callbacks use lookahead; it must not become part of
+                // the represented prefix before its own grammar action runs.
+                const end = switch (action) {
+                    .begin, .begin_subgraph, .end_subgraph, .assignment => token.span.endOffset(),
+                    .node, .edge, .edge_chain, .attribute_statement, .subgraph_statement => token.span.start,
+                    // Staged pairs, references and links are not statements.
+                    // Trivia inside a pending statement cannot certify it either.
+                    // Concatenation trivia may arrive before the identifier,
+                    // while grammar state is still statement. A comment's own
+                    // pool record never certifies its unfinished owner.
+                    .comment => 0,
+                    else => 0,
+                };
+                self.retainThrough(@intCast(end));
+            }
+            if (metered) switch (action) {
+                .node, .edge, .edge_chain, .attribute_statement, .subgraph_statement => self.work.completed_statements += 1,
+                .assignment => {
+                    self.work.completed_statements += 1;
+                    self.work.completed_pairs += 1;
+                },
+                .attribute => self.work.completed_pairs += 1,
+                .begin, .begin_subgraph, .end_subgraph, .commit, .edge_link, .ported_reference, .comment, .begin_statement, .skipped => {},
+            };
+            return null;
+        }
+
+        // One call site: keep observation construction inside the shared
+        // dispatch, rather than adding callback-time forwarding layers.
+        inline fn dispatchObservation(self: *Self, action: Action, token: lex.Token) Done {
+            if (!observing) unreachable;
+            self.control.observation_delivered = true;
+            switch (action) {
+                .delimiter => {
+                    if (!delimiters) unreachable;
+                    if (self.publish(.delimiter, self.control.delimiter.value)) |result| return result;
+                    if (metered or cancellable) {
+                        if (self.control.delimiter.following) |following| {
+                            self.control.delimiter.following = null;
+                            return self.schedule(following, token);
+                        }
+                    }
+                    return null;
+                },
+                .name_left, .name_right, .name_link => {
+                    if (!observations.identifier) unreachable;
+                    return self.publish(.identifier, .{
+                        .owner = self.owner(),
+                        .name = recognizedName(token.span),
+                        .role = switch (action) {
+                            .name_left => .statement_start,
+                            .name_right => .edge_right,
+                            .name_link => .edge_link,
+                            else => unreachable,
+                        },
+                    });
+                },
+                .document_name => {
+                    if (!observations.document_name) unreachable;
+                    // A delivered name requires cleanup even before a header's
+                    // opening brace. Scheduling alone must not set this flag.
+                    return self.publish(.document_name, .{
+                        .kind = self.kind,
+                        .strict = self.strict,
+                        .keyword_span = self.keyword_span,
+                        .name = recognizedName(token.span),
+                        .source_info = if (source_metadata) self.control.source_info else enc.sourceInfo(self.tokens.source),
+                    });
+                },
+                .subgraph_name => {
+                    if (!observations.subgraph_name) unreachable;
+                    return self.publish(.subgraph_name, .{ .owner = self.owner(), .keyword_span = self.subgraph_start, .name = recognizedName(token.span), .role = self.subgraph_role });
+                },
+                .head_node, .head_edge, .head_assignment, .head_attributes, .head_node_commit, .head_subgraph_commit => {
+                    if (!observations.statement_head) unreachable;
+                    if (self.publish(.statement_head, .{
+                        .owner = self.owner(),
+                        .start = self.left,
+                        .kind = switch (action) {
+                            .head_node, .head_node_commit => .node,
+                            .head_edge => .edge,
+                            .head_assignment => .assignment,
+                            .head_subgraph_commit => .subgraph,
+                            .head_attributes => switch (self.attribute_target) {
+                                .graph => .graph_attributes,
+                                .node => .node_attributes,
+                                .edge => .edge_attributes,
+                            },
+                            else => unreachable,
+                        },
+                    })) |result| return result;
+                    if (action == .head_node_commit) return self.schedule(.node, token);
+                    if (action == .head_subgraph_commit) return self.schedule(.subgraph_statement, token);
+                    return null;
+                },
+                .preview_pause, .preview_eof, .preview_end_token, .preview_end_failure => return self.dispatchPreview(action),
+                else => unreachable,
+            }
+        }
+
+        fn previewPending(self: *const Self) bool {
+            if (!preview_notifications or (!metered and !cancellable)) return false;
+            return self.work.phase == .dispatch and @backingInt(self.work.action) >= @backingInt(Action.preview_pause);
+        }
+
+        fn previewFailure(self: *Self) bool {
+            if (self.aborted) return false;
+            if (previews.unfinished(&self.tokens, true)) |snapshot| {
+                self.control.preview.snapshot = snapshot;
+                _ = self.schedule(.preview_eof, undefined);
+                return true;
+            }
+            if (self.control.preview.active) {
+                _ = self.schedule(.preview_end_failure, undefined);
+                return true;
+            }
+            return false;
+        }
+
+        inline fn dispatchPreview(self: *Self, pending: Action) Done {
+            if (!preview_notifications) unreachable;
+            const snapshot = self.control.preview.snapshot;
+            switch (pending) {
+                .preview_pause, .preview_eof => {
+                    self.control.preview.active = true;
+                    const context: event_types.PreviewContext = switch (self.state) {
+                        .header_name => .document_name,
+                        .subgraph_name => .subgraph_name,
+                        // An identifier lookahead here starts the next statement.
+                        // The old statement has not committed yet, but does not
+                        // own the new prefix. No new identity is invented.
+                        .statement,
+                        .completed,
+                        .after_identifier,
+                        .edge_terminate,
+                        .chain_after_identifier,
+                        .after_attributes,
+                        .after_subgraph,
+                        .port_after_first,
+                        .port_after_second,
+                        => .statement_start,
+                        .edge_right => .edge_right,
+                        .chain_right => .edge_link,
+                        .attribute_key_or_close, .attribute_after_value => .attribute_key,
+                        .attribute_value => .attribute_value,
+                        .assignment_value => .assignment_value,
+                        .port_first, .port_second => .port,
+                        else => .unknown,
+                    };
+                    if (self.publish(.token_preview, .{
+                        .span = snapshot.span,
+                        .kind = snapshot.kind,
+                        .reason = if (pending == .preview_eof) .eof else .pause,
+                        .scope = self.currentScope(),
+                        .owner = if (context == .statement_start or self.control.active_statement == no_statement) null else .{ .statement = @fromBackingInt(self.control.active_statement), .scope = self.currentScope() },
+                        .source_info = if (source_metadata) self.control.source_info else enc.sourceInfo(self.tokens.source),
+                        .context = context,
+                    })) |result| return result;
+                },
+                .preview_end_token, .preview_end_failure => {
+                    self.control.preview.active = false;
+                    if (self.publish(.token_preview_end, .{ .start = snapshot.span.start, .reason = if (pending == .preview_end_token) .token else .rejected })) |result| return result;
+                },
+                else => unreachable,
+            }
+            if ((metered or cancellable) and pending == .preview_end_token) {
+                if (self.forwardWarning()) return self.done();
+                if (self.processIdentifier(self.work.token)) |result| return result;
+                self.work.phase = .grammar;
+            }
+            if (pending == .preview_eof or pending == .preview_end_failure) {
+                const d = self.tokens.failureDiagnostic();
+                if (self.operatorCandidate(d)) |token| {
+                    if (extents) self.noteToken(token);
+                    if (metered or cancellable) {
+                        self.work.token = token;
+                        self.work.phase = .grammar;
+                    } else return self.transition(token);
+                    return null;
+                }
+                return self.fail(d);
+            }
+            return null;
+        }
+
+        fn retainThrough(self: *Self, end: u32) void {
+            if (coverage and !self.aborted) self.control.coverage.retained_end = @max(self.control.coverage.retained_end, end);
+            if (@hasDecl(Sink, "parser_retention")) Sink.parser_retention.retainThrough(self.events, end);
+        }
+
+        fn closeRoot(self: *Self) void {
+            if (coverage and !self.aborted) self.control.coverage.root_closed = true;
+            if (@hasDecl(Sink, "parser_retention")) Sink.parser_retention.closeRoot(self.events);
+        }
+
+        /// Closing-brace hints must not depend on the output consumer.
+        inline fn noteClose(self: *Self, token: lex.Token) void {
+            if (self.suspect_close == null) {
+                if (leadingIndentEncoded(actual, self.tokens.source, token.span)) |close_indent| {
+                    if (lineIndentEncoded(actual, self.tokens.source, self.open_brace_span.?)) |open_indent| {
+                        if (close_indent < open_indent) self.suspect_close = token.span;
+                    }
+                }
+            }
+        }
+
+        /// Restore the suspended parent statement, even during diagnostics-only
+        /// recovery. Builder-owned entries are ignored after document abort.
+        fn leaveScope(self: *Self, frame: ScopeScratch.Frame) void {
+            self.open_brace_span = frame.parent_open;
+            if (transactional and !self.aborted and self.tracksStatements()) self.control.active_statement = if (frame.edge) |edge| edge.left.start else frame.start.start;
+            if (frame.role == .left) {
+                self.left = frame.start;
+                self.left_scope = if (self.aborted) 0 else @backingInt(frame.id);
+                self.left_port = null;
+                self.pending = .node;
+                self.state = .after_subgraph;
+            } else {
+                const edge = frame.edge.?;
+                self.left = edge.left;
+                self.left_port = edge.left_port;
+                self.left_scope = edge.left_scope;
+                self.right = edge.right;
+                self.right_port = edge.right_port;
+                self.right_scope = edge.right_scope;
+                self.operator = edge.operator;
+                self.operator_span = edge.operator_span;
+                if (frame.role == .right) {
+                    self.right = frame.start;
+                    self.right_port = null;
+                    self.right_scope = if (self.aborted) 0 else @backingInt(frame.id);
+                }
+                self.pending = if (frame.role == .right) .edge else .edge_chain;
+                self.state = .edge_terminate;
+            }
+        }
+
+        fn finish(self: *Self, outcome: Outcome) *const Result {
+            if (self.scratch) |scratch| scratch.len = 0;
+            const result: Result = .{
+                .outcome = outcome,
+                .completion = if (outcome == .success) .complete else .incomplete,
+                .syntax_errors = if (recovery_enabled) self.syntax_errors else @intFromBool(outcome == .invalid_syntax),
+                .diagnostic_delivery = self.delivery,
+                .diagnostic_stop = if (outcome == .diagnostic_stopped) outcome.diagnostic_stopped else null,
+                .accepted_deviations = self.acceptedDeviations(),
+                .warnings = self.warnings,
+            };
+            self.terminal = result;
+            if (metered or cancellable) self.work.phase = .terminal;
+            return &self.terminal.?;
+        }
+
+        /// Acknowledgment is terminal-only; don't keep duplicate running state.
+        fn finishReported(self: *Self, outcome: Outcome, stop: ?diagnostic.StopReason) *const Result {
+            _ = self.finish(outcome);
+            self.terminal.?.diagnostic_stop = stop;
+            return &self.terminal.?;
+        }
+
+        fn finishComplete(self: *Self, outcome: Outcome) *const Result {
+            _ = self.finish(outcome);
+            self.terminal.?.completion = .complete;
+            return &self.terminal.?;
+        }
+
+        inline fn done(self: *Self) Done {
+            return if (self.terminal) |*result| result else null;
+        }
+
+        pub fn syntaxErrors(self: *const Self) u32 {
+            if (self.terminal) |result| return result.syntax_errors;
+            return if (recovery_enabled) self.syntax_errors else 0;
+        }
+
+        /// Report a failure diagnostic through the caller's sink, honoring
+        /// the event lifecycle: abort follows delivered output (including
+        /// opt-in observations before a complete header). Returns null when
+        /// recovery continues (the caller resynchronizes), else the terminal result.
+        fn fail(self: *Self, failure: diagnostic.Diagnostic) Done {
+            var d = failure;
+            if (d.fix == null) d.fix = self.lexicalFix(d);
+            const is_unsupported = failure.code == .profile_unsupported_feature;
+            if (is_unsupported and self.unsupported() == .warning) {
+                d.code = .profile_unsupported_feature_warning;
+                self.warnings += 1;
+            }
+            const stop = self.deliver(d);
+            const reason: event_types.AbortReason = switch (failure.code) {
+                .profile_unsupported_feature => .unsupported_feature,
+                .resource_capacity_exhausted => .resource_exhausted,
+                else => .invalid_syntax,
+            };
+            const at_eof = failure.details == .unexpected and failure.details.unexpected.found == .end_of_input;
+            return self.failClassified(reason, stop, if (recovery_enabled) self.canRecover(is_unsupported, at_eof) else false, failure.span);
+        }
+
+        // Recovery needs the failure class/boundary, not a diagnostic payload.
+        // Silent unsupported input enters here without constructing one.
+        fn failClassified(self: *Self, reason: event_types.AbortReason, stop: ?diagnostic.StopReason, recoverable: bool, span: location.Span) Done {
+            if (recovery_enabled and reason == .invalid_syntax) self.syntax_errors += 1;
+            if (recovery_enabled and (reason == .invalid_syntax or reason == .unsupported_feature) and recoverable) {
+                if (stop) |requested| return self.stopDiagnostics(requested);
+                const already_skipping = self.state == .recovering;
+                if (transactional and !self.aborted and self.continuesAfterError()) {
+                    self.control.rejected = true;
+                    self.control.recovery_start = if (self.control.recovery_start != no_statement) self.control.recovery_start else if (self.control.active_statement != no_statement) self.control.active_statement else span.start;
+                    // Abort is infallible control-flow cleanup, not a charged
+                    // normal callback. Completed nested scope records survive.
+                    if (self.control.active_statement != no_statement) self.events.onAbort(.{ .statement = .{
+                        .owner = .{ .statement = @fromBackingInt(@intCast(self.control.recovery_start)), .scope = self.currentScope() },
+                        .span = .{ .start = self.control.recovery_start, .len = @intCast(@max(if (span.len == enc.width and enc.byteAt(self.tokens.source, span.start) == '}') span.start else span.endOffset(), self.control.recovery_start) - self.control.recovery_start) },
+                        .reason = reason,
+                    } });
+                    self.control.active_statement = no_statement;
+                } else self.abortEvents(reason);
+                // The diagnostic above retains the failed statement's context.
+                // Recovery abandons its attribute list; later findings must use
+                // the current scope or a newly opened list, not this stale '['.
+                self.open_bracket_span = null;
+                if (self.tokens.terminal != .none) self.tokens.resumeAfterFailure();
+                self.state = .recovering;
+                if (!already_skipping) self.skip_depth = 0;
+                return null;
+            }
+            // The terminal cause stays visible; syntax_errors retains earlier
+            // rejection even when a resource or unsupported boundary stops work.
+            const outcome: Outcome = switch (reason) {
+                .invalid_syntax => .invalid_syntax,
+                .unsupported_feature => .unsupported_feature,
+                .resource_exhausted => .resource_exhausted,
+                // `fail` only handles diagnostic-classified failures; event
+                // sink failures route through `sinkFailure` exclusively.
+                .sink_failure, .sink_stopped, .scratch_failure, .cancelled, .diagnostic_stopped, .processor_stopped => unreachable,
+            };
+            self.abortEvents(reason);
+            return self.finishReported(outcome, stop);
+        }
+
+        /// Repairs for scanner failures that need what only the parser
+        /// knows: the document kind and the surrounding text.
+        fn lexicalFix(self: *const Self, d: diagnostic.Diagnostic) ?diagnostic.Fix {
+            switch (d.details) {
+                .invalid_operator => |operator| {
+                    // A lone '-' becomes the operator the document kind
+                    // needs; the scanner already repaired the other shapes.
+                    if (operator.shape != .lone or !self.kindKnown()) return null;
+                    return .{ .span = d.span, .edit = .{ .replace = self.kindOperator() }, .applicability = .machine_applicable };
+                },
+                .invalid_byte => |byte| {
+                    // `=>`: an arrow spelled with '='. The parser has just
+                    // taken the '=' as an assignment, so the two bytes are
+                    // adjacent on one line.
+                    const offset = d.span.start;
+                    if (byte != '>' or offset < enc.width or enc.byteAt(self.tokens.source, offset - enc.width) != '=' or !self.kindKnown()) return null;
+                    var span = d.span;
+                    span.start -= enc.width;
+                    span.len = 2 * enc.width;
+                    return .{ .span = span, .edit = .{ .replace = self.kindOperator() }, .applicability = .maybe };
+                },
+                .unterminated => |construct| {
+                    // Closing at end of input; the intended position is
+                    // unknown, so it is only an offer.
+                    const end: location.Span = .{ .start = @intCast(self.tokens.source.len), .len = 0 };
+                    return .{
+                        .span = end,
+                        .edit = .{
+                            .insert_before = switch (construct) {
+                                .quoted_identifier => .double_quote,
+                                .block_comment => .comment_close,
+                                // The scanner offers this only at depth one.
+                                .html_identifier => return null,
+                            },
+                        },
+                        .applicability = .maybe,
+                    };
+                },
+                else => return null,
+            }
+        }
+
+        /// True once the header has said which kind the document is.
+        fn kindKnown(self: *const Self) bool {
+            return self.state != .prologue and self.state != .kind_keyword;
+        }
+
+        fn kindOperator(self: *const Self) diagnostic.Replacement {
+            return if (self.kind == .digraph) .directed_operator else .undirected_operator;
+        }
+
+        fn recoveredOutcome(self: *const Self) Outcome {
+            if (!recovery_enabled) unreachable;
+            return if (self.syntax_errors != 0) .invalid_syntax else .unsupported_feature;
+        }
+
+        /// Synchronization is body-only: a header has no statement
+        /// boundary to return to, trailing tokens have nothing left to
+        /// parse, and end of input is already the end.
+        fn canRecover(self: *const Self, is_unsupported: bool, at_eof: bool) bool {
+            if (!self.begun) return false;
+            if (self.onError() == .fail_fast and
+                (!is_unsupported or self.unsupported() == .err)) return false;
+            if (self.state == .epilogue) return false;
+            if (at_eof) return false;
+            if (self.tokens.terminal != .none) return switch (self.tokens.terminal) {
+                .oversize, .none, .eof, .block, .quote, .html_unterminated => false,
+                .concat => self.tokens.opener < enc.units(self.tokens.source),
+                // Failures inside a quoted token have no safe restart point.
+                // The scanners would otherwise abandon the rest of the source.
+                .invalid, .operator, .operator_long, .operator_spaced, .numeral => self.tokens.opener == self.tokens.anchor,
+            };
+            return true;
+        }
+
+        fn sinkFailure(self: *Self, err: anyerror) *const Result {
+            // The event sink failed mid-lifecycle; abort so it can release
+            // staged state. `abortDocument` is infallible by contract.
+            self.abortEvents(.sink_failure);
+            return self.finish(.{ .sink_failure = err });
+        }
+
+        fn unexpected(
+            self: *Self,
+            expected: std.enums.EnumFieldStruct(diagnostic.SyntaxItem, bool, false),
+            context: diagnostic.ParseContext,
+            token: lex.Token,
+        ) Done {
+            if (self.fail(self.unexpectedDiagnostic(expected, context, token))) |result| return result;
+            // Recovering: the offending token itself may be the boundary.
+            return self.recover(token);
+        }
+
+        fn unexpectedDiagnostic(
+            self: *Self,
+            expected: std.enums.EnumFieldStruct(diagnostic.SyntaxItem, bool, false),
+            context: diagnostic.ParseContext,
+            token: lex.Token,
+        ) diagnostic.Diagnostic {
+            const found = tokenItem(token.tag);
+            const expected_set = diagnostic.ExpectedSet.init(expected);
+            // A keyword where a name was needed is its own condition: the
+            // word is legal DOT, just reserved, and the fix is to quote it.
+            // Positions that legitimately accept a keyword list it in
+            // `expected`, so this never fires for them.
+            if (keywordOf(found)) |keyword| {
+                // `digraph strict {` is a misplaced modifier, not a name.
+                const misplaced_strict = context == .document_header and found == .strict_keyword;
+                if (expected_set.contains(.identifier) and !expected_set.contains(found) and !misplaced_strict) {
+                    return .{
+                        .code = .syntax_reserved_keyword,
+                        .span = token.span,
+                        .details = .{ .reserved_keyword = .{ .keyword = keyword, .context = context } },
+                        .fix = .{ .span = token.span, .edit = .wrap_in_quotes, .applicability = .machine_applicable },
+                    };
+                }
+            }
+            // `node;`, `edge = red`: an attribute keyword without its list.
+            // The keyword is the likely mistake (a node named `node`), so
+            // the diagnostic marks it rather than the token after it.
+            if (self.state == .attribute_open) {
+                return .{
+                    .code = .syntax_reserved_keyword,
+                    .span = self.left,
+                    .details = .{ .reserved_keyword = .{
+                        .keyword = switch (self.attribute_target) {
+                            .graph => .graph,
+                            .node => .node,
+                            .edge => .edge,
+                        },
+                        .context = .attribute_list,
+                    } },
+                };
+            }
+            const at_end = found == .end_of_input;
+            const missing_port = self.state == .port_first or self.state == .port_second;
+            // The delimiter this failure traces back to (typed relation;
+            // renderers word it). An open `[` list is worth showing when
+            // the token found cannot belong to a list — `a [color=red; }`
+            // fails on the `}` one token after the omission — but not for
+            // a mistake inside a list. A scope's `{` is only informative
+            // at end of input.
+            const related: ?diagnostic.Related = if (at_end and missing_port)
+                .{ .span = self.port_colon, .role = .suffix_started_here }
+            else if (self.open_bracket_span != null and (at_end or !listToken(found)))
+                .{ .span = self.open_bracket_span.?, .role = .opened_here }
+            else if (at_end)
+                (if (self.open_brace_span) |span| .{ .span = span, .role = .opened_here } else null)
+            else
+                null;
+            const suspect: ?diagnostic.Related = if (at_end and !missing_port and self.open_bracket_span == null)
+                (if (self.suspect_close) |span| .{ .span = span, .role = .misindented_close } else null)
+            else
+                null;
+            return .{
+                .code = if (at_end) .syntax_unexpected_end else .syntax_unexpected_token,
+                .span = token.span,
+                .details = .{ .unexpected = .{
+                    .expected = expected_set,
+                    .found = found,
+                    .context = context,
+                    .related = related,
+                    .suspect = suspect,
+                } },
+                .fix = self.unexpectedFix(context, found, expected_set, token, related, suspect),
+            };
+        }
+
+        /// The repair for an unexpected token, when one is known. Machine-
+        /// applicable only where the edit is the single reading of the
+        /// mistake; a plausible repair among several is `maybe`.
+        fn unexpectedFix(
+            self: *const Self,
+            context: diagnostic.ParseContext,
+            found: diagnostic.SyntaxItem,
+            expected: diagnostic.ExpectedSet,
+            token: lex.Token,
+            related: ?diagnostic.Related,
+            suspect: ?diagnostic.Related,
+        ) ?diagnostic.Fix {
+            const here = token.span;
+            const machine: diagnostic.Applicability = .machine_applicable;
+            const maybe: diagnostic.Applicability = .maybe;
+            if (found == .end_of_input) {
+                // Close what is open. A missing ']' has one place to go;
+                // a missing '}' too, unless a misindented brace suggests
+                // the omission is somewhere above.
+                const opener = related orelse return null;
+                if (opener.role != .opened_here) return null;
+                if (self.open_bracket_span != null) {
+                    return .{ .span = here, .edit = .{ .insert_before = .right_bracket }, .applicability = machine };
+                }
+                return .{ .span = here, .edit = .{ .insert_before = .right_brace }, .applicability = if (suspect == null) machine else maybe };
+            }
+            return switch (context) {
+                .document_body => switch (found) {
+                    .semicolon => .{ .span = here, .edit = .delete, .applicability = machine },
+                    else => null,
+                },
+                .document_epilogue => switch (found) {
+                    .right_brace => .{ .span = here, .edit = .delete, .applicability = machine },
+                    else => null,
+                },
+                .statement => switch (found) {
+                    .comma => .{ .span = here, .edit = .{ .replace = .semicolon }, .applicability = maybe },
+                    else => null,
+                },
+                .edge_endpoint => switch (found) {
+                    .undirected_operator, .directed_operator => .{ .span = here, .edit = .delete, .applicability = machine },
+                    else => null,
+                },
+                .attribute_key => switch (found) {
+                    .comma, .semicolon => .{ .span = here, .edit = .delete, .applicability = machine },
+                    .identifier => .{ .span = self.attribute_key, .edit = .{ .insert_after = .equals }, .applicability = maybe },
+                    else => if (listToken(found)) null else .{ .span = here, .edit = .{ .insert_before = .right_bracket }, .applicability = maybe },
+                },
+                .attribute_list => if (listToken(found)) null else .{ .span = here, .edit = .{ .insert_before = .right_bracket }, .applicability = maybe },
+                .port_component => switch (found) {
+                    .colon => .{ .span = here, .edit = .delete, .applicability = maybe },
+                    else => null,
+                },
+                .document_header => switch (found) {
+                    .identifier => if (expected.contains(.digraph_keyword))
+                        (if (headerKeywordSuggestionEncoded(actual, here.slice(self.tokens.source))) |keyword|
+                            diagnostic.Fix{ .span = here, .edit = .{ .replace = keyword }, .applicability = maybe }
+                        else
+                            null)
+                    else if (expected.contains(.left_brace) and !expected.contains(.identifier))
+                        .{ .span = here, .edit = .{ .insert_before = .left_brace }, .applicability = maybe }
+                    else
+                        null,
+                    else => null,
+                },
+                else => null,
+            };
+        }
+
+        fn unsupportedAt(self: *Self, span: location.Span, feature: diagnostic.Feature) Done {
+            if (self.unsupported() == .silent)
+                return self.failClassified(.unsupported_feature, null, if (recovery_enabled) self.canRecover(true, false) else false, span);
+            return self.fail(.{
+                .code = .profile_unsupported_feature,
+                .span = span,
+                .details = .{ .unsupported_feature = feature },
+            });
+        }
+    };
+}
+
+fn nodeEndExpected(unqualified: bool) std.enums.EnumFieldStruct(diagnostic.SyntaxItem, bool, false) {
+    var expected = edgeEndExpected(unqualified);
+    expected.equals = unqualified;
+    return expected;
+}
+
+fn edgeEndExpected(port_allowed: bool) std.enums.EnumFieldStruct(diagnostic.SyntaxItem, bool, false) {
+    var expected = statementEndExpected(true);
+    expected.undirected_operator = true;
+    expected.directed_operator = true;
+    expected.colon = port_allowed;
+    return expected;
+}
+
+fn statementEndExpected(brackets: bool) std.enums.EnumFieldStruct(diagnostic.SyntaxItem, bool, false) {
+    return .{
+        .semicolon = true,
+        .identifier = true,
+        .right_brace = true,
+        .left_bracket = brackets,
+        .left_brace = true,
+        .graph_keyword = true,
+        .node_keyword = true,
+        .edge_keyword = true,
+        .subgraph_keyword = true,
+    };
+}
+
+/// Map lexer token tags into the stable diagnostic vocabulary; diagnostics
+/// must not depend on lexer types (dependency direction).
+fn tokenItem(tag: lex.Token.Tag) diagnostic.SyntaxItem {
+    return switch (tag) {
+        .comment_slash_line, .comment_block, .comment_hash_line => unreachable,
+        .keyword_graph => .graph_keyword,
+        .keyword_digraph => .digraph_keyword,
+        .keyword_strict => .strict_keyword,
+        .keyword_subgraph => .subgraph_keyword,
+        .keyword_node => .node_keyword,
+        .keyword_edge => .edge_keyword,
+        .identifier => .identifier,
+        .edge_undirected => .undirected_operator,
+        .edge_directed => .directed_operator,
+        .left_brace => .left_brace,
+        .right_brace => .right_brace,
+        .semicolon => .semicolon,
+        .colon => .colon,
+        .eof => .end_of_input,
+        .left_bracket => .left_bracket,
+        .right_bracket => .right_bracket,
+        .equals => .equals,
+        .comma => .comma,
+    };
+}
+
+/// A header keyword within edit distance two of `text`, for the "did you
+/// mean" repair. Conservative on purpose: short or very different text
+/// gets no guess, and only the keywords legal in a header are candidates.
+fn headerKeywordSuggestionEncoded(comptime actual: @import("parser_support").encoding.Actual, raw: []const u8) ?diagnostic.Replacement {
+    var buffer: [12]u8 = undefined;
+    const text = @import("parser_support").encoding.Reader(actual).asciiInto(raw, &buffer) orelse return null;
+    if (text.len < 3 or text.len > 12) return null;
+    var lowered: [12]u8 = undefined;
+    for (text, 0..) |byte, i| lowered[i] = std.ascii.toLower(byte);
+    const candidate = lowered[0..text.len];
+    var best: ?diagnostic.Replacement = null;
+    var best_distance: usize = 3;
+    for ([_]diagnostic.Replacement{ .graph_keyword, .digraph_keyword, .strict_keyword }) |keyword| {
+        const distance = editDistance(candidate, keyword.text());
+        if (distance < best_distance) {
+            best_distance = distance;
+            best = keyword;
+        }
+    }
+    return best;
+}
+
+/// Levenshtein distance over two short ASCII strings (both at most 12 bytes).
+fn editDistance(a: []const u8, b: []const u8) usize {
+    var previous: [13]usize = undefined;
+    var current: [13]usize = undefined;
+    for (0..b.len + 1) |j| previous[j] = j;
+    for (a, 0..) |byte_a, i| {
+        current[0] = i + 1;
+        for (b, 0..) |byte_b, j| {
+            const substitution = previous[j] + @intFromBool(byte_a != byte_b);
+            current[j + 1] = @min(@min(previous[j + 1] + 1, current[j] + 1), substitution);
+        }
+        @memcpy(previous[0 .. b.len + 1], current[0 .. b.len + 1]);
+    }
+    return previous[b.len];
+}
+
+/// Tokens that can appear inside an attribute list.
+fn listToken(item: diagnostic.SyntaxItem) bool {
+    return switch (item) {
+        .identifier, .comma, .semicolon, .equals, .right_bracket => true,
+        else => false,
+    };
+}
+
+fn keywordOf(item: diagnostic.SyntaxItem) ?diagnostic.Keyword {
+    return switch (item) {
+        .graph_keyword => .graph,
+        .digraph_keyword => .digraph,
+        .strict_keyword => .strict,
+        .subgraph_keyword => .subgraph,
+        .node_keyword => .node,
+        .edge_keyword => .edge,
+        else => null,
+    };
+}
+
+/// Longest line prefix the indentation heuristic will inspect. A `}` (or an
+/// opener) further into its line than this is not "indented", and bounding
+/// the scan keeps every scope exit a constant-cost step (R-PERF-001).
+const max_indent_scan = 128;
+
+/// The indentation of `span`'s line when `span` is the first non-blank
+/// text on it: the number of leading spaces and tabs. Null otherwise.
+fn leadingIndentEncoded(comptime actual: @import("parser_support").encoding.Actual, source: []const u8, span: location.Span) ?usize {
+    const enc = @import("parser_support").encoding.Reader(actual);
+    // Walk back from the span: the first non-blank byte settles it at once,
+    // so a brace deep inside a dense line costs one byte read, and only a
+    // genuinely indented one pays for its indentation (bounded).
+    var start: usize = span.start;
+    while (start > 0) {
+        const byte = enc.byteAt(source, start - enc.width);
+        if (byte == '\n' or byte == '\r') break;
+        if (byte != ' ' and byte != '\t') return null;
+        if (span.start - start >= max_indent_scan * enc.width) return null;
+        start -= enc.width;
+    }
+    return (span.start - start) / enc.width;
+}
+
+/// The offset where `offset`'s line begins, or null when that is more than
+/// `max_indent_scan` bytes back. Same terminators as `location`: LF, CR.
+fn lineStartEncoded(comptime actual: @import("parser_support").encoding.Actual, source: []const u8, offset: usize) ?usize {
+    const enc = @import("parser_support").encoding.Reader(actual);
+    var start = offset;
+    while (start > 0 and enc.byteAt(source, start - enc.width) != '\n' and enc.byteAt(source, start - enc.width) != '\r') {
+        if (offset - start >= max_indent_scan * enc.width) return null;
+        start -= enc.width;
+    }
+    return start;
+}
+
+/// The indentation of `span`'s line (its first non-blank column), whatever
+/// precedes `span` on that line. Null when the prefix exceeds the bound.
+fn lineIndentEncoded(comptime actual: @import("parser_support").encoding.Actual, source: []const u8, span: location.Span) ?usize {
+    const enc = @import("parser_support").encoding.Reader(actual);
+    const line_start = lineStartEncoded(actual, source, span.start) orelse return null;
+    var indent: usize = 0;
+    var at = line_start;
+    while (at < span.start) : (at += enc.width) {
+        const byte = enc.byteAt(source, at);
+        if (byte != ' ' and byte != '\t') break;
+        indent += 1;
+    }
+    return indent;
+}
+
+// ---------------------------------------------------------------------------
+// Tests
+// ---------------------------------------------------------------------------
+
+/// Shared unit-test driver for event-sink assertions, using the current machine
+/// and resolved policy schema. It is not present in consumer builds.
+pub const testing = if (@import("builtin").is_test) struct {
+    pub fn run(source: []const u8, events: anytype, diagnostics: diagnostic.Sink, settings: policy.ParseSettings, scratch: ?*scratch_impl.For(event_types.Context(@typeInfo(@TypeOf(events)).pointer.child)).Stack) Result {
+        var machine: Machine(@TypeOf(events), false, false, false, scalar_lex.Scanner, null) = .{
+            .tokens = scalar_lex.Scanner(false, false, null).init(source),
+            .events = events,
+            .diagnostics = diagnostics,
+            .settings = settings,
+            .scratch = scratch,
+        };
+        return machine.runToCompletion();
+    }
+} else struct {};
+
+const expect = std.testing.expect;
+const expectEqual = std.testing.expectEqual;
+const expectEqualStrings = std.testing.expectEqualStrings;
+
+const Recording = @import("event_test.zig").RecordingSink(16);
+const Bag = diagnostic.FixedBag(4);
+
+test "chain dispatch failures preserve budget accounting and terminal cleanup" {
+    const source = "digraph {a->b->c->d[x=1] z->q->r}";
+    const total = try checkBudgetPartition(scalar_lex.Scanner, source, &.{1}, .{}, null, false);
+    try expectEqual(total, try checkBudgetPartition(scalar_lex.Scanner, source, &.{ 0, 3, 17 }, .{}, null, false));
+    // begin, two links, attribute, owner, link, owner, commit.
+    for (0..8) |at| _ = try checkBudgetPartition(scalar_lex.Scanner, source, &.{ 0, 1, 5 }, .{}, at, false);
+}
+
+const CancellationProbe = struct {
+    flag: bool = false,
+    polls: usize = 0,
+    fn hook(self: *@This()) execution.Cancellation {
+        return .{ .context = self, .is_requested = poll };
+    }
+    fn poll(context: ?*anyopaque) bool {
+        const self: *@This() = @ptrCast(@alignCast(context.?));
+        self.polls += 1;
+        return self.flag;
+    }
+};
+
+test "cancellation during successful and failed events preserves terminal precedence" {
+    const source = "graph {a[x=1][y=2] node[] z=3 a--b[w=4]}";
+    inline for (.{ false, true }) |fails| for (0..9) |at| {
+        var request: CancellationProbe = .{};
+        var events: BudgetSink = .{ .cancel_flag = &request.flag, .cancel_at = at, .fail_at = if (fails) at else null };
+        var diags: BudgetDiagnostics = .{};
+        var machine: Machine(*BudgetSink, true, true, true, scalar_lex.Scanner, null) = .{
+            .tokens = scalar_lex.Scanner(true, true, null).init(source),
+            .events = &events,
+            .diagnostics = diags.sink(),
+
+            .cancellation = request.hook(),
+        };
+        const progress = machine.advance(std.math.maxInt(usize));
+        const outcome = progress.result.?.outcome;
+        if (fails) {
+            try expect(outcome == .sink_failure);
+        } else if (at == 8) {
+            try expect(outcome == .success); // Commit wins immediately.
+        } else {
+            try expect(outcome == .cancelled);
+        }
+        try expectEqual(at + 1, events.attempts);
+        try expectEqual(@as(usize, if (!fails and at == 8) 0 else 1), events.aborts);
+        try expectEqual(@as(usize, 0), diags.attempts);
+        try expectEqual(progress.work_used, machine.tokens.examinations + machine.control.grammar + machine.control.dispatch);
+        try expect(request.polls <= progress.work_used + 1);
+        const polls = request.polls;
+        _ = machine.advance(0);
+        _ = machine.cancel();
+        try expectEqual(polls, request.polls);
+    };
+}
+
+test "cancellation can stop every lexical continuation and execution phase" {
+    const Scanner = scalar_lex.Scanner(true, true, null);
+    const State = @FieldType(Scanner, "state");
+    var states = std.EnumSet(State).empty;
+    var phases = std.EnumSet(Phase).empty;
+    const sources = [_][]const u8{
+        " \r\n#x\r//y\n/*z**/graph {a;}",
+        "graph {a\xff;}",
+        "graph {<<a>text</a>> + \"x\";}",
+        "graph {-1.2 -.5 .1 1->2 3--4 5-->6}",
+        "graph {7 - > 8}",
+        "graph {a---1 a---.5}",
+        "graph {\"a\\\"b\" /*glue*/ + \"c\" [x=y] }",
+    };
+    for (sources) |source| for (0..source.len * 4 + 16) |budget| {
+        var request: CancellationProbe = .{};
+        var events: BudgetSink = .{};
+        var machine: Machine(*BudgetSink, true, true, true, scalar_lex.Scanner, null) = .{
+            .tokens = Scanner.init(source),
+            .events = &events,
+            .diagnostics = diagnostic.discard,
+            .settings = .{ .on_error = .fail_fast },
+            .cancellation = request.hook(),
+        };
+        const before = machine.advance(budget);
+        if (before.result != null) continue;
+        states.insert(machine.tokens.state);
+        phases.insert(before.phase);
+        const begun = machine.begun;
+        const attempts = events.attempts;
+        const reads = machine.tokens.examinations;
+        request.flag = true;
+        const cancelled = machine.advance(0);
+        try expect(cancelled.result.?.outcome == .cancelled);
+        try expectEqual(@as(usize, 0), cancelled.work_used);
+        try expectEqual(attempts, events.attempts);
+        try expectEqual(reads, machine.tokens.examinations);
+        try expectEqual(@as(usize, if (begun) 1 else 0), events.aborts);
+    };
+    var expected_states = std.EnumSet(State).full;
+    expected_states.remove(.ready);
+    try expectEqual(expected_states, states);
+    var expected_phases = std.EnumSet(Phase).full;
+    expected_phases.remove(.terminal);
+    try expectEqual(expected_phases, phases);
+}
+
+test "late cancellation from a rejected syntax diagnostic does not mask failure" {
+    const Reporter = struct {
+        request: *CancellationProbe,
+        emits: usize = 0,
+        fn emit(context: ?*anyopaque, _: diagnostic.Diagnostic) diagnostic.SinkError!diagnostic.Action {
+            const self: *@This() = @ptrCast(@alignCast(context.?));
+            self.emits += 1;
+            self.request.flag = true;
+            return error.DiagnosticSinkFailure;
+        }
+    };
+    var request: CancellationProbe = .{};
+    var reporter: Reporter = .{ .request = &request };
+    var events: BudgetSink = .{};
+    var machine: Machine(*BudgetSink, true, true, true, scalar_lex.Scanner, null) = .{
+        .tokens = scalar_lex.Scanner(true, true, null).init("graph {a[x=]}"),
+        .events = &events,
+        .diagnostics = .{ .context = &reporter, .emit_fn = Reporter.emit },
+        .settings = .{ .on_error = .fail_fast },
+        .cancellation = request.hook(),
+    };
+    while (machine.advance(1).result == null) {}
+    try expect(machine.terminal.?.outcome == .invalid_syntax);
+    try expectEqual(DiagnosticDelivery.failed, machine.terminal.?.diagnostic_delivery);
+    try expectEqual(@as(usize, 1), events.aborts);
+    try expectEqual(@as(usize, 1), reporter.emits);
+    try expect(machine.cancel().outcome == .invalid_syntax);
+}
+
+test "diagnostic stop aborts output once and does not resume recovery or dispatch" {
+    for ([_][]const u8{ "graph { ; a; }", "graph { a -> ; b -> ; c; }" }) |source| {
+        var events: BudgetSink = .{};
+        var bag: diagnostic.FixedBag(1) = .{};
+        var machine: Machine(*BudgetSink, true, true, false, scalar_lex.Scanner, null) = .{
+            .tokens = scalar_lex.Scanner(true, true, null).init(source),
+            .events = &events,
+            .diagnostics = bag.sink(),
+            .settings = .{ .syntax = policy.resolve(policy.defaults, policy.presets.lenient).parsing.syntax, .on_error = .collect },
+        };
+        while (machine.advance(1).result == null) {}
+        const first = machine.terminal.?;
+        try expect(first.outcome == .diagnostic_stopped);
+        try expectEqual(@as(usize, 1), events.aborts);
+        const attempts = events.attempts;
+        const reads = machine.tokens.examinations;
+        try std.testing.expectEqualDeep(first, machine.runToCompletion());
+        try expectEqual(@as(usize, 0), machine.advance(99).work_used);
+        try std.testing.expectEqualDeep(first, machine.cancel());
+        try expectEqual(attempts, events.attempts);
+        try expectEqual(reads, machine.tokens.examinations);
+        try expectEqual(@as(usize, 1), bag.items().len);
+    }
+}
+
+// Independent probes count attempted callouts, not just accepted records.
+const BudgetSink = struct {
+    records: [128]@import("event_test.zig").Record = undefined,
+    len: usize = 0,
+    attempts: usize = 0,
+    aborts: usize = 0,
+    statements: usize = 0,
+    pairs: usize = 0,
+    fail_at: ?usize = null,
+    cancel_flag: ?*bool = null,
+    cancel_at: ?usize = null,
+
+    fn record(self: *@This(), event: @import("event_test.zig").Record) !void {
+        const attempt = self.attempts;
+        self.attempts += 1;
+        if (self.cancel_at == attempt) self.cancel_flag.?.* = true;
+        if (self.fail_at == attempt) return error.Refused;
+        self.records[self.len] = event;
+        self.len += 1;
+        switch (event.event) {
+            .commit_assignment => {
+                self.statements += 1;
+                self.pairs += 1;
+            },
+            .commit_node, .commit_edge, .commit_edge_chain, .commit_subgraph, .commit_attribute_statement => self.statements += 1,
+            .attribute => self.pairs += 1,
+            else => {},
+        }
+    }
+    pub const wants_begin_statement = false;
+    pub const recover_statements = false;
+    pub fn onEvent(self: *@This(), value: event_types.Event) !event_types.Action {
+        try self.record(.{ .event = value });
+        return .proceed;
+    }
+    pub fn onAbort(self: *@This(), value: event_types.Abort) void {
+        self.aborts += 1;
+        self.records[self.len] = .{ .abort = value };
+        self.len += 1;
+    }
+};
+
+const BudgetDiagnostics = struct {
+    bag: Bag = .{},
+    attempts: usize = 0,
+    /// Warnings ride along with tokens mid-parse; failures are terminal.
+    warnings: usize = 0,
+    reject: bool = false,
+    fn sink(self: *@This()) diagnostic.Sink {
+        return .{ .context = self, .emit_fn = emit };
+    }
+    fn failures(self: *const @This()) usize {
+        return self.attempts - self.warnings;
+    }
+    fn emit(context: ?*anyopaque, item: diagnostic.Diagnostic) diagnostic.SinkError!diagnostic.Action {
+        const self: *@This() = @ptrCast(@alignCast(context.?));
+        self.attempts += 1;
+        if (item.code.severity() == .warning) self.warnings += 1;
+        if (self.reject) return error.DiagnosticSinkFailure;
+        return self.bag.sink().emit(item);
+    }
+};
+
+fn checkBudgetPartition(comptime ScannerOf: fn (comptime bool, comptime bool, comptime ?bool) type, source: []const u8, budgets: []const usize, settings: policy.ParseSettings, fail_at: ?usize, reject: bool) !usize {
+    var reference_frames: scratch_impl.For(void).Fixed(.{ .nesting = 32 }) = .{};
+    var frames: scratch_impl.For(void).Fixed(.{ .nesting = 32 }) = .{};
+    var reference_stack: scratch_impl.For(void).Stack = .{ .frames = reference_frames.storage().frames };
+    var stack: scratch_impl.For(void).Stack = .{ .frames = frames.storage().frames };
+    var reference: BudgetSink = .{ .fail_at = fail_at };
+    var reference_diags: BudgetDiagnostics = .{ .reject = reject };
+    const expected = testing.run(source, &reference, reference_diags.sink(), settings, &reference_stack);
+    var events: BudgetSink = .{ .fail_at = fail_at };
+    var diags: BudgetDiagnostics = .{ .reject = reject };
+    var machine: Machine(*BudgetSink, true, true, false, ScannerOf, null) = .{
+        .tokens = ScannerOf(true, true, null).init(source),
+        .events = &events,
+        .diagnostics = diags.sink(),
+        .settings = settings,
+        .scratch = &stack,
+    };
+    var calls: usize = 0;
+    var total: usize = 0;
+    var frontier: usize = 0;
+    while (true) : (calls += 1) {
+        try expect(calls <= 16 * source.len + 128);
+        const budget = budgets[calls % budgets.len];
+        const reads = machine.tokens.examinations;
+        const grammar = machine.control.grammar;
+        const dispatch = machine.control.dispatch;
+        const attempts = events.attempts;
+        const aborts = events.aborts;
+        const diagnostics = diags.failures();
+        const before = machine.progress(0);
+        const progress = machine.advance(budget);
+        const examined = machine.tokens.examinations - reads;
+        try expectEqual(progress.work_used, examined + (machine.control.grammar - grammar) + (machine.control.dispatch - dispatch));
+        // After a recovered failure, dispatches keep the grammar's own
+        // bookkeeping without attempting events, and several failures can
+        // fall inside one budget; the end-state comparisons below still hold.
+        const recovering = settings.on_error == .collect;
+        if (!recovering) try expectEqual(machine.control.dispatch - dispatch, events.attempts - attempts);
+        try expect(progress.work_used <= budget);
+        try expect(examined <= progress.work_used);
+        try expect(progress.source_frontier >= frontier);
+        try expect(progress.source_frontier <= source.len);
+        try expectEqual(events.statements, progress.completed_statements);
+        try expectEqual(events.pairs, progress.completed_pairs);
+        if (budget == 0) try std.testing.expectEqualDeep(before, progress);
+        if (progress.result == null) {
+            if (!recovering) try expectEqual(aborts, events.aborts);
+            if (!recovering) try expectEqual(diagnostics, diags.failures());
+            if (budget != 0) try expect(progress.work_used != 0);
+        } else {
+            try expect(events.aborts - aborts <= 1);
+            if (!recovering) try expect(diags.failures() - diagnostics <= 1);
+        }
+        total += progress.work_used;
+        frontier = progress.source_frontier;
+        if (progress.result) |result| {
+            try std.testing.expectEqualDeep(expected, result);
+            try expectEqual(Phase.terminal, progress.phase);
+            break;
+        }
+    }
+    try std.testing.expectEqualDeep(reference.records[0..reference.len], events.records[0..events.len]);
+    try std.testing.expectEqualDeep(reference_diags.bag.items(), diags.bag.items());
+    try expectEqual(reference.attempts, events.attempts);
+    try expectEqual(reference.aborts, events.aborts);
+    try expectEqual(reference_diags.attempts, diags.attempts);
+    const stopped = machine.progress(0);
+    const stopped_reads = machine.tokens.examinations;
+    const stopped_audit = machine.control;
+    inline for (.{ 0, 1, std.math.maxInt(usize) }) |budget| {
+        try std.testing.expectEqualDeep(stopped, machine.advance(budget));
+        try expectEqual(stopped_reads, machine.tokens.examinations);
+        try std.testing.expectEqualDeep(stopped_audit, machine.control);
+        try expectEqual(reference.attempts, events.attempts);
+        try expectEqual(reference.aborts, events.aborts);
+        try expectEqual(reference_diags.attempts, diags.attempts);
+    }
+    return total;
+}
+
+test "numeral policy is partition invariant including failure and recovery" {
+    inline for (.{ scalar_lex.Scanner, block_lex.Scanner }) |ScannerOf| {
+        for ([_]policy.RuleSeverity{ .err, .warning, .off }) |severity| {
+            for ([_]policy.OnError{ .fail_fast, .collect }) |recovery_mode| {
+                const settings: policy.ParseSettings = .{ .ambiguous_numeral = severity, .on_error = recovery_mode };
+                const source = "graph { 1e3; { 1.2.3; a } 2z; }";
+                const total = try checkBudgetPartition(ScannerOf, source, &.{1}, settings, null, false);
+                try expectEqual(total, try checkBudgetPartition(ScannerOf, source, &.{ 0, 3, 17 }, settings, null, false));
+                _ = try checkBudgetPartition(ScannerOf, source, &.{ 0, 1, 5 }, settings, null, true);
+                for (0..source.len + 1) |end| _ = try checkBudgetPartition(ScannerOf, source[0..end], &.{ 0, 1, 3 }, settings, null, false);
+                for (0..4) |at| _ = try checkBudgetPartition(ScannerOf, source, &.{ 0, 1, 5 }, settings, at, false);
+            }
+        }
+    }
+}
+
+test "lenient syntax partitions preserve events counters diagnostics and charged work" {
+    const settings = policy.resolve(policy.defaults, policy.presets.lenient).parsing;
+    const source = "graph { ; { ; a:p:e --- b:q - c:r } - { d } --- e -- f; ; }";
+    inline for (.{ scalar_lex.Scanner, block_lex.Scanner }) |ScannerOf| {
+        const total = try checkBudgetPartition(ScannerOf, source, &.{1}, settings, null, false);
+        try expectEqual(total, try checkBudgetPartition(ScannerOf, source, &.{ 0, 3, 17 }, settings, null, false));
+        _ = try checkBudgetPartition(ScannerOf, source, &.{ 0, 1, 5 }, settings, null, true);
+        // Every prefix terminates identically, including incomplete operators,
+        // ports, subgraphs, and right endpoints after an accepted deviation.
+        for (0..source.len + 1) |end|
+            _ = try checkBudgetPartition(ScannerOf, source[0..end], &.{ 0, 1, 3 }, settings, null, false);
+        var events: BudgetSink = .{};
+        var frames: scratch_impl.For(void).Fixed(.{ .nesting = 32 }) = .{};
+        var stack: scratch_impl.For(void).Stack = .{ .frames = frames.storage().frames };
+        try expect(testing.run(source, &events, diagnostic.discard, settings, &stack).outcome == .success);
+        for (0..events.attempts) |index|
+            _ = try checkBudgetPartition(ScannerOf, source, &.{ 0, 1, 5 }, settings, index, false);
+        var recovering = settings;
+        recovering.on_error = .collect;
+        _ = try checkBudgetPartition(ScannerOf, "graph { ; a[x=]; ; b --- c; d - > e; ; }", &.{ 0, 1, 5 }, recovering, null, false);
+    }
+}
+
+test "fixed standard syntax excludes acceptance storage and keeps scanner layout" {
+    const Standard = Machine(*BudgetSink, false, false, false, scalar_lex.Scanner, policy.defaults.parsing);
+    const Lenient = Machine(*BudgetSink, false, false, false, scalar_lex.Scanner, policy.resolve(policy.defaults, policy.presets.lenient).parsing);
+    try expect(@FieldType(Standard, "deviations") == void);
+    try expect(@FieldType(Lenient, "deviations") == u32);
+    try expect(@FieldType(Standard, "tokens") == @FieldType(Lenient, "tokens"));
+    try expect(@FieldType(Standard, "settings") == void);
+    try expect(@FieldType(Lenient, "settings") == void);
+}
+
+test "metered parser partitions preserve events diagnostics and independent work accounting" {
+    const sources = [_][]const u8{
+        "graph{}",                                                         "strict digraph named { a b; c->d; e--f }",
+        "graph { a[x=1][y=2] node[] z=3 a--b[w=4] graph[k=v] edge[k=v] }", "#line\n/* pre */graph { \"a\" + /* gap */ \"b\"[x=\"v\\\"q\" y=-.5] // tail\r\n }",
+        "",                                                                "graph {",
+        "graph {a[x=]}",                                                   "graph {a[x=1 y=]}",
+        "graph {a[x=1] @}",                                                "graph {a--b--c}",
+        "graph {subgraph {}}",                                             "graph { a:port }",
+        "digraph {a:p:e->b:q->c:0[x=1]}",                                  "graph {a:p:}",
+        "graph {a:p:q:r}",                                                 "graph {<html}",
+        "graph {/*",                                                       "graph {\"unterminated",
+        "graph{} /*",                                                      "digraph { a-> }",
+    };
+    for (sources) |source| {
+        const total = try checkBudgetPartition(scalar_lex.Scanner, source, &.{std.math.maxInt(usize)}, .{}, null, false);
+        try expectEqual(total, try checkBudgetPartition(scalar_lex.Scanner, source, &.{1}, .{}, null, false));
+        try expectEqual(total, try checkBudgetPartition(scalar_lex.Scanner, source, &.{2}, .{}, null, false));
+        try expectEqual(total, try checkBudgetPartition(scalar_lex.Scanner, source, &.{ 0, 1, 3, 0, 7, 2 }, .{}, null, false));
+    }
+}
+
+test "metered parser every prefix and callback failure preserve lifecycle" {
+    const source = "strict digraph \"g\" { a[x=1][y=2] node[] z=3 a->b[w=\"v\"+\"x\"] }";
+    for (0..source.len + 1) |end| {
+        _ = try checkBudgetPartition(scalar_lex.Scanner, source[0..end], &.{ 0, 1, 2 }, .{}, null, false);
+    }
+    // Includes failed begin, all payload variants, and failed commit.
+    for (0..9) |index| {
+        _ = try checkBudgetPartition(scalar_lex.Scanner, source, &.{1}, .{}, index, false);
+        _ = try checkBudgetPartition(scalar_lex.Scanner, source, &.{ 0, 3, 7 }, .{}, index, false);
+    }
+    _ = try checkBudgetPartition(scalar_lex.Scanner, "graph {a[x=]}", &.{1}, .{}, null, true);
+    _ = try checkBudgetPartition(scalar_lex.Scanner, "@", &.{1}, .{}, null, true);
+}
+
+test "ported reference callback failures preserve lifecycle and accounting" {
+    const source = "digraph {a:p:e[x=1] a:q->b:r->c:s:w[k=v]}";
+    var events: BudgetSink = .{};
+    try expect(testing.run(source, &events, diagnostic.discard, .{}, null).outcome == .success);
+    for (0..events.attempts) |index| {
+        _ = try checkBudgetPartition(scalar_lex.Scanner, source, &.{1}, .{}, index, false);
+        _ = try checkBudgetPartition(scalar_lex.Scanner, source, &.{ 0, 3, 7 }, .{}, index, false);
+    }
+}
+
+test "metered parser capacities remain output limits not work budgets" {
+    inline for (.{ 0, 1, 2 }) |limit| {
+        _ = try checkBudgetPartition(scalar_lex.Scanner, "graph { a[x=1] b[y=2] c=z }", &.{1}, .{ .limits = .{ .max_statements = limit } }, null, false);
+        _ = try checkBudgetPartition(scalar_lex.Scanner, "graph { a[x=1] b[y=2] c=z }", &.{ 0, 2, 9 }, .{ .limits = .{ .max_attributes = limit } }, null, false);
+    }
+}
+
+test "metered parser yields before begin pair owner and commit dispatch" {
+    var events: BudgetSink = .{};
+    var machine: Machine(*BudgetSink, true, true, false, scalar_lex.Scanner, null) = .{
+        .tokens = scalar_lex.Scanner(true, true, null).init("graph {a[x=1]}"),
+        .events = &events,
+        .diagnostics = diagnostic.discard,
+    };
+    var dispatches: usize = 0;
+    while (machine.terminal == null) {
+        if (machine.work.phase == .dispatch) {
+            const before = events.attempts;
+            const pending = machine.work.action;
+            if (pending == .begin) try expect(!machine.begun);
+            if (pending == .node) {
+                try expectEqual(@as(usize, 1), machine.work.completed_pairs);
+                try expectEqual(@as(usize, 0), machine.work.completed_statements);
+            }
+            try expectEqual(@as(usize, 0), machine.advance(0).work_used);
+            try expectEqual(before, events.attempts);
+            const result = machine.advance(1);
+            try expectEqual(before + 1, events.attempts);
+            if (pending == .commit) try expect(result.result.?.outcome == .success);
+            dispatches += 1;
+        } else _ = machine.advance(1);
+    }
+    try expectEqual(@as(usize, 4), dispatches);
+}
+
+test "metered parser yields inside megabyte trivia and attribute values" {
+    const n = 1024 * 1024;
+    const source = try std.testing.allocator.alloc(u8, n + 32);
+    defer std.testing.allocator.free(source);
+    const cases = .{
+        .{ "graph {/*", "*/}", 'a' },
+        .{ "graph {a[x=\"", "\"]}", 'a' },
+        .{ "graph {", "}", ' ' },
+        .{ "graph {a:\"", "\":e->b:p}", 'a' },
+    };
+    inline for (cases) |parts| {
+        @memcpy(source[0..parts[0].len], parts[0]);
+        @memset(source[parts[0].len..][0..n], parts[2]);
+        @memcpy(source[parts[0].len + n ..][0..parts[1].len], parts[1]);
+        _ = try checkBudgetPartition(scalar_lex.Scanner, source[0 .. parts[0].len + n + parts[1].len], &.{1}, .{}, null, false);
+    }
+}
+
+test "ordinary parser compiles out pending work and audit storage" {
+    const Ordinary = Machine(*BudgetSink, false, false, false, scalar_lex.Scanner, null);
+    try expect(@FieldType(Ordinary, "work") == void);
+    try expect(@FieldType(Ordinary, "control") == void);
+    try expect(@FieldType(scalar_lex.Scanner(false, false, null), "source_frontier") == void);
+    try expect(@sizeOf(Machine(*BudgetSink, false, false, false, scalar_lex.Scanner, null)) <= 512);
+    try expect(@sizeOf(Machine(*BudgetSink, false, false, false, block_lex.Scanner, null)) <= 640);
+}
+
+test "unaudited metered driver charges empty document exactly and runs to completion" {
+    var events: BudgetSink = .{};
+    var machine: Machine(*BudgetSink, true, false, false, scalar_lex.Scanner, null) = .{
+        .tokens = scalar_lex.Scanner(true, false, null).init("graph{}"),
+        .events = &events,
+        .diagnostics = diagnostic.discard,
+    };
+    // Nine examinations (including keyword lookahead and EOF), four grammar
+    // transitions, begin and commit. Finishing syntax does not commit for free.
+    const before_commit = machine.advance(14);
+    try expect(before_commit.result == null);
+    try expectEqual(Phase.dispatch, before_commit.phase);
+    try expectEqual(@as(usize, 1), events.attempts);
+    try expect(machine.runToCompletion().outcome == .success);
+    try expectEqual(@as(usize, 2), events.attempts);
+    try expectEqual(@as(usize, 15), try checkBudgetPartition(scalar_lex.Scanner, "graph{}", &.{1}, .{}, null, false));
+}
+
+test "metered parser deterministic arbitrary-byte inputs match immediate grammar" {
+    var random = std.Random.DefaultPrng.init(0x627564676574);
+    var bytes: [96]u8 = undefined;
+    for (0..400) |_| {
+        random.random().bytes(&bytes);
+        const len = random.random().uintLessThan(usize, bytes.len + 1);
+        _ = try checkBudgetPartition(scalar_lex.Scanner, bytes[0..len], &.{ 0, 1, 5 }, .{}, null, false);
+        // A supported header also exercises arbitrary bytes inside the body.
+        @memcpy(bytes[0..7], "graph {");
+        _ = try checkBudgetPartition(scalar_lex.Scanner, bytes[0..@max(7, len)], &.{ 1, 2, 11 }, .{}, null, false);
+    }
+}
+
+test "empty graph commits with begin and end only, empty bag" {
+    inline for (.{ "graph { }", "graph{}", "GRAPH {\r\n}\n" }) |source| {
+        var events: Recording = .{};
+        var bag: Bag = .{};
+        const result = testing.run(source, &events, bag.sink(), .{}, null);
+        try expect(result.outcome == .success);
+        try expectEqual(DiagnosticDelivery.complete, result.diagnostic_delivery);
+        try expectEqual(@as(usize, 0), bag.items().len);
+
+        const recorded = events.recorded();
+        try expectEqual(@as(usize, 2), recorded.len);
+        try expect((recorded[0] == .event and recorded[0].event == .begin_document));
+        try expectEqual(event_types.GraphKind.undigraph, recorded[0].event.begin_document.kind);
+        try expect((recorded[1] == .event and recorded[1].event == .end_document));
+    }
+}
+
+test "node statements are emitted in source order with borrowed spans" {
+    const source = "graph { a; b; long_name3; }";
+    var events: Recording = .{};
+    var bag: Bag = .{};
+    try expect(testing.run(source, &events, bag.sink(), .{}, null).outcome == .success);
+
+    const recorded = events.recorded();
+    try expectEqual(@as(usize, 5), recorded.len);
+    try expectEqualStrings("a", recorded[1].event.commit_node.value.identifier.slice(source));
+    try expectEqualStrings("b", recorded[2].event.commit_node.value.identifier.slice(source));
+    try expectEqualStrings("long_name3", recorded[3].event.commit_node.value.identifier.slice(source));
+    try expect((recorded[4] == .event and recorded[4].event == .end_document));
+}
+
+test "edge statements preserve both written operators (kind-agnostic)" {
+    // `->` in an undigraph parses structurally with an empty bag;
+    // validation (step 7) is where the mismatch is reported.
+    const source = "graph { a -- b; c -> d; }";
+    var events: Recording = .{};
+    var bag: Bag = .{};
+    try expect(testing.run(source, &events, bag.sink(), .{}, null).outcome == .success);
+    try expectEqual(@as(usize, 0), bag.items().len);
+
+    const recorded = events.recorded();
+    try expectEqual(@as(usize, 4), recorded.len);
+
+    const undirected = recorded[1].event.commit_edge.value;
+    try expectEqual(event_types.EdgeOperator.undirected, undirected.operator);
+    try expectEqualStrings("a", undirected.left.slice(source));
+    try expectEqualStrings("--", undirected.operator_span.slice(source));
+    try expectEqualStrings("b", undirected.right.slice(source));
+
+    const directed = recorded[2].event.commit_edge.value;
+    try expectEqual(event_types.EdgeOperator.directed, directed.operator);
+    try expectEqualStrings("->", directed.operator_span.slice(source));
+    try expectEqualStrings("d", directed.right.slice(source));
+}
+
+test "mixed node and edge statements keep source order" {
+    const source = "graph { a; a -- b; b; }";
+    var events: Recording = .{};
+    var bag: Bag = .{};
+    try expect(testing.run(source, &events, bag.sink(), .{}, null).outcome == .success);
+
+    const recorded = events.recorded();
+    try expectEqual(@as(usize, 5), recorded.len);
+    try expect((recorded[1] == .event and recorded[1].event == .commit_node));
+    try expect((recorded[2] == .event and recorded[2].event == .commit_edge));
+    try expect((recorded[3] == .event and recorded[3].event == .commit_node));
+    try expect((recorded[4] == .event and recorded[4].event == .end_document));
+}
+
+fn expectAborted(source: []const u8, expected_reason: event_types.AbortReason) !void {
+    var events: Recording = .{};
+    var bag: Bag = .{};
+    _ = testing.run(source, &events, bag.sink(), .{}, null);
+    const recorded = events.recorded();
+    try expect(recorded.len >= 2);
+    try expect((recorded[0] == .event and recorded[0].event == .begin_document));
+    try expect((recorded[recorded.len - 1] == .abort and recorded[recorded.len - 1].abort == .document));
+    try expectEqual(expected_reason, recorded[recorded.len - 1].abort.document);
+}
+
+const recovery_settings: policy.ParseSettings = .{ .on_error = .collect };
+
+fn countCode(bag: anytype, code: diagnostic.Code) usize {
+    var count: usize = 0;
+    for (bag.items()) |d| {
+        if (d.code == code) count += 1;
+    }
+    return count;
+}
+
+test "statement recovery reports every syntax error and aborts the sink once" {
+    const source = "digraph { a -> ; b -> ; c [x=1 =]; e -- }";
+    var events: Recording = .{};
+    var bag: diagnostic.FixedBag(8) = .{};
+    const result = testing.run(source, &events, bag.sink(), recovery_settings, null);
+    try expect(result.outcome == .invalid_syntax);
+    // `a -> ;`, `b -> ;`, the `=` after `x=1`, `e -- }`.
+    try expectEqual(@as(usize, 4), bag.items().len);
+    try expectEqualStrings(";", bag.items()[0].span.slice(source));
+    try expectEqualStrings(";", bag.items()[1].span.slice(source));
+    try expectEqualStrings("=", bag.items()[2].span.slice(source));
+    try expectEqualStrings("}", bag.items()[3].span.slice(source));
+    // One begin, one abort, nothing after the abort.
+    const recorded = events.recorded();
+    try expect((recorded[0] == .event and recorded[0].event == .begin_document));
+    try expect((recorded[recorded.len - 1] == .abort and recorded[recorded.len - 1].abort == .document));
+    var aborts: usize = 0;
+    for (recorded) |event| {
+        if ((event == .abort and event.abort == .document)) aborts += 1;
+    }
+    try expectEqual(@as(usize, 1), aborts);
+    try expectEqual(@as(usize, 0), bag.omitted);
+}
+
+test "statement recovery resumes after lexical errors and through scopes" {
+    var frames: scratch_impl.For(void).Fixed(.{ .nesting = 4 }) = .{};
+    var stack: scratch_impl.For(void).Stack = .{ .frames = frames.storage().frames };
+
+    const source = "digraph { a - b; c => d; subgraph s { e -> ; f } g -> ; h [k=v]; i -> { j -> ; k } }";
+    var events: Recording = .{};
+    var bag: diagnostic.FixedBag(8) = .{};
+    try expect(testing.run(source, &events, bag.sink(), recovery_settings, &stack).outcome == .invalid_syntax);
+    try expectEqual(@as(usize, 1), countCode(&bag, .syntax_invalid_operator));
+    try expectEqual(@as(usize, 1), countCode(&bag, .syntax_invalid_byte));
+    try expectEqual(@as(usize, 3), countCode(&bag, .syntax_unexpected_token));
+    try expectEqual(@as(usize, 5), bag.items().len);
+    // Every scope was left again: no frames remain.
+    try expectEqual(@as(u32, 0), stack.len);
+    // The unterminated cases cannot resume: the rest of the input is the body.
+    for ([_][]const u8{ "digraph { a -> ; b -> \"x; c -> d }", "digraph { a -> ; b /* c -> ; d }" }) |truncated| {
+        var truncated_events: Recording = .{};
+        var truncated_bag: Bag = .{};
+        try expect(testing.run(truncated, &truncated_events, truncated_bag.sink(), recovery_settings, null).outcome == .invalid_syntax);
+        try expectEqual(@as(usize, 2), truncated_bag.items().len);
+        try expectEqual(diagnostic.Code.syntax_unterminated_construct, truncated_bag.items()[1].code);
+    }
+}
+
+test "statement recovery stops where there is no boundary to return to" {
+    // Header errors, end of input, trailing tokens, limits and deferred
+    // features end the parse exactly as they do without recovery.
+    inline for (.{
+        .{ "graph graph { a -> ; b }", 1, Outcome.invalid_syntax },
+        .{ "digraph { a -> ; subgraph { b", 2, Outcome.invalid_syntax },
+        .{ "digraph { a -> ; } b c", 2, Outcome.invalid_syntax },
+        .{ "digraph { a -> ; b [label=<x>]; c -> ; }", 2, Outcome.invalid_syntax },
+    }) |case| {
+        var frames: scratch_impl.For(void).Fixed(.{ .nesting = 4 }) = .{};
+        var stack: scratch_impl.For(void).Stack = .{ .frames = frames.storage().frames };
+
+        var events: Recording = .{};
+        var bag: Bag = .{};
+        try expectEqual(case[2], testing.run(case[0], &events, bag.sink(), recovery_settings, &stack).outcome);
+        try expectEqual(@as(usize, case[1]), bag.items().len);
+    }
+    // A later limit is the stop reason; the earlier syntax rejection survives.
+    var events: Recording = .{};
+    var bag: Bag = .{};
+    var limited = recovery_settings;
+    limited.limits.max_statements = 2;
+    const stopped = testing.run("digraph { a -> ; b; c; d; }", &events, bag.sink(), limited, null);
+    try expect(stopped.outcome == .resource_exhausted);
+    try expectEqual(@as(u32, 1), stopped.syntax_errors);
+    try expectEqual(Completion.incomplete, stopped.completion);
+    try expectEqual(@as(usize, 2), bag.items().len);
+    try expectEqual(diagnostic.Code.resource_capacity_exhausted, bag.items()[1].code);
+    // A full bag counts what it could not keep.
+    var small: @import("parser_support").reporting.FixedBag(diagnostic.Diagnostic, 2, .omit) = .{};
+    try expect(testing.run("digraph { a -> ; b -> ; c -> ; d -> ; }", &events, small.sink(), recovery_settings, null).outcome == .invalid_syntax);
+    try expectEqual(@as(usize, 2), small.items().len);
+    try expectEqual(@as(usize, 2), small.omitted);
+}
+
+test "metered and cancellable drivers recover identically to the immediate one" {
+    const source = "digraph { a - b; subgraph s { c -> ; d } e [x=1 f; g -> h -> ; i:p:q:r; j }";
+    const total = try checkBudgetPartition(scalar_lex.Scanner, source, &.{1}, recovery_settings, null, false);
+    try expectEqual(total, try checkBudgetPartition(scalar_lex.Scanner, source, &.{ 0, 3, 17 }, recovery_settings, null, false));
+    _ = try checkBudgetPartition(scalar_lex.Scanner, source, &.{ 0, 1, 5 }, recovery_settings, null, true);
+    // Cancellation and earlier rejection are independently observable.
+    var request: CancellationProbe = .{};
+    var events: BudgetSink = .{};
+    var bag: Bag = .{};
+    var frames: scratch_impl.For(void).Fixed(.{ .nesting = 4 }) = .{};
+    var stack: scratch_impl.For(void).Stack = .{ .frames = frames.storage().frames };
+
+    var machine: Machine(*BudgetSink, true, true, true, scalar_lex.Scanner, null) = .{
+        .tokens = scalar_lex.Scanner(true, true, null).init(source),
+        .events = &events,
+        .diagnostics = bag.sink(),
+        .settings = recovery_settings,
+        .scratch = &stack,
+        .cancellation = request.hook(),
+    };
+    while (bag.items().len == 0) _ = machine.advance(1);
+    request.flag = true;
+    const progress = machine.advance(1);
+    try expect(progress.result.?.outcome == .cancelled);
+    try expectEqual(@as(u32, 1), progress.result.?.syntax_errors);
+    try expectEqual(Completion.incomplete, progress.result.?.completion);
+    try expectEqual(@as(usize, 1), events.aborts);
+}
+
+test "both scanner backends drive the grammar to identical events and diagnostics" {
+    const sources = [_][]const u8{
+        "graph { a -- b; }",
+        "strict digraph named { a b; c->d; e--f }",
+        "graph { a[x=1][y=2] node[] z=3 a--b[w=4] graph[k=v] edge[k=v] }",
+        "#line\n/* pre */graph { \"a\" + /* gap */ \"b\"[x=\"v\\\"q\" y=-.5] // tail\r\n }",
+        "digraph { a -> ; b - c; e --> f; 1e3; }",
+        "digraph { a [color=red; }",
+        "graph { a -- \"unterminated",
+        "digraph { a:p:n -> b:q; c => d }",
+    };
+    inline for (.{ .fail_fast, .collect }) |recovery| {
+        for (sources) |source| {
+            errdefer std.debug.print("source: {s}\n", .{source});
+            var scalar_events: Recording = .{};
+            var scalar_bag: diagnostic.FixedBag(8) = .{};
+            var scalar_machine: Machine(*Recording, false, false, false, scalar_lex.Scanner, null) = .{
+                .tokens = scalar_lex.Scanner(false, false, null).init(source),
+                .events = &scalar_events,
+                .diagnostics = scalar_bag.sink(),
+                .settings = .{ .on_error = recovery },
+            };
+            var block_events: Recording = .{};
+            var block_bag: diagnostic.FixedBag(8) = .{};
+            var block_machine: Machine(*Recording, false, false, false, block_lex.Scanner, null) = .{
+                .tokens = block_lex.Scanner(false, false, null).init(source),
+                .events = &block_events,
+                .diagnostics = block_bag.sink(),
+                .settings = .{ .on_error = recovery },
+            };
+            try std.testing.expectEqualDeep(scalar_machine.runToCompletion(), block_machine.runToCompletion());
+            try std.testing.expectEqualDeep(scalar_events.recorded(), block_events.recorded());
+            try std.testing.expectEqualDeep(scalar_bag.items(), block_bag.items());
+        }
+    }
+}
+
+test "fail-fast means the bag contains exactly one diagnostic" {
+    var events: Recording = .{};
+    var bag: Bag = .{};
+    const result = testing.run("graph { @ }", &events, bag.sink(), .{}, null);
+    try expect(result.outcome == .invalid_syntax);
+
+    try expectEqual(@as(usize, 1), bag.items().len);
+    try expectEqual(diagnostic.Code.syntax_invalid_byte, bag.items()[0].code);
+
+    try expectAborted("graph { @ }", .invalid_syntax);
+}
+
+test "missing opening brace reports the typed expected set and context" {
+    var events: Recording = .{};
+    var bag: Bag = .{};
+    try expect(testing.run("graph ; }", &events, bag.sink(), .{}, null).outcome == .invalid_syntax);
+
+    const unexpected = bag.items()[0].details.unexpected;
+    try expect(unexpected.expected.contains(.left_brace));
+    try expect(unexpected.expected.contains(.identifier));
+    try expectEqual(@as(usize, 2), unexpected.expected.count());
+    try expectEqual(diagnostic.SyntaxItem.semicolon, unexpected.found);
+    try expectEqual(diagnostic.ParseContext.document_header, unexpected.context);
+    try expect(unexpected.related == null);
+}
+
+test "unexpected end of input points back to the unclosed brace" {
+    const source = "graph { a";
+    var events: Recording = .{};
+    var bag: Bag = .{};
+    try expect(testing.run(source, &events, bag.sink(), .{}, null).outcome == .invalid_syntax);
+
+    const unexpected = bag.items()[0].details.unexpected;
+    try expectEqual(diagnostic.SyntaxItem.end_of_input, unexpected.found);
+    const related = unexpected.related.?;
+    try expectEqual(diagnostic.Related.Role.opened_here, related.role);
+    try expectEqualStrings("{", related.span.slice(source));
+}
+
+test "document headers: kind, strict, and name reach the begin event" {
+    const source = "strict digraph Routes { a -> b; }";
+    var events: Recording = .{};
+    var bag: Bag = .{};
+    try expect(testing.run(source, &events, bag.sink(), .{}, null).outcome == .success);
+    try expectEqual(@as(usize, 0), bag.items().len);
+
+    const begin = events.recorded()[0].event.begin_document;
+    try expectEqual(event_types.GraphKind.digraph, begin.kind);
+    try expect(begin.strict);
+    try expectEqualStrings("digraph", begin.keyword_span.slice(source));
+    try expectEqualStrings("Routes", begin.name_span.?.slice(source));
+}
+
+test "plain headers default to non-strict and unnamed" {
+    var events: Recording = .{};
+    var bag: Bag = .{};
+    try expect(testing.run("graph { }", &events, bag.sink(), .{}, null).outcome == .success);
+    const begin = events.recorded()[0].event.begin_document;
+    try expectEqual(event_types.GraphKind.undigraph, begin.kind);
+    try expect(!begin.strict);
+    try expect(begin.name_span == null);
+}
+
+test "an unquoted keyword is not a valid graph name (matches Graphviz)" {
+    // Graphviz rejects `graph graph {}`; a keyword name requires quoting.
+    // This reverses an earlier classification
+    // that assumed keywords were valid unquoted names.
+    var events: Recording = .{};
+    var bag: Bag = .{};
+    const result = testing.run("graph graph { }", &events, bag.sink(), .{}, null);
+    try expect(result.outcome == .invalid_syntax);
+
+    // Reported as the condition it is — a reserved word where a name was
+    // needed — rather than as an expected-token set.
+    try expectEqual(diagnostic.Code.syntax_reserved_keyword, bag.items()[0].code);
+    const reserved = bag.items()[0].details.reserved_keyword;
+    try expectEqual(diagnostic.Keyword.graph, reserved.keyword);
+    try expectEqual(diagnostic.ParseContext.document_header, reserved.context);
+    try expectEqualStrings("graph", bag.items()[0].span.slice("graph graph { }"));
+    try expectEqual(@as(usize, 0), events.recorded().len);
+}
+
+test "reserved keywords where a name was needed name the keyword and context" {
+    inline for (.{
+        .{ "graph { a -- node; }", diagnostic.Keyword.node, diagnostic.ParseContext.edge_endpoint, "node" },
+        .{ "digraph { subgraph edge { } }", diagnostic.Keyword.edge, diagnostic.ParseContext.subgraph_header, "edge" },
+        .{ "graph { a [node=1] }", diagnostic.Keyword.node, diagnostic.ParseContext.attribute_key, "node" },
+        .{ "graph { a [x=graph] }", diagnostic.Keyword.graph, diagnostic.ParseContext.attribute_value, "graph" },
+        .{ "graph { a:digraph }", diagnostic.Keyword.digraph, diagnostic.ParseContext.port_component, "digraph" },
+        .{ "graph { x = strict }", diagnostic.Keyword.strict, diagnostic.ParseContext.assignment_value, "strict" },
+        .{ "graph subgraph { }", diagnostic.Keyword.subgraph, diagnostic.ParseContext.document_header, "subgraph" },
+        // An attribute keyword without its list marks the keyword itself.
+        .{ "graph { node; }", diagnostic.Keyword.node, diagnostic.ParseContext.attribute_list, "node" },
+        .{ "graph { edge = red; }", diagnostic.Keyword.edge, diagnostic.ParseContext.attribute_list, "edge" },
+        .{ "digraph { graph }", diagnostic.Keyword.graph, diagnostic.ParseContext.attribute_list, "graph" },
+        .{ "graph { node", diagnostic.Keyword.node, diagnostic.ParseContext.attribute_list, "node" },
+    }) |case| {
+        var events: Recording = .{};
+        var bag: Bag = .{};
+        try expect(testing.run(case[0], &events, bag.sink(), .{}, null).outcome == .invalid_syntax);
+        try expectEqual(diagnostic.Code.syntax_reserved_keyword, bag.items()[0].code);
+        try expectEqual(case[1], bag.items()[0].details.reserved_keyword.keyword);
+        try expectEqual(case[2], bag.items()[0].details.reserved_keyword.context);
+        try expectEqualStrings(case[3], bag.items()[0].span.slice(case[0]));
+    }
+    // `digraph strict {` is a misplaced modifier, reported as a plain
+    // unexpected token so the renderer can say where 'strict' goes.
+    var events: Recording = .{};
+    var bag: Bag = .{};
+    try expect(testing.run("digraph strict { }", &events, bag.sink(), .{}, null).outcome == .invalid_syntax);
+    try expectEqual(diagnostic.Code.syntax_unexpected_token, bag.items()[0].code);
+    try expectEqual(diagnostic.SyntaxItem.strict_keyword, bag.items()[0].details.unexpected.found);
+}
+
+test "ports and attribute lists after a standalone subgraph get their own context" {
+    inline for (.{ "graph { { a }:n -- b }", "graph { subgraph s { a } [x=1] }" }) |source| {
+        var frames: scratch_impl.For(void).Fixed(.{ .nesting = 4 }) = .{};
+        var stack: scratch_impl.For(void).Stack = .{ .frames = frames.storage().frames };
+        var events: Recording = .{};
+        var bag: Bag = .{};
+        try expect(testing.run(source, &events, bag.sink(), .{}, &stack).outcome == .invalid_syntax);
+        try expectEqual(diagnostic.Code.syntax_unexpected_token, bag.items()[0].code);
+        try expectEqual(diagnostic.ParseContext.subgraph_suffix, bag.items()[0].details.unexpected.context);
+    }
+}
+
+test "an open attribute list is related even when the failure is not at end of input" {
+    const source = "graph { a [color=red; }";
+    var events: Recording = .{};
+    var bag: Bag = .{};
+    try expect(testing.run(source, &events, bag.sink(), .{}, null).outcome == .invalid_syntax);
+    const unexpected = bag.items()[0].details.unexpected;
+    try expectEqual(diagnostic.SyntaxItem.right_brace, unexpected.found);
+    try expectEqualStrings("[", unexpected.related.?.span.slice(source));
+    try expectEqual(diagnostic.Related.Role.opened_here, unexpected.related.?.role);
+    // A scope's '{' is not dragged in for ordinary mid-body failures.
+    var plain_events: Recording = .{};
+    var plain_bag: Bag = .{};
+    try expect(testing.run("graph { a -- ; }", &plain_events, plain_bag.sink(), .{}, null).outcome == .invalid_syntax);
+    try expect(plain_bag.items()[0].details.unexpected.related == null);
+}
+
+test "a misindented closing brace is the suspect when the input ends inside a scope" {
+    const source =
+        \\digraph {
+        \\  subgraph s {
+        \\    a -> b;
+        \\  b -> c;
+        \\}
+        \\
+    ;
+    var frames: scratch_impl.For(void).Fixed(.{ .nesting = 4 }) = .{};
+    var stack: scratch_impl.For(void).Stack = .{ .frames = frames.storage().frames };
+    var events: Recording = .{};
+    var bag: Bag = .{};
+    try expect(testing.run(source, &events, bag.sink(), .{}, &stack).outcome == .invalid_syntax);
+    try expectEqual(diagnostic.Code.syntax_unexpected_end, bag.items()[0].code);
+    const unexpected = bag.items()[0].details.unexpected;
+    // Brace matching still names the only open brace, the document's...
+    try expectEqual(@as(usize, 1), unexpected.related.?.span.locate(source).line);
+    // ...and the heuristic points at the '}' that closed the wrong scope.
+    const suspect = unexpected.suspect.?;
+    try expectEqual(diagnostic.Related.Role.misindented_close, suspect.role);
+    try expectEqual(@as(usize, 5), suspect.span.locate(source).line);
+    try expectEqualStrings("}", suspect.span.slice(source));
+
+    // Consistent indentation raises no suspicion, even when a brace is missing.
+    const tidy = "digraph {\n  subgraph s {\n    a -> b;\n  }\n  b -> c;\n";
+    var tidy_stack: scratch_impl.For(void).Stack = .{ .frames = frames.storage().frames };
+    var tidy_events: Recording = .{};
+    var tidy_bag: Bag = .{};
+    try expect(testing.run(tidy, &tidy_events, tidy_bag.sink(), .{}, &tidy_stack).outcome == .invalid_syntax);
+    try expect(tidy_bag.items()[0].details.unexpected.suspect == null);
+}
+
+test "diagnostics carry the one known repair, with honest applicability" {
+    const Expect = struct {
+        source: []const u8,
+        text: []const u8,
+        edit: std.meta.Tag(diagnostic.Edit),
+        replacement: ?diagnostic.Replacement = null,
+        applicability: diagnostic.Applicability = .machine_applicable,
+    };
+    inline for ([_]Expect{
+        .{ .source = "digraph { a - b; }", .text = "-", .edit = .replace, .replacement = .directed_operator },
+        .{ .source = "graph { a - b; }", .text = "-", .edit = .replace, .replacement = .undirected_operator },
+        .{ .source = "graph { a - > b; }", .text = "- >", .edit = .replace, .replacement = .directed_operator },
+        .{ .source = "digraph { a --> b; }", .text = "-->", .edit = .replace, .replacement = .directed_operator },
+        .{ .source = "digraph { a => b; }", .text = "=>", .edit = .replace, .replacement = .directed_operator, .applicability = .maybe },
+        .{ .source = "digraph { a -> node; }", .text = "node", .edit = .wrap_in_quotes },
+        .{ .source = "digraph { ; }", .text = ";", .edit = .delete },
+        .{ .source = "digraph { a; } }", .text = "}", .edit = .delete },
+        .{ .source = "digraph { a, b; }", .text = ",", .edit = .replace, .replacement = .semicolon, .applicability = .maybe },
+        .{ .source = "digraph { a -> -> b; }", .text = "->", .edit = .delete },
+        .{ .source = "digraph { a [color=red,,x=1] }", .text = ",", .edit = .delete },
+        .{ .source = "digraph { a [,color=red] }", .text = ",", .edit = .delete },
+        .{ .source = "digraph { a [color red] }", .text = "color", .edit = .insert_after, .replacement = .equals, .applicability = .maybe },
+        .{ .source = "digraph { a [color=red; }", .text = "}", .edit = .insert_before, .replacement = .right_bracket, .applicability = .maybe },
+        .{ .source = "digraph { a [color=red", .text = "", .edit = .insert_before, .replacement = .right_bracket },
+        .{ .source = "digraph { a -> b", .text = "", .edit = .insert_before, .replacement = .right_brace },
+        .{ .source = "digrph { }", .text = "digrph", .edit = .replace, .replacement = .digraph_keyword, .applicability = .maybe },
+        .{ .source = "digraph G\na -> b;\n}", .text = "a", .edit = .insert_before, .replacement = .left_brace, .applicability = .maybe },
+        .{ .source = "digraph { a::n }", .text = ":", .edit = .delete, .applicability = .maybe },
+        .{ .source = "digraph { \"abc", .text = "", .edit = .insert_before, .replacement = .double_quote, .applicability = .maybe },
+        .{ .source = "digraph { /* x", .text = "", .edit = .insert_before, .replacement = .comment_close, .applicability = .maybe },
+    }) |case| {
+        errdefer std.debug.print("source: {s}\n", .{case.source});
+        var events: Recording = .{};
+        var bag: Bag = .{};
+        _ = testing.run(case.source, &events, bag.sink(), .{}, null);
+        const fix = bag.items()[0].fix orelse return error.MissingFix;
+        try expectEqual(case.edit, std.meta.activeTag(fix.edit));
+        try expectEqual(case.applicability, fix.applicability);
+        try expectEqualStrings(case.text, fix.span.slice(case.source));
+        if (case.replacement) |replacement| {
+            const actual = switch (fix.edit) {
+                .replace, .insert_before, .insert_after => |r| r,
+                else => return error.WrongEdit,
+            };
+            try expectEqual(replacement, actual);
+        }
+    }
+    // No single repair: attribute keyword without its list, a missing
+    // endpoint, a second graph, or a misplaced `strict`.
+    inline for (.{ "digraph { node; }", "digraph { a -> ; }", "digraph { a } digraph { b }", "digraph strict { }", "G { a; }" }) |source| {
+        var events: Recording = .{};
+        var bag: Bag = .{};
+        _ = testing.run(source, &events, bag.sink(), .{}, null);
+        try expect(bag.items()[0].fix == null);
+    }
+    // Before the kind keyword there is nothing to coerce a lone '-' to.
+    var events: Recording = .{};
+    var bag: Bag = .{};
+    _ = testing.run("- graph { }", &events, bag.sink(), .{}, null);
+    try expect(bag.items()[0].fix == null);
+    // A misindented closing brace makes the end-of-input insertion a guess.
+    const misindented = "digraph {\n  subgraph s {\n    a -> b;\n  b -> c;\n}\n";
+    var frames: scratch_impl.For(void).Fixed(.{ .nesting = 4 }) = .{};
+    var stack: scratch_impl.For(void).Stack = .{ .frames = frames.storage().frames };
+    var nested_events: Recording = .{};
+    var nested_bag: Bag = .{};
+    _ = testing.run(misindented, &nested_events, nested_bag.sink(), .{}, &stack);
+    try expectEqual(diagnostic.Applicability.maybe, nested_bag.items()[0].fix.?.applicability);
+}
+
+test "ambiguous numerals warn and the parse still succeeds" {
+    var events: Recording = .{};
+    var bag: Bag = .{};
+    const result = testing.run("graph { 1e3; 2.5.5 }", &events, bag.sink(), .{}, null);
+    try expect(result.outcome == .success);
+    try expectEqual(@as(usize, 2), bag.items().len);
+    try expectEqual(diagnostic.Code.syntax_ambiguous_numeral, bag.items()[0].code);
+    try expectEqual(diagnostic.Severity.warning, bag.items()[0].code.severity());
+    try expectEqual(@as(u8, 'e'), bag.items()[0].details.ambiguous_numeral);
+    try expectEqual(@as(u8, '.'), bag.items()[1].details.ambiguous_numeral);
+    // Four node statements: 1, e3, 2.5, .5 — exactly Graphviz's split.
+    var nodes: usize = 0;
+    for (events.recorded()) |event| {
+        if ((event == .event and event.event == .commit_node)) nodes += 1;
+    }
+    try expectEqual(@as(usize, 4), nodes);
+}
+
+test "a leading byte order mark does not stop the parse" {
+    var events: Recording = .{};
+    var bag: Bag = .{};
+    try expect(testing.run("\xEF\xBB\xBFdigraph { a -> b; }", &events, bag.sink(), .{}, null).outcome == .success);
+    try expectEqual(@as(usize, 0), bag.items().len);
+}
+
+test "strict must be followed by a kind keyword" {
+    var events: Recording = .{};
+    var bag: Bag = .{};
+    try expect(testing.run("strict { }", &events, bag.sink(), .{}, null).outcome == .invalid_syntax);
+
+    const unexpected = bag.items()[0].details.unexpected;
+    try expect(unexpected.expected.contains(.graph_keyword));
+    try expect(unexpected.expected.contains(.digraph_keyword));
+    try expectEqual(@as(usize, 0), events.recorded().len);
+}
+
+test "optional semicolons: adjacent statements split correctly" {
+    const source = "graph { a b c -- d e }";
+    var events: Recording = .{};
+    var bag: Bag = .{};
+    try expect(testing.run(source, &events, bag.sink(), .{}, null).outcome == .success);
+
+    // a(node) b(node) c--d(edge) e(node), all without terminators.
+    const recorded = events.recorded();
+    try expectEqual(@as(usize, 6), recorded.len);
+    try expectEqualStrings("a", recorded[1].event.commit_node.value.identifier.slice(source));
+    try expectEqualStrings("b", recorded[2].event.commit_node.value.identifier.slice(source));
+    const edge = recorded[3].event.commit_edge.value;
+    try expectEqualStrings("c", edge.left.slice(source));
+    try expectEqualStrings("d", edge.right.slice(source));
+    try expectEqualStrings("e", recorded[4].event.commit_node.value.identifier.slice(source));
+    try expect((recorded[5] == .event and recorded[5].event == .end_document));
+}
+
+test "mixed terminated and unterminated statements agree" {
+    var with: Recording = .{};
+    var without: Recording = .{};
+    var bag: Bag = .{};
+    try expect(testing.run("digraph { a -> b; c; }", &with, bag.sink(), .{}, null).outcome == .success);
+    try expect(testing.run("digraph { a -> b c }", &without, bag.sink(), .{}, null).outcome == .success);
+    try expectEqual(with.recorded().len, without.recorded().len);
+}
+
+test "missing edge endpoint is invalid syntax at the terminator" {
+    var events: Recording = .{};
+    var bag: Bag = .{};
+    try expect(testing.run("graph { a -- ; }", &events, bag.sink(), .{}, null).outcome == .invalid_syntax);
+
+    const failure = bag.items()[0];
+    try expectEqual(diagnostic.Code.syntax_unexpected_token, failure.code);
+    try expect(failure.details.unexpected.expected.contains(.identifier));
+    try expectEqual(diagnostic.SyntaxItem.semicolon, failure.details.unexpected.found);
+    try expectEqual(diagnostic.ParseContext.edge_endpoint, failure.details.unexpected.context);
+}
+
+test "trailing tokens after the document are invalid" {
+    var events: Recording = .{};
+    var bag: Bag = .{};
+    try expect(testing.run("graph { a; } b", &events, bag.sink(), .{}, null).outcome == .invalid_syntax);
+    const failure = bag.items()[0];
+    try expect(failure.details.unexpected.expected.contains(.end_of_input));
+    try expectEqual(diagnostic.SyntaxItem.identifier, failure.details.unexpected.found);
+    try expectEqual(diagnostic.ParseContext.document_epilogue, failure.details.unexpected.context);
+
+    // The document must not commit: the terminal event is an abort.
+    const recorded = events.recorded();
+    try expect((recorded[recorded.len - 1] == .abort and recorded[recorded.len - 1].abort == .document));
+}
+
+test "truncation at token boundaries reports unexpected end of input" {
+    inline for (.{ "graph {", "graph { a", "graph { a --", "graph { a -- b;" }) |source| {
+        var events: Recording = .{};
+        var bag: Bag = .{};
+        try expect(testing.run(source, &events, bag.sink(), .{}, null).outcome == .invalid_syntax);
+        try expectEqual(diagnostic.Code.syntax_unexpected_end, bag.items()[0].code);
+    }
+}
+
+test "input truncated at every byte boundary fails safely" {
+    const source = "graph { a; a -- b; }";
+    var i: usize = 0;
+    while (i < source.len) : (i += 1) {
+        var events: Recording = .{};
+        var bag: Bag = .{};
+        const result = testing.run(source[0..i], &events, bag.sink(), .{}, null);
+        try expect(result.outcome != .success);
+
+        // Uniform surface: every parse failure is exactly one bag entry.
+        try expectEqual(@as(usize, 1), bag.items().len);
+
+        // Lifecycle invariant: either no events at all, or begin first and
+        // a terminal abort last.
+        const recorded = events.recorded();
+        if (recorded.len > 0) {
+            try expect((recorded[0] == .event and recorded[0].event == .begin_document));
+            try expect((recorded[recorded.len - 1] == .abort and recorded[recorded.len - 1].abort == .document));
+        }
+    }
+}
+
+test "failures before a supported header emit no events but do fill the bag" {
+    // A quoted ID is supported, but cannot replace the document-kind keyword.
+    var quoted_events: Recording = .{};
+    var quoted_bag: Bag = .{};
+    const quoted_result = testing.run("\"g\" { a; }", &quoted_events, quoted_bag.sink(), .{}, null);
+    try expect(quoted_result.outcome == .invalid_syntax);
+    try expectEqual(
+        diagnostic.Code.syntax_unexpected_token,
+        quoted_bag.items()[0].code,
+    );
+    try expectEqual(@as(usize, 0), quoted_events.recorded().len);
+
+    // An incomplete header (begin fires only at `{`): no events either.
+    var named_events: Recording = .{};
+    var named_bag: Bag = .{};
+    try expect(testing.run("strict digraph G", &named_events, named_bag.sink(), .{}, null).outcome == .invalid_syntax);
+    try expectEqual(@as(usize, 0), named_events.recorded().len);
+
+    // Invalid leading byte: invalid syntax, empty event sink.
+    var invalid_events: Recording = .{};
+    var invalid_bag: Bag = .{};
+    try expect(testing.run("@", &invalid_events, invalid_bag.sink(), .{}, null).outcome == .invalid_syntax);
+    try expectEqual(@as(usize, 1), invalid_bag.items().len);
+    try expectEqual(@as(usize, 0), invalid_events.recorded().len);
+
+    // Missing keyword entirely: empty event sink.
+    var bare_events: Recording = .{};
+    var bare_bag: Bag = .{};
+    try expect(testing.run("{ a; }", &bare_events, bare_bag.sink(), .{}, null).outcome == .invalid_syntax);
+    try expectEqual(@as(usize, 0), bare_events.recorded().len);
+}
+
+test "unsupported outcome is a boundary, not a whole-input validity claim" {
+    // The whole envelope is recognized, but the trailing '@' is not parsed
+    // under the none policy. Unsupported is not a whole-input validity claim.
+    var events: Recording = .{};
+    var bag: Bag = .{};
+    const result = testing.run("graph { a -- < @> @", &events, bag.sink(), .{ .markup = .none, .on_error = .fail_fast }, null);
+    try expect(result.outcome == .unsupported_feature);
+    try expectEqual(diagnostic.Feature.html_identifier, bag.items()[0].details.unsupported_feature);
+}
+
+test "deferred keywords in illegal positions are syntax errors, not unsupported" {
+    // A subgraph cannot be the document root, and no keyword is a valid
+    // unquoted graph name or edge endpoint (Graphviz rejects all of
+    // these). Reporting them as unsupported features would claim the input
+    // uses a deferred construct when it is simply malformed.
+    // Positions that never take a name report the keyword as an unexpected
+    // token; positions that wanted a name report a reserved keyword.
+    inline for (.{
+        .{ "subgraph s { a; }", diagnostic.SyntaxItem.subgraph_keyword },
+        .{ "strict subgraph { }", diagnostic.SyntaxItem.subgraph_keyword },
+        .{ "node { }", diagnostic.SyntaxItem.node_keyword },
+        .{ "graph { a; } subgraph", diagnostic.SyntaxItem.subgraph_keyword },
+    }) |case| {
+        var events: Recording = .{};
+        var bag: Bag = .{};
+        const result = testing.run(case[0], &events, bag.sink(), .{}, null);
+        try expect(result.outcome == .invalid_syntax);
+        try expectEqual(diagnostic.Code.syntax_unexpected_token, bag.items()[0].code);
+        try expectEqual(case[1], bag.items()[0].details.unexpected.found);
+    }
+    inline for (.{
+        .{ "graph subgraph { }", diagnostic.Keyword.subgraph },
+        .{ "graph node { }", diagnostic.Keyword.node },
+        .{ "graph { a -- node; }", diagnostic.Keyword.node },
+        .{ "graph { a -- edge; }", diagnostic.Keyword.edge },
+    }) |case| {
+        var events: Recording = .{};
+        var bag: Bag = .{};
+        const result = testing.run(case[0], &events, bag.sink(), .{}, null);
+        try expect(result.outcome == .invalid_syntax);
+        try expectEqual(diagnostic.Code.syntax_reserved_keyword, bag.items()[0].code);
+        try expectEqual(case[1], bag.items()[0].details.reserved_keyword.keyword);
+    }
+}
+
+test "disabled HTML identifiers mid-document abort as unsupported" {
+    inline for (.{
+        .{ "graph { a -- <b>; }", diagnostic.Feature.html_identifier },
+        .{ "graph { <b> -- a; }", diagnostic.Feature.html_identifier },
+    }) |case| {
+        var events: Recording = .{};
+        var bag: Bag = .{};
+        try expect(testing.run(case[0], &events, bag.sink(), .{ .markup = .none }, null).outcome == .unsupported_feature);
+        try expectEqual(case[1], bag.items()[0].details.unsupported_feature);
+        try expectEqual(event_types.AbortReason.unsupported_feature, events.recorded()[events.recorded().len - 1].abort.document);
+    }
+}
+
+test "attribute keywords require a bracket list; malformed subgraph headers fail" {
+    inline for (.{ "graph { graph; }", "graph { node; }", "graph { edge -- x; }", "graph { node -- x; }", "digraph { graph }", "graph { a node }" }) |source| {
+        var events: Recording = .{};
+        var bag: Bag = .{};
+        try expect(testing.run(source, &events, bag.sink(), .{}, null).outcome == .invalid_syntax);
+        try expectEqual(diagnostic.Code.syntax_reserved_keyword, bag.items()[0].code);
+        try expectEqual(diagnostic.ParseContext.attribute_list, bag.items()[0].details.reserved_keyword.context);
+    }
+    try expectAborted("graph { subgraph; }", .invalid_syntax);
+}
+
+test "statement limit is a resource outcome, distinct from invalid syntax" {
+    var events: Recording = .{};
+    var bag: Bag = .{};
+    const result = testing.run("graph { a; b; }", &events, bag.sink(), .{ .limits = .{ .max_statements = 1 } }, null);
+    try expect(result.outcome == .resource_exhausted);
+
+    const failure = bag.items()[0];
+    try expectEqual(diagnostic.Code.resource_capacity_exhausted, failure.code);
+    try expectEqual(diagnostic.Capacity.Resource.statements, failure.details.capacity.resource);
+    try expectEqual(@as(usize, 1), failure.details.capacity.limit);
+
+    const recorded = events.recorded();
+    try expect((recorded[recorded.len - 1] == .abort and recorded[recorded.len - 1].abort == .document));
+    try expectEqual(
+        event_types.AbortReason.resource_exhausted,
+        recorded[recorded.len - 1].abort.document,
+    );
+
+    // The limit bounds statements, not documents: an empty graph passes.
+    var empty_events: Recording = .{};
+    var empty_bag: Bag = .{};
+    try expect(testing.run("graph { }", &empty_events, empty_bag.sink(), .{ .limits = .{ .max_statements = 0 } }, null).outcome == .success);
+}
+
+test "zero statement limit still scans an arbitrarily large body" {
+    // The statement limit is output capacity, not a work budget: the body
+    // is whitespace-only, so the parser scans it linearly and succeeds.
+    const source = "graph {" ++ (&@as([4096]u8, @splat(' '))) ++ "\n}";
+    var events: Recording = .{};
+    var bag: Bag = .{};
+    try expect(testing.run(source, &events, bag.sink(), .{ .limits = .{ .max_statements = 0 } }, null).outcome == .success);
+}
+
+test "event-sink failure aborts the document and surfaces the sink's error" {
+    // Capacity 2 fits begin + one statement; the second statement fails.
+    var events: @import("event_test.zig").RecordingSink(2) = .{};
+    var bag: Bag = .{};
+    const result = testing.run("graph { a; b; }", &events, bag.sink(), .{}, null);
+    try expect(result.outcome == .sink_failure);
+    try expectEqual(anyerror.EventCapacityExceeded, result.outcome.sink_failure);
+
+    // The event sink owns its own failure; the diagnostic bag stays empty.
+    try expectEqual(@as(usize, 0), bag.items().len);
+
+    const recorded = events.recorded();
+    try expect((recorded[recorded.len - 1] == .abort and recorded[recorded.len - 1].abort == .document));
+    try expectEqual(
+        event_types.AbortReason.sink_failure,
+        recorded[recorded.len - 1].abort.document,
+    );
+}
+
+test "failing beginDocument still receives the cleanup abort" {
+    var events: @import("event_test.zig").RecordingSink(0) = .{};
+    var bag: Bag = .{};
+    const result = testing.run("graph { }", &events, bag.sink(), .{}, null);
+    try expect(result.outcome == .sink_failure);
+
+    // The documented lifecycle exception: an attempted-but-failed begin is
+    // followed by a lone cleanup abort.
+    const recorded = events.recorded();
+    try expectEqual(@as(usize, 1), recorded.len);
+    try expectEqual(
+        event_types.AbortReason.sink_failure,
+        recorded[0].abort.document,
+    );
+}
+
+test "parser state stays small (R-PERF-005 parser-state-size regression guard)" {
+    // The whole machine — lexer, continuation state, options, bookkeeping —
+    // must remain a small constant, independent of input size. The bounds
+    // are the measured values (368 B with the scalar scanner, 472 B with the
+    // block scanner's saved masks) plus headroom, not architectural budgets:
+    // if a slice legitimately grows the state, measure, update the baseline
+    // doc, and raise the bound in the same commit.
+    try expect(@sizeOf(Machine(*Recording, false, false, false, scalar_lex.Scanner, null)) <= 512);
+    try expect(@sizeOf(Machine(*Recording, false, false, false, block_lex.Scanner, null)) <= 640);
+}
+
+test "step is terminal-idempotent after success and after failure" {
+    var events: Recording = .{};
+    var bag: Bag = .{};
+    var machine: Machine(*Recording, false, false, false, scalar_lex.Scanner, null) = .{
+        .tokens = scalar_lex.Scanner(false, false, null).init("graph { a; }"),
+        .events = &events,
+        .diagnostics = bag.sink(),
+    };
+    const result = machine.runToCompletion();
+    try expect(result.outcome == .success);
+
+    // Over-calling step re-returns the latched result without new events.
+    const recorded_len = events.recorded().len;
+    const again = machine.step().?;
+    try expect(again.outcome == .success);
+    try expectEqual(recorded_len, events.recorded().len);
+
+    var failed_events: Recording = .{};
+    var failed_bag: Bag = .{};
+    var failed_machine: Machine(*Recording, false, false, false, scalar_lex.Scanner, null) = .{
+        .tokens = scalar_lex.Scanner(false, false, null).init("graph {"),
+        .events = &failed_events,
+        .diagnostics = failed_bag.sink(),
+    };
+    try expect(failed_machine.runToCompletion().outcome == .invalid_syntax);
+    const failed_len = failed_events.recorded().len;
+    const bag_len = failed_bag.items().len;
+    try expect(failed_machine.step().?.outcome == .invalid_syntax);
+    try expectEqual(failed_len, failed_events.recorded().len);
+    try expectEqual(bag_len, failed_bag.items().len);
+}
+
+test "a failing diagnostic sink is surfaced as delivery failure, not masked" {
+    const Rejecting = struct {
+        fn emit(context: ?*anyopaque, d: diagnostic.Diagnostic) diagnostic.SinkError!diagnostic.Action {
+            _ = context;
+            _ = d;
+            return error.DiagnosticSinkFailure;
+        }
+    };
+    var events: Recording = .{};
+    const sink: diagnostic.Sink = .{ .context = null, .emit_fn = Rejecting.emit };
+    const result = testing.run("graph {", &events, sink, .{}, null);
+
+    // The parse category stands; the lost diagnostic is visible separately.
+    try expect(result.outcome == .invalid_syntax);
+    try expectEqual(DiagnosticDelivery.failed, result.diagnostic_delivery);
+
+    // A working sink reports complete delivery on the same input.
+    var ok_events: Recording = .{};
+    var bag: Bag = .{};
+    const ok = testing.run("graph {", &ok_events, bag.sink(), .{}, null);
+    try expectEqual(DiagnosticDelivery.complete, ok.diagnostic_delivery);
+}
+
+test "attribute pairs stream before owners and abort if any event is refused" {
+    const source = "graph { a[x=1][y=2]; node[]; z=3; a--b[w=4] }";
+    var complete: Recording = .{};
+    try expect(testing.run(source, &complete, diagnostic.discard, .{}, null).outcome == .success);
+    const recorded = complete.recorded();
+    try expect((recorded[0] == .event and recorded[0].event == .begin_document));
+    try expect((recorded[1] == .event and recorded[1].event == .attribute));
+    try expect((recorded[2] == .event and recorded[2].event == .attribute));
+    try expect((recorded[3] == .event and recorded[3].event == .commit_node));
+    try expect((recorded[4] == .event and recorded[4].event == .commit_attribute_statement));
+    try expect((recorded[5] == .event and recorded[5].event == .commit_assignment));
+    try expect((recorded[6] == .event and recorded[6].event == .attribute));
+    try expect((recorded[7] == .event and recorded[7].event == .commit_edge));
+    try expect((recorded[8] == .event and recorded[8].event == .end_document));
+    inline for (0..8) |capacity| {
+        var events: @import("event_test.zig").RecordingSink(capacity) = .{};
+        const result = testing.run(source, &events, diagnostic.discard, .{}, null);
+        try expect(result.outcome == .sink_failure);
+        try expectEqual(anyerror.EventCapacityExceeded, result.outcome.sink_failure);
+        try expectEqual(@as(usize, capacity + 1), events.recorded().len);
+        try expect((events.recorded()[capacity] == .abort and events.recorded()[capacity].abort == .document));
+    }
+    var partial: Recording = .{};
+    try expect(testing.run("graph { a[x=1 y=] }", &partial, diagnostic.discard, .{}, null).outcome == .invalid_syntax);
+    try expectEqual(@as(usize, 3), partial.recorded().len);
+    try expect((partial.recorded()[1] == .event and partial.recorded()[1].event == .attribute));
+    try expect((partial.recorded()[2] == .abort and partial.recorded()[2].abort == .document));
+}
+
+test "nested scope callbacks and all prefixes preserve budget partitioning" {
+    const source = "digraph { a->subgraph s { a:p->b->{c}[x=1] {z=q} }->{} }";
+    const total = try checkBudgetPartition(scalar_lex.Scanner, source, &.{1}, .{}, null, false);
+    try expectEqual(total, try checkBudgetPartition(scalar_lex.Scanner, source, &.{ 0, 3, 17 }, .{}, null, false));
+    for (0..source.len + 1) |end| _ = try checkBudgetPartition(scalar_lex.Scanner, source[0..end], &.{ 0, 1, 2 }, .{}, null, false);
+    // Includes failures in begin/end scope, normal owner callbacks, and commit.
+    for (0..16) |at| _ = try checkBudgetPartition(scalar_lex.Scanner, source, &.{ 0, 1, 5 }, .{}, at, false);
+    for ([_]u32{ 0, 1, 2 }) |depth| _ = try checkBudgetPartition(scalar_lex.Scanner, source, &.{1}, .{ .limits = .{ .max_nesting = depth } }, null, false);
+}

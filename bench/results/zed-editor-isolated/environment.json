@@ -1,0 +1,41 @@
+{
+  "date": "2026-10-15",
+  "zed_version": "Zed 1.24.2 \u2013 /Applications/Zed.app",
+  "os": "macOS-27.0.1-arm64-arm-64bit",
+  "cpu": "Apple M4 Pro",
+  "memory_bytes": 51539607552,
+  "logical_cpus": 14,
+  "cpu_counter_timebase": {
+    "numer": 125,
+    "denom": 3
+  },
+  "sample_interval_target_s": 0.05,
+  "fixture_kind": "HTML-heavy DOT, one separate HTML label per 170-byte record",
+  "fixtures": [
+    {
+      "mb": 5,
+      "bytes": 5000000,
+      "labels": 29411,
+      "sha256": "b4c0041d477a43aa209979ec02a26daaef33b6d6b3b5cd94a2689c3aae94f08f"
+    },
+    {
+      "mb": 20,
+      "bytes": 20000000,
+      "labels": 117646,
+      "sha256": "5e6716eb46c148c15ff2bf93024f4e7282b7db745c40741381d46a507a5851b4"
+    },
+    {
+      "mb": 40,
+      "bytes": 40000000,
+      "labels": 235293,
+      "sha256": "3853f7bd60b2dd1f63fa4aea8255c33ea664fd2cbe348f960cfcba7d881a6dfc"
+    }
+  ],
+  "language_servers_enabled": false,
+  "profiler_enabled": false,
+  "app_copy": "Zed Bench.app; installed Zed copied locally, bundle identifier changed and ad-hoc signed; not rebuilt",
+  "stateless": true,
+  "additional_extension": "Zed automatically installed HTML 0.3.2 in each temporary profile",
+  "scope": "main editor process RSS, footprint, and CPU only; excludes original user Zed, sampler, helper and WindowServer",
+  "production_server_sha256": "06634ddefd6c88f0d168ad6825401b43b57b27a322643d8bb53f234e389d2344"
+}

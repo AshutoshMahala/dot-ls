@@ -1,0 +1,4902 @@
+{
+  "binary": "/private/tmp/dot-ls-html-cap-study/before",
+  "binary_sha256": "06634ddefd6c88f0d168ad6825401b43b57b27a322643d8bb53f234e389d2344",
+  "runs": [
+    {
+      "build": "before",
+      "kind": "repeated",
+      "mb": 5,
+      "trial": 1,
+      "labels": 29411,
+      "source_sha256": "a4447aa7804372b958d5d7c761366fae1d644e85d862f303bdcfd9e77b4f7b1f",
+      "phases": [
+        {
+          "phase": "open",
+          "version": 1,
+          "dot_ms": 23.301208000000017,
+          "final_ms": 23.657332999999948,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 5029888,
+          "notifications": [
+            {
+              "ms": 23.301208000000017,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 23.657332999999948,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "outer_edit",
+          "version": 2,
+          "dot_ms": 38.7358750000002,
+          "final_ms": 39.18091600000007,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 5029888,
+          "notifications": [
+            {
+              "ms": 38.7358750000002,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 39.18091600000007,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 3,
+          "dot_ms": 38.18820899999986,
+          "final_ms": 43.32674999999986,
+          "errors": 2,
+          "incomplete": false,
+          "settled_rss_bytes": 5029888,
+          "notifications": [
+            {
+              "ms": 38.18820899999986,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 43.32674999999986,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 176463,
+                      "character": 22
+                    },
+                    "end": {
+                      "line": 176463,
+                      "character": 23
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 176463,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 176463,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</I>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 176464,
+                      "character": 10
+                    },
+                    "end": {
+                      "line": 176464,
+                      "character": 12
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 176463,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 176463,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</TD>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                }
+              ],
+              "wire_bytes": 1137
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 4,
+          "dot_ms": 32.94070900000001,
+          "final_ms": 33.35279200000008,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 5029888,
+          "notifications": [
+            {
+              "ms": 32.94070900000001,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 33.35279200000008,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 5,
+          "dot_ms": 34.87820799999986,
+          "final_ms": 40.0079579999999,
+          "errors": 2,
+          "incomplete": false,
+          "settled_rss_bytes": 5029888,
+          "notifications": [
+            {
+              "ms": 34.87820799999986,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 40.0079579999999,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 176463,
+                      "character": 22
+                    },
+                    "end": {
+                      "line": 176463,
+                      "character": 23
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 176463,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 176463,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</I>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 176464,
+                      "character": 10
+                    },
+                    "end": {
+                      "line": 176464,
+                      "character": 12
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 176463,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 176463,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</TD>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                }
+              ],
+              "wire_bytes": 1137
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 6,
+          "dot_ms": 33.74470799999996,
+          "final_ms": 34.192875000000015,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 5029888,
+          "notifications": [
+            {
+              "ms": 33.74470799999996,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 34.192875000000015,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        }
+      ],
+      "startup_ms": 261.0095,
+      "idle": {
+        "t": 0.683126208,
+        "rss_bytes": 2162688,
+        "footprint_bytes": 1360208,
+        "cpu_seconds": 0.00508725,
+        "start_ticks": 1355778129756
+      },
+      "resources": {
+        "exit_code": 0,
+        "actual_peak_rss_bytes": 17956864,
+        "sampled_peak_rss_bytes": 15269888,
+        "sampled_peak_footprint_bytes": 14385512,
+        "cpu_user_seconds": 0.29287599999999997,
+        "cpu_system_seconds": 0.026378,
+        "safety_stop": null,
+        "stderr": ""
+      }
+    },
+    {
+      "build": "before",
+      "kind": "repeated",
+      "mb": 5,
+      "trial": 2,
+      "labels": 29411,
+      "source_sha256": "a4447aa7804372b958d5d7c761366fae1d644e85d862f303bdcfd9e77b4f7b1f",
+      "phases": [
+        {
+          "phase": "open",
+          "version": 1,
+          "dot_ms": 36.903624999999884,
+          "final_ms": 37.33354099999975,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 5013504,
+          "notifications": [
+            {
+              "ms": 36.903624999999884,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 37.33354099999975,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "outer_edit",
+          "version": 2,
+          "dot_ms": 37.90533300000032,
+          "final_ms": 38.32029200000031,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 5013504,
+          "notifications": [
+            {
+              "ms": 37.90533300000032,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 38.32029200000031,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 3,
+          "dot_ms": 35.05245900000009,
+          "final_ms": 40.17437499999987,
+          "errors": 2,
+          "incomplete": false,
+          "settled_rss_bytes": 5013504,
+          "notifications": [
+            {
+              "ms": 35.05245900000009,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 40.17437499999987,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 176463,
+                      "character": 22
+                    },
+                    "end": {
+                      "line": 176463,
+                      "character": 23
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 176463,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 176463,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</I>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 176464,
+                      "character": 10
+                    },
+                    "end": {
+                      "line": 176464,
+                      "character": 12
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 176463,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 176463,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</TD>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                }
+              ],
+              "wire_bytes": 1137
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 4,
+          "dot_ms": 30.680583999999733,
+          "final_ms": 31.09566699999977,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 5013504,
+          "notifications": [
+            {
+              "ms": 30.680583999999733,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 31.09566699999977,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 5,
+          "dot_ms": 31.735166999999898,
+          "final_ms": 36.818583000000515,
+          "errors": 2,
+          "incomplete": false,
+          "settled_rss_bytes": 5013504,
+          "notifications": [
+            {
+              "ms": 31.735166999999898,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 36.818583000000515,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 176463,
+                      "character": 22
+                    },
+                    "end": {
+                      "line": 176463,
+                      "character": 23
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 176463,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 176463,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</I>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 176464,
+                      "character": 10
+                    },
+                    "end": {
+                      "line": 176464,
+                      "character": 12
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 176463,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 176463,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</TD>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                }
+              ],
+              "wire_bytes": 1137
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 6,
+          "dot_ms": 32.613875000000014,
+          "final_ms": 33.026624999999754,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 5013504,
+          "notifications": [
+            {
+              "ms": 32.613875000000014,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 33.026624999999754,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        }
+      ],
+      "startup_ms": 8.156167000000103,
+      "idle": {
+        "t": 3.123292333,
+        "rss_bytes": 2162688,
+        "footprint_bytes": 1360208,
+        "cpu_seconds": 0.004317458333333333,
+        "start_ticks": 1355842668166
+      },
+      "resources": {
+        "exit_code": 0,
+        "actual_peak_rss_bytes": 17940480,
+        "sampled_peak_rss_bytes": 13762560,
+        "sampled_peak_footprint_bytes": 12894592,
+        "cpu_user_seconds": 0.298631,
+        "cpu_system_seconds": 0.024572,
+        "safety_stop": null,
+        "stderr": ""
+      }
+    },
+    {
+      "build": "before",
+      "kind": "repeated",
+      "mb": 5,
+      "trial": 3,
+      "labels": 29411,
+      "source_sha256": "a4447aa7804372b958d5d7c761366fae1d644e85d862f303bdcfd9e77b4f7b1f",
+      "phases": [
+        {
+          "phase": "open",
+          "version": 1,
+          "dot_ms": 37.99783300000037,
+          "final_ms": 38.4241249999997,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 5013504,
+          "notifications": [
+            {
+              "ms": 37.99783300000037,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 38.4241249999997,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "outer_edit",
+          "version": 2,
+          "dot_ms": 38.24433400000071,
+          "final_ms": 38.6513750000006,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 5013504,
+          "notifications": [
+            {
+              "ms": 38.24433400000071,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 38.6513750000006,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 3,
+          "dot_ms": 38.695125000000274,
+          "final_ms": 43.915542000000585,
+          "errors": 2,
+          "incomplete": false,
+          "settled_rss_bytes": 5013504,
+          "notifications": [
+            {
+              "ms": 38.695125000000274,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 43.915542000000585,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 176463,
+                      "character": 22
+                    },
+                    "end": {
+                      "line": 176463,
+                      "character": 23
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 176463,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 176463,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</I>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 176464,
+                      "character": 10
+                    },
+                    "end": {
+                      "line": 176464,
+                      "character": 12
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 176463,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 176463,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</TD>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                }
+              ],
+              "wire_bytes": 1137
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 4,
+          "dot_ms": 32.793124999999534,
+          "final_ms": 33.19583299999973,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 5013504,
+          "notifications": [
+            {
+              "ms": 32.793124999999534,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 33.19583299999973,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 5,
+          "dot_ms": 33.79274999999993,
+          "final_ms": 38.74666599999976,
+          "errors": 2,
+          "incomplete": false,
+          "settled_rss_bytes": 5013504,
+          "notifications": [
+            {
+              "ms": 33.79274999999993,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 38.74666599999976,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 176463,
+                      "character": 22
+                    },
+                    "end": {
+                      "line": 176463,
+                      "character": 23
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 176463,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 176463,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</I>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 176464,
+                      "character": 10
+                    },
+                    "end": {
+                      "line": 176464,
+                      "character": 12
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 176463,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 176463,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</TD>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                }
+              ],
+              "wire_bytes": 1137
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 6,
+          "dot_ms": 29.72991700000005,
+          "final_ms": 30.179042000000322,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 5013504,
+          "notifications": [
+            {
+              "ms": 29.72991700000005,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 30.179042000000322,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        }
+      ],
+      "startup_ms": 8.068125000000315,
+      "idle": {
+        "t": 5.566461291,
+        "rss_bytes": 2162688,
+        "footprint_bytes": 1360208,
+        "cpu_seconds": 0.004838291666666667,
+        "start_ticks": 1355901339937
+      },
+      "resources": {
+        "exit_code": 0,
+        "actual_peak_rss_bytes": 17940480,
+        "sampled_peak_rss_bytes": 12288000,
+        "sampled_peak_footprint_bytes": 11420032,
+        "cpu_user_seconds": 0.297988,
+        "cpu_system_seconds": 0.026718,
+        "safety_stop": null,
+        "stderr": ""
+      }
+    },
+    {
+      "build": "before",
+      "kind": "repeated",
+      "mb": 20,
+      "trial": 1,
+      "labels": 117646,
+      "source_sha256": "8d3b808b90f67ddaf96ee13b46f7685b14b3ec915ff022c994c65c7e17c1ad41",
+      "phases": [
+        {
+          "phase": "open",
+          "version": 1,
+          "dot_ms": 93.97304099999992,
+          "final_ms": 94.62829099999936,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 12288000,
+          "notifications": [
+            {
+              "ms": 93.97304099999992,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 94.62829099999936,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        },
+        {
+          "phase": "outer_edit",
+          "version": 2,
+          "dot_ms": 86.11995799999939,
+          "final_ms": 86.74912500000076,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 12288000,
+          "notifications": [
+            {
+              "ms": 86.11995799999939,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 86.74912500000076,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 3,
+          "dot_ms": 94.97083399999973,
+          "final_ms": 95.6211670000009,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 12288000,
+          "notifications": [
+            {
+              "ms": 94.97083399999973,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 95.6211670000009,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 4,
+          "dot_ms": 96.62400000000027,
+          "final_ms": 97.26812499999937,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 12288000,
+          "notifications": [
+            {
+              "ms": 96.62400000000027,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 97.26812499999937,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 5,
+          "dot_ms": 100.22083300000162,
+          "final_ms": 100.87483300000066,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 12288000,
+          "notifications": [
+            {
+              "ms": 100.22083300000162,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 100.87483300000066,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 6,
+          "dot_ms": 63.572875000000195,
+          "final_ms": 64.16691700000143,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 12288000,
+          "notifications": [
+            {
+              "ms": 63.572875000000195,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 64.16691700000143,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        }
+      ],
+      "startup_ms": 3.321333999998899,
+      "idle": {
+        "t": 8.358806125,
+        "rss_bytes": 2162688,
+        "footprint_bytes": 1360208,
+        "cpu_seconds": 0.00183525,
+        "start_ticks": 1355968459412
+      },
+      "resources": {
+        "exit_code": 0,
+        "actual_peak_rss_bytes": 63864832,
+        "sampled_peak_rss_bytes": 48496640,
+        "sampled_peak_footprint_bytes": 47645080,
+        "cpu_user_seconds": 0.7864709999999999,
+        "cpu_system_seconds": 0.06423,
+        "safety_stop": null,
+        "stderr": ""
+      }
+    },
+    {
+      "build": "before",
+      "kind": "repeated",
+      "mb": 20,
+      "trial": 2,
+      "labels": 117646,
+      "source_sha256": "8d3b808b90f67ddaf96ee13b46f7685b14b3ec915ff022c994c65c7e17c1ad41",
+      "phases": [
+        {
+          "phase": "open",
+          "version": 1,
+          "dot_ms": 99.016666999999,
+          "final_ms": 99.69191699999946,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 12288000,
+          "notifications": [
+            {
+              "ms": 99.016666999999,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 99.69191699999946,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        },
+        {
+          "phase": "outer_edit",
+          "version": 2,
+          "dot_ms": 95.48170899999953,
+          "final_ms": 96.13499999999853,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 12288000,
+          "notifications": [
+            {
+              "ms": 95.48170899999953,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 96.13499999999853,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 3,
+          "dot_ms": 94.85366700000064,
+          "final_ms": 95.55525000000031,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 12288000,
+          "notifications": [
+            {
+              "ms": 94.85366700000064,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 95.55525000000031,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 4,
+          "dot_ms": 94.60133299999995,
+          "final_ms": 95.24645800000009,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 12288000,
+          "notifications": [
+            {
+              "ms": 94.60133299999995,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 95.24645800000009,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 5,
+          "dot_ms": 93.9932499999987,
+          "final_ms": 94.64958299999893,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 12288000,
+          "notifications": [
+            {
+              "ms": 93.9932499999987,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 94.64958299999893,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 6,
+          "dot_ms": 91.78987499999991,
+          "final_ms": 92.43995900000002,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 12288000,
+          "notifications": [
+            {
+              "ms": 91.78987499999991,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 92.43995900000002,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        }
+      ],
+      "startup_ms": 5.119749999998646,
+      "idle": {
+        "t": 11.737088916,
+        "rss_bytes": 2162688,
+        "footprint_bytes": 1360208,
+        "cpu_seconds": 0.003077625,
+        "start_ticks": 1356049486559
+      },
+      "resources": {
+        "exit_code": 0,
+        "actual_peak_rss_bytes": 63864832,
+        "sampled_peak_rss_bytes": 52723712,
+        "sampled_peak_footprint_bytes": 51888560,
+        "cpu_user_seconds": 0.82039,
+        "cpu_system_seconds": 0.071862,
+        "safety_stop": null,
+        "stderr": ""
+      }
+    },
+    {
+      "build": "before",
+      "kind": "repeated",
+      "mb": 20,
+      "trial": 3,
+      "labels": 117646,
+      "source_sha256": "8d3b808b90f67ddaf96ee13b46f7685b14b3ec915ff022c994c65c7e17c1ad41",
+      "phases": [
+        {
+          "phase": "open",
+          "version": 1,
+          "dot_ms": 88.86879199999953,
+          "final_ms": 89.55274999999929,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 12288000,
+          "notifications": [
+            {
+              "ms": 88.86879199999953,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 89.55274999999929,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        },
+        {
+          "phase": "outer_edit",
+          "version": 2,
+          "dot_ms": 95.89608299999952,
+          "final_ms": 96.61879199999923,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 12288000,
+          "notifications": [
+            {
+              "ms": 95.89608299999952,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 96.61879199999923,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 3,
+          "dot_ms": 95.62179199999932,
+          "final_ms": 96.27858400000022,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 12288000,
+          "notifications": [
+            {
+              "ms": 95.62179199999932,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 96.27858400000022,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 4,
+          "dot_ms": 93.15433399999762,
+          "final_ms": 93.81104199999868,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 12288000,
+          "notifications": [
+            {
+              "ms": 93.15433399999762,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 93.81104199999868,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 5,
+          "dot_ms": 95.46370900000056,
+          "final_ms": 96.11608400000193,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 12288000,
+          "notifications": [
+            {
+              "ms": 95.46370900000056,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 96.11608400000193,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 6,
+          "dot_ms": 92.27570900000259,
+          "final_ms": 92.97037500000016,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 12288000,
+          "notifications": [
+            {
+              "ms": 92.27570900000259,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 92.97037500000016,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        }
+      ],
+      "startup_ms": 6.300958000000634,
+      "idle": {
+        "t": 15.14975125,
+        "rss_bytes": 2162688,
+        "footprint_bytes": 1360208,
+        "cpu_seconds": 0.0037395833333333335,
+        "start_ticks": 1356131402031
+      },
+      "resources": {
+        "exit_code": 0,
+        "actual_peak_rss_bytes": 63864832,
+        "sampled_peak_rss_bytes": 52445184,
+        "sampled_peak_footprint_bytes": 51593624,
+        "cpu_user_seconds": 0.817155,
+        "cpu_system_seconds": 0.06805599999999999,
+        "safety_stop": null,
+        "stderr": ""
+      }
+    },
+    {
+      "build": "before",
+      "kind": "repeated",
+      "mb": 40,
+      "trial": 1,
+      "labels": 235293,
+      "source_sha256": "2826d8f9a267ef19c4f0fb1287c18613522b3797cc997fe78fc3c7dd6f8140c0",
+      "phases": [
+        {
+          "phase": "open",
+          "version": 1,
+          "dot_ms": 155.129665999997,
+          "final_ms": 155.76662499999827,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 22020096,
+          "notifications": [
+            {
+              "ms": 155.129665999997,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 155.76662499999827,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        },
+        {
+          "phase": "outer_edit",
+          "version": 2,
+          "dot_ms": 150.46270800000272,
+          "final_ms": 151.0824580000012,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 22020096,
+          "notifications": [
+            {
+              "ms": 150.46270800000272,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 151.0824580000012,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 3,
+          "dot_ms": 153.3524160000006,
+          "final_ms": 153.98670800000147,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 22020096,
+          "notifications": [
+            {
+              "ms": 153.3524160000006,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 153.98670800000147,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 4,
+          "dot_ms": 144.10900000000026,
+          "final_ms": 144.7792500000027,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 22020096,
+          "notifications": [
+            {
+              "ms": 144.10900000000026,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 144.7792500000027,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 5,
+          "dot_ms": 154.7600839999994,
+          "final_ms": 155.38045899999986,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 22020096,
+          "notifications": [
+            {
+              "ms": 154.7600839999994,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 155.38045899999986,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 6,
+          "dot_ms": 147.66908300000026,
+          "final_ms": 148.2749169999984,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 22020096,
+          "notifications": [
+            {
+              "ms": 147.66908300000026,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 148.2749169999984,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        }
+      ],
+      "startup_ms": 4.06579199999868,
+      "idle": {
+        "t": 19.229844291,
+        "rss_bytes": 2146304,
+        "footprint_bytes": 1343824,
+        "cpu_seconds": 0.0018633333333333332,
+        "start_ticks": 1356229333262
+      },
+      "resources": {
+        "exit_code": 0,
+        "actual_peak_rss_bytes": 125140992,
+        "sampled_peak_rss_bytes": 103727104,
+        "sampled_peak_footprint_bytes": 102924768,
+        "cpu_user_seconds": 1.485539,
+        "cpu_system_seconds": 0.111732,
+        "safety_stop": null,
+        "stderr": ""
+      }
+    },
+    {
+      "build": "before",
+      "kind": "repeated",
+      "mb": 40,
+      "trial": 2,
+      "labels": 235293,
+      "source_sha256": "2826d8f9a267ef19c4f0fb1287c18613522b3797cc997fe78fc3c7dd6f8140c0",
+      "phases": [
+        {
+          "phase": "open",
+          "version": 1,
+          "dot_ms": 156.6832920000003,
+          "final_ms": 157.367292,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 22020096,
+          "notifications": [
+            {
+              "ms": 156.6832920000003,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 157.367292,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        },
+        {
+          "phase": "outer_edit",
+          "version": 2,
+          "dot_ms": 152.88233400000095,
+          "final_ms": 153.48016700000144,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 22020096,
+          "notifications": [
+            {
+              "ms": 152.88233400000095,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 153.48016700000144,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 3,
+          "dot_ms": 151.33854199999774,
+          "final_ms": 152.01183299999954,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 22020096,
+          "notifications": [
+            {
+              "ms": 151.33854199999774,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 152.01183299999954,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 4,
+          "dot_ms": 159.18445800000214,
+          "final_ms": 159.86224999999976,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 22020096,
+          "notifications": [
+            {
+              "ms": 159.18445800000214,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 159.86224999999976,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 5,
+          "dot_ms": 156.8850409999989,
+          "final_ms": 157.55341599999895,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 22020096,
+          "notifications": [
+            {
+              "ms": 156.8850409999989,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 157.55341599999895,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 6,
+          "dot_ms": 159.35641700000147,
+          "final_ms": 160.00441700000323,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 22020096,
+          "notifications": [
+            {
+              "ms": 159.35641700000147,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 160.00441700000323,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        }
+      ],
+      "startup_ms": 6.41266700000287,
+      "idle": {
+        "t": 23.00999725,
+        "rss_bytes": 2162688,
+        "footprint_bytes": 1360208,
+        "cpu_seconds": 0.00356375,
+        "start_ticks": 1356319994499
+      },
+      "resources": {
+        "exit_code": 0,
+        "actual_peak_rss_bytes": 125140992,
+        "sampled_peak_rss_bytes": 107495424,
+        "sampled_peak_footprint_bytes": 106725904,
+        "cpu_user_seconds": 1.504032,
+        "cpu_system_seconds": 0.11578899999999999,
+        "safety_stop": null,
+        "stderr": ""
+      }
+    },
+    {
+      "build": "before",
+      "kind": "repeated",
+      "mb": 40,
+      "trial": 3,
+      "labels": 235293,
+      "source_sha256": "2826d8f9a267ef19c4f0fb1287c18613522b3797cc997fe78fc3c7dd6f8140c0",
+      "phases": [
+        {
+          "phase": "open",
+          "version": 1,
+          "dot_ms": 155.89212500000116,
+          "final_ms": 156.58300000000125,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 22020096,
+          "notifications": [
+            {
+              "ms": 155.89212500000116,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 156.58300000000125,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        },
+        {
+          "phase": "outer_edit",
+          "version": 2,
+          "dot_ms": 151.47375000000096,
+          "final_ms": 152.10212500000253,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 22020096,
+          "notifications": [
+            {
+              "ms": 151.47375000000096,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 152.10212500000253,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 3,
+          "dot_ms": 157.03625000000088,
+          "final_ms": 157.76245900000063,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 22020096,
+          "notifications": [
+            {
+              "ms": 157.03625000000088,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 157.76245900000063,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 4,
+          "dot_ms": 154.90216699999948,
+          "final_ms": 155.575209000002,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 22020096,
+          "notifications": [
+            {
+              "ms": 154.90216699999948,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 155.575209000002,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 5,
+          "dot_ms": 152.36483300000003,
+          "final_ms": 152.98800000000057,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 22020096,
+          "notifications": [
+            {
+              "ms": 152.36483300000003,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 152.98800000000057,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 6,
+          "dot_ms": 155.76162500000024,
+          "final_ms": 156.39320800000078,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 22020096,
+          "notifications": [
+            {
+              "ms": 155.76162500000024,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 156.39320800000078,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        }
+      ],
+      "startup_ms": 4.618832999998546,
+      "idle": {
+        "t": 26.818231333,
+        "rss_bytes": 2162688,
+        "footprint_bytes": 1360208,
+        "cpu_seconds": 0.0026306666666666666,
+        "start_ticks": 1356411458997
+      },
+      "resources": {
+        "exit_code": 0,
+        "actual_peak_rss_bytes": 125140992,
+        "sampled_peak_rss_bytes": 100548608,
+        "sampled_peak_footprint_bytes": 99762680,
+        "cpu_user_seconds": 1.512187,
+        "cpu_system_seconds": 0.11108699999999999,
+        "safety_stop": null,
+        "stderr": ""
+      }
+    },
+    {
+      "build": "before",
+      "kind": "unique",
+      "mb": 5,
+      "trial": 1,
+      "labels": 29411,
+      "source_sha256": "73b43a0c5bfadeeb5eb608e943be0d4b993fc605bb03ad115273efffc02c6784",
+      "phases": [
+        {
+          "phase": "open",
+          "version": 1,
+          "dot_ms": 39.40712500000032,
+          "final_ms": 139.15437500000039,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 6356992,
+          "notifications": [
+            {
+              "ms": 39.40712500000032,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 139.15437500000039,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "outer_edit",
+          "version": 2,
+          "dot_ms": 36.57345799999945,
+          "final_ms": 134.5134580000007,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 6356992,
+          "notifications": [
+            {
+              "ms": 36.57345799999945,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 134.5134580000007,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 3,
+          "dot_ms": 38.186416999998585,
+          "final_ms": 141.00362499999974,
+          "errors": 2,
+          "incomplete": false,
+          "settled_rss_bytes": 6356992,
+          "notifications": [
+            {
+              "ms": 38.186416999998585,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 141.00362499999974,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 176463,
+                      "character": 25
+                    },
+                    "end": {
+                      "line": 176463,
+                      "character": 26
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 176463,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 176463,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</I>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 176464,
+                      "character": 10
+                    },
+                    "end": {
+                      "line": 176464,
+                      "character": 12
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 176463,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 176463,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</TD>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                }
+              ],
+              "wire_bytes": 1137
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 4,
+          "dot_ms": 31.495167000002766,
+          "final_ms": 130.01995799999833,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 6356992,
+          "notifications": [
+            {
+              "ms": 31.495167000002766,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 130.01995799999833,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 5,
+          "dot_ms": 36.58212500000246,
+          "final_ms": 138.70637499999816,
+          "errors": 2,
+          "incomplete": false,
+          "settled_rss_bytes": 6356992,
+          "notifications": [
+            {
+              "ms": 36.58212500000246,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 138.70637499999816,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 176463,
+                      "character": 25
+                    },
+                    "end": {
+                      "line": 176463,
+                      "character": 26
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 176463,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 176463,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</I>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 176464,
+                      "character": 10
+                    },
+                    "end": {
+                      "line": 176464,
+                      "character": 12
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 176463,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 176463,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</TD>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                }
+              ],
+              "wire_bytes": 1137
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 6,
+          "dot_ms": 18.987875000000543,
+          "final_ms": 105.73308400000059,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 6356992,
+          "notifications": [
+            {
+              "ms": 18.987875000000543,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 105.73308400000059,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        }
+      ],
+      "startup_ms": 3.620999999998986,
+      "idle": {
+        "t": 30.705450541,
+        "rss_bytes": 2162688,
+        "footprint_bytes": 1360208,
+        "cpu_seconds": 0.001837875,
+        "start_ticks": 1356504772827
+      },
+      "resources": {
+        "exit_code": 0,
+        "actual_peak_rss_bytes": 19283968,
+        "sampled_peak_rss_bytes": 14204928,
+        "sampled_peak_footprint_bytes": 13336960,
+        "cpu_user_seconds": 0.5344869999999999,
+        "cpu_system_seconds": 0.325225,
+        "safety_stop": null,
+        "stderr": ""
+      }
+    },
+    {
+      "build": "before",
+      "kind": "unique",
+      "mb": 5,
+      "trial": 2,
+      "labels": 29411,
+      "source_sha256": "73b43a0c5bfadeeb5eb608e943be0d4b993fc605bb03ad115273efffc02c6784",
+      "phases": [
+        {
+          "phase": "open",
+          "version": 1,
+          "dot_ms": 38.42566599999486,
+          "final_ms": 132.34612499999798,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 6356992,
+          "notifications": [
+            {
+              "ms": 38.42566599999486,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 132.34612499999798,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "outer_edit",
+          "version": 2,
+          "dot_ms": 38.252750000005165,
+          "final_ms": 135.9900420000031,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 6356992,
+          "notifications": [
+            {
+              "ms": 38.252750000005165,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 135.9900420000031,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 3,
+          "dot_ms": 38.196333999998444,
+          "final_ms": 143.91212499999995,
+          "errors": 2,
+          "incomplete": false,
+          "settled_rss_bytes": 6356992,
+          "notifications": [
+            {
+              "ms": 38.196333999998444,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 143.91212499999995,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 176463,
+                      "character": 25
+                    },
+                    "end": {
+                      "line": 176463,
+                      "character": 26
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 176463,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 176463,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</I>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 176464,
+                      "character": 10
+                    },
+                    "end": {
+                      "line": 176464,
+                      "character": 12
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 176463,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 176463,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</TD>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                }
+              ],
+              "wire_bytes": 1137
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 4,
+          "dot_ms": 29.34233399999897,
+          "final_ms": 125.78262499999937,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 6356992,
+          "notifications": [
+            {
+              "ms": 29.34233399999897,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 125.78262499999937,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 5,
+          "dot_ms": 36.612124999997775,
+          "final_ms": 137.6165419999964,
+          "errors": 2,
+          "incomplete": false,
+          "settled_rss_bytes": 6356992,
+          "notifications": [
+            {
+              "ms": 36.612124999997775,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 137.6165419999964,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 176463,
+                      "character": 25
+                    },
+                    "end": {
+                      "line": 176463,
+                      "character": 26
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 176463,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 176463,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</I>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 176464,
+                      "character": 10
+                    },
+                    "end": {
+                      "line": 176464,
+                      "character": 12
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 176463,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 176463,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</TD>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                }
+              ],
+              "wire_bytes": 1137
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 6,
+          "dot_ms": 33.30108299999779,
+          "final_ms": 135.607291999996,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 6356992,
+          "notifications": [
+            {
+              "ms": 33.30108299999779,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 135.607291999996,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        }
+      ],
+      "startup_ms": 6.140957999996033,
+      "idle": {
+        "t": 33.730488291,
+        "rss_bytes": 2162688,
+        "footprint_bytes": 1360208,
+        "cpu_seconds": 0.0034842083333333335,
+        "start_ticks": 1356577286803
+      },
+      "resources": {
+        "exit_code": 0,
+        "actual_peak_rss_bytes": 19283968,
+        "sampled_peak_rss_bytes": 14598144,
+        "sampled_peak_footprint_bytes": 13713768,
+        "cpu_user_seconds": 0.545925,
+        "cpu_system_seconds": 0.336234,
+        "safety_stop": null,
+        "stderr": ""
+      }
+    },
+    {
+      "build": "before",
+      "kind": "unique",
+      "mb": 5,
+      "trial": 3,
+      "labels": 29411,
+      "source_sha256": "73b43a0c5bfadeeb5eb608e943be0d4b993fc605bb03ad115273efffc02c6784",
+      "phases": [
+        {
+          "phase": "open",
+          "version": 1,
+          "dot_ms": 39.175457999995444,
+          "final_ms": 133.4556249999963,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 6356992,
+          "notifications": [
+            {
+              "ms": 39.175457999995444,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 133.4556249999963,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "outer_edit",
+          "version": 2,
+          "dot_ms": 37.185374999999965,
+          "final_ms": 135.66025000000081,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 6356992,
+          "notifications": [
+            {
+              "ms": 37.185374999999965,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 135.66025000000081,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 3,
+          "dot_ms": 37.58300000000503,
+          "final_ms": 137.82799999999895,
+          "errors": 2,
+          "incomplete": false,
+          "settled_rss_bytes": 6356992,
+          "notifications": [
+            {
+              "ms": 37.58300000000503,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 137.82799999999895,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 176463,
+                      "character": 25
+                    },
+                    "end": {
+                      "line": 176463,
+                      "character": 26
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 176463,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 176463,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</I>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 176464,
+                      "character": 10
+                    },
+                    "end": {
+                      "line": 176464,
+                      "character": 12
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 176463,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 176463,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</TD>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                }
+              ],
+              "wire_bytes": 1137
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 4,
+          "dot_ms": 33.81379200000367,
+          "final_ms": 131.46129200000445,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 6356992,
+          "notifications": [
+            {
+              "ms": 33.81379200000367,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 131.46129200000445,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 5,
+          "dot_ms": 38.735500000001366,
+          "final_ms": 139.91324999999932,
+          "errors": 2,
+          "incomplete": false,
+          "settled_rss_bytes": 6356992,
+          "notifications": [
+            {
+              "ms": 38.735500000001366,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 139.91324999999932,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 176463,
+                      "character": 25
+                    },
+                    "end": {
+                      "line": 176463,
+                      "character": 26
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 176463,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 176463,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</I>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                },
+                {
+                  "range": {
+                    "start": {
+                      "line": 176464,
+                      "character": 10
+                    },
+                    "end": {
+                      "line": 176464,
+                      "character": 12
+                    }
+                  },
+                  "severity": 1,
+                  "code": "E.Syntax.Tag.002",
+                  "source": "dot-ls",
+                  "relatedInformation": [
+                    {
+                      "location": {
+                        "uri": "file:///controlled-server-comparison.dot",
+                        "range": {
+                          "start": {
+                            "line": 176463,
+                            "character": 13
+                          },
+                          "end": {
+                            "line": 176463,
+                            "character": 14
+                          }
+                        }
+                      },
+                      "message": "Related HTML construct starts here."
+                    }
+                  ],
+                  "message": "HTML label: closing tag '</TD>' does not match '<B>'.\nclose the most recently opened element using its opening name"
+                }
+              ],
+              "wire_bytes": 1137
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 6,
+          "dot_ms": 25.33741699999581,
+          "final_ms": 119.74858399999988,
+          "errors": 0,
+          "incomplete": false,
+          "settled_rss_bytes": 6356992,
+          "notifications": [
+            {
+              "ms": 25.33741699999581,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 119.74858399999988,
+              "diagnostics": [],
+              "wire_bytes": 149
+            }
+          ]
+        }
+      ],
+      "startup_ms": 6.848583000000019,
+      "idle": {
+        "t": 36.766521708,
+        "rss_bytes": 2162688,
+        "footprint_bytes": 1360208,
+        "cpu_seconds": 0.004313583333333333,
+        "start_ticks": 1356650299090
+      },
+      "resources": {
+        "exit_code": 0,
+        "actual_peak_rss_bytes": 19283968,
+        "sampled_peak_rss_bytes": 15925248,
+        "sampled_peak_footprint_bytes": 15057280,
+        "cpu_user_seconds": 0.542835,
+        "cpu_system_seconds": 0.32559,
+        "safety_stop": null,
+        "stderr": ""
+      }
+    },
+    {
+      "build": "before",
+      "kind": "unique",
+      "mb": 20,
+      "trial": 1,
+      "labels": 117646,
+      "source_sha256": "c4e622e569b37f8a56040f9ebcb2efee11c6caba49be6a79e6258000d91a12ee",
+      "phases": [
+        {
+          "phase": "open",
+          "version": 1,
+          "dot_ms": 94.19179199999661,
+          "final_ms": 302.1250839999965,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 13631488,
+          "notifications": [
+            {
+              "ms": 94.19179199999661,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 302.1250839999965,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        },
+        {
+          "phase": "outer_edit",
+          "version": 2,
+          "dot_ms": 83.7055840000005,
+          "final_ms": 296.9552919999998,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 13631488,
+          "notifications": [
+            {
+              "ms": 83.7055840000005,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 296.9552919999998,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 3,
+          "dot_ms": 94.10258299999441,
+          "final_ms": 303.97495799999774,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 13631488,
+          "notifications": [
+            {
+              "ms": 94.10258299999441,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 303.97495799999774,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 4,
+          "dot_ms": 92.706917000001,
+          "final_ms": 303.76375000000166,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 13631488,
+          "notifications": [
+            {
+              "ms": 92.706917000001,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 303.76375000000166,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 5,
+          "dot_ms": 84.09250000000412,
+          "final_ms": 284.3746670000016,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 13631488,
+          "notifications": [
+            {
+              "ms": 84.09250000000412,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 284.3746670000016,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 6,
+          "dot_ms": 94.80300000000597,
+          "final_ms": 307.0920840000042,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 13631488,
+          "notifications": [
+            {
+              "ms": 94.80300000000597,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 307.0920840000042,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        }
+      ],
+      "startup_ms": 3.5697920000004046,
+      "idle": {
+        "t": 40.173384958,
+        "rss_bytes": 2162688,
+        "footprint_bytes": 1360208,
+        "cpu_seconds": 0.001889875,
+        "start_ticks": 1356731951701
+      },
+      "resources": {
+        "exit_code": 0,
+        "actual_peak_rss_bytes": 65208320,
+        "sampled_peak_rss_bytes": 65093632,
+        "sampled_peak_footprint_bytes": 64291296,
+        "cpu_user_seconds": 1.397713,
+        "cpu_system_seconds": 0.7288819999999999,
+        "safety_stop": null,
+        "stderr": ""
+      }
+    },
+    {
+      "build": "before",
+      "kind": "unique",
+      "mb": 20,
+      "trial": 2,
+      "labels": 117646,
+      "source_sha256": "c4e622e569b37f8a56040f9ebcb2efee11c6caba49be6a79e6258000d91a12ee",
+      "phases": [
+        {
+          "phase": "open",
+          "version": 1,
+          "dot_ms": 93.67041699999845,
+          "final_ms": 304.13641699999516,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 13631488,
+          "notifications": [
+            {
+              "ms": 93.67041699999845,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 304.13641699999516,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        },
+        {
+          "phase": "outer_edit",
+          "version": 2,
+          "dot_ms": 92.62275000000386,
+          "final_ms": 298.8088330000025,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 13631488,
+          "notifications": [
+            {
+              "ms": 92.62275000000386,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 298.8088330000025,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 3,
+          "dot_ms": 96.1323329999999,
+          "final_ms": 311.91858300000064,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 13631488,
+          "notifications": [
+            {
+              "ms": 96.1323329999999,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 311.91858300000064,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 4,
+          "dot_ms": 92.579041999997,
+          "final_ms": 306.1683749999986,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 13631488,
+          "notifications": [
+            {
+              "ms": 92.579041999997,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 306.1683749999986,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 5,
+          "dot_ms": 94.95633299999895,
+          "final_ms": 295.75016700000134,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 13631488,
+          "notifications": [
+            {
+              "ms": 94.95633299999895,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 295.75016700000134,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 6,
+          "dot_ms": 94.23608400000205,
+          "final_ms": 309.6858339999997,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 13631488,
+          "notifications": [
+            {
+              "ms": 94.23608400000205,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 309.6858339999997,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        }
+      ],
+      "startup_ms": 4.147583000005284,
+      "idle": {
+        "t": 44.809115541,
+        "rss_bytes": 2162688,
+        "footprint_bytes": 1360208,
+        "cpu_seconds": 0.00258375,
+        "start_ticks": 1356843273234
+      },
+      "resources": {
+        "exit_code": 0,
+        "actual_peak_rss_bytes": 65208320,
+        "sampled_peak_rss_bytes": 54296576,
+        "sampled_peak_footprint_bytes": 53461424,
+        "cpu_user_seconds": 1.4184889999999999,
+        "cpu_system_seconds": 0.737101,
+        "safety_stop": null,
+        "stderr": ""
+      }
+    },
+    {
+      "build": "before",
+      "kind": "unique",
+      "mb": 20,
+      "trial": 3,
+      "labels": 117646,
+      "source_sha256": "c4e622e569b37f8a56040f9ebcb2efee11c6caba49be6a79e6258000d91a12ee",
+      "phases": [
+        {
+          "phase": "open",
+          "version": 1,
+          "dot_ms": 94.94712500000446,
+          "final_ms": 302.36133300000034,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 13631488,
+          "notifications": [
+            {
+              "ms": 94.94712500000446,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 302.36133300000034,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        },
+        {
+          "phase": "outer_edit",
+          "version": 2,
+          "dot_ms": 94.15958400000335,
+          "final_ms": 296.12683400000606,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 13631488,
+          "notifications": [
+            {
+              "ms": 94.15958400000335,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 296.12683400000606,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 3,
+          "dot_ms": 101.40612500000401,
+          "final_ms": 314.3091250000012,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 13631488,
+          "notifications": [
+            {
+              "ms": 101.40612500000401,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 314.3091250000012,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 4,
+          "dot_ms": 89.73929100000078,
+          "final_ms": 294.13600000000173,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 13631488,
+          "notifications": [
+            {
+              "ms": 89.73929100000078,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 294.13600000000173,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 5,
+          "dot_ms": 93.6403330000033,
+          "final_ms": 306.003957999998,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 13631488,
+          "notifications": [
+            {
+              "ms": 93.6403330000033,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 306.003957999998,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 6,
+          "dot_ms": 87.75674999999694,
+          "final_ms": 298.3260829999992,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 13631488,
+          "notifications": [
+            {
+              "ms": 87.75674999999694,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 298.3260829999992,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        }
+      ],
+      "startup_ms": 6.404750000001513,
+      "idle": {
+        "t": 49.490684625,
+        "rss_bytes": 2162688,
+        "footprint_bytes": 1360208,
+        "cpu_seconds": 0.003817375,
+        "start_ticks": 1356955594306
+      },
+      "resources": {
+        "exit_code": 0,
+        "actual_peak_rss_bytes": 65208320,
+        "sampled_peak_rss_bytes": 49561600,
+        "sampled_peak_footprint_bytes": 48726448,
+        "cpu_user_seconds": 1.407034,
+        "cpu_system_seconds": 0.731236,
+        "safety_stop": null,
+        "stderr": ""
+      }
+    },
+    {
+      "build": "before",
+      "kind": "unique",
+      "mb": 40,
+      "trial": 1,
+      "labels": 235293,
+      "source_sha256": "95cc1be12113149ad2f1433268038a1ea27e69606145cfb27071588b996854d4",
+      "phases": [
+        {
+          "phase": "open",
+          "version": 1,
+          "dot_ms": 157.51587500000142,
+          "final_ms": 353.99483300000156,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 23363584,
+          "notifications": [
+            {
+              "ms": 157.51587500000142,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 353.99483300000156,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        },
+        {
+          "phase": "outer_edit",
+          "version": 2,
+          "dot_ms": 157.6654589999933,
+          "final_ms": 363.18258399999337,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 23363584,
+          "notifications": [
+            {
+              "ms": 157.6654589999933,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 363.18258399999337,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 3,
+          "dot_ms": 153.99795799999794,
+          "final_ms": 363.24337500000325,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 23363584,
+          "notifications": [
+            {
+              "ms": 153.99795799999794,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 363.24337500000325,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 4,
+          "dot_ms": 153.18866600000547,
+          "final_ms": 357.8365410000046,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 23363584,
+          "notifications": [
+            {
+              "ms": 153.18866600000547,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 357.8365410000046,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 5,
+          "dot_ms": 155.56895800000348,
+          "final_ms": 358.4743750000001,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 23363584,
+          "notifications": [
+            {
+              "ms": 155.56895800000348,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 358.4743750000001,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 6,
+          "dot_ms": 156.80245800000137,
+          "final_ms": 364.4027080000001,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 23363584,
+          "notifications": [
+            {
+              "ms": 156.80245800000137,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 364.4027080000001,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        }
+      ],
+      "startup_ms": 4.068540999995207,
+      "idle": {
+        "t": 54.904840833,
+        "rss_bytes": 2146304,
+        "footprint_bytes": 1343824,
+        "cpu_seconds": 0.002007041666666667,
+        "start_ticks": 1357085675222
+      },
+      "resources": {
+        "exit_code": 0,
+        "actual_peak_rss_bytes": 126484480,
+        "sampled_peak_rss_bytes": 126287872,
+        "sampled_peak_footprint_bytes": 125518352,
+        "cpu_user_seconds": 2.098734,
+        "cpu_system_seconds": 0.7559429999999999,
+        "safety_stop": null,
+        "stderr": ""
+      }
+    },
+    {
+      "build": "before",
+      "kind": "unique",
+      "mb": 40,
+      "trial": 2,
+      "labels": 235293,
+      "source_sha256": "95cc1be12113149ad2f1433268038a1ea27e69606145cfb27071588b996854d4",
+      "phases": [
+        {
+          "phase": "open",
+          "version": 1,
+          "dot_ms": 155.59429099999988,
+          "final_ms": 362.5788330000006,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 23363584,
+          "notifications": [
+            {
+              "ms": 155.59429099999988,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 362.5788330000006,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        },
+        {
+          "phase": "outer_edit",
+          "version": 2,
+          "dot_ms": 150.24675000000087,
+          "final_ms": 356.1624999999964,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 23363584,
+          "notifications": [
+            {
+              "ms": 150.24675000000087,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 356.1624999999964,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 3,
+          "dot_ms": 156.06395799999717,
+          "final_ms": 358.0285829999994,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 23363584,
+          "notifications": [
+            {
+              "ms": 156.06395799999717,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 358.0285829999994,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 4,
+          "dot_ms": 155.77591599999607,
+          "final_ms": 353.7388329999942,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 23363584,
+          "notifications": [
+            {
+              "ms": 155.77591599999607,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 353.7388329999942,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 5,
+          "dot_ms": 155.08716600000128,
+          "final_ms": 349.30187500000187,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 23363584,
+          "notifications": [
+            {
+              "ms": 155.08716600000128,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 349.30187500000187,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 6,
+          "dot_ms": 156.63783299999778,
+          "final_ms": 383.21595800000097,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 23363584,
+          "notifications": [
+            {
+              "ms": 156.63783299999778,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 383.21595800000097,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        }
+      ],
+      "startup_ms": 5.6080419999986475,
+      "idle": {
+        "t": 60.03725225,
+        "rss_bytes": 2162688,
+        "footprint_bytes": 1360208,
+        "cpu_seconds": 0.0029495833333333336,
+        "start_ticks": 1357208684181
+      },
+      "resources": {
+        "exit_code": 0,
+        "actual_peak_rss_bytes": 126484480,
+        "sampled_peak_rss_bytes": 102285312,
+        "sampled_peak_footprint_bytes": 101482976,
+        "cpu_user_seconds": 2.093901,
+        "cpu_system_seconds": 0.762845,
+        "safety_stop": null,
+        "stderr": ""
+      }
+    },
+    {
+      "build": "before",
+      "kind": "unique",
+      "mb": 40,
+      "trial": 3,
+      "labels": 235293,
+      "source_sha256": "95cc1be12113149ad2f1433268038a1ea27e69606145cfb27071588b996854d4",
+      "phases": [
+        {
+          "phase": "open",
+          "version": 1,
+          "dot_ms": 155.22795800001177,
+          "final_ms": 350.3985830000005,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 23363584,
+          "notifications": [
+            {
+              "ms": 155.22795800001177,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 350.3985830000005,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        },
+        {
+          "phase": "outer_edit",
+          "version": 2,
+          "dot_ms": 152.34666700000332,
+          "final_ms": 358.1796670000017,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 23363584,
+          "notifications": [
+            {
+              "ms": 152.34666700000332,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 358.1796670000017,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 3,
+          "dot_ms": 154.54908299999204,
+          "final_ms": 356.70254099999,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 23363584,
+          "notifications": [
+            {
+              "ms": 154.54908299999204,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 356.70254099999,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 4,
+          "dot_ms": 151.9299170000039,
+          "final_ms": 364.2940830000043,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 23363584,
+          "notifications": [
+            {
+              "ms": 151.9299170000039,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 364.2940830000043,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        },
+        {
+          "phase": "tail_error",
+          "version": 5,
+          "dot_ms": 156.4989169999933,
+          "final_ms": 361.8619169999988,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 23363584,
+          "notifications": [
+            {
+              "ms": 156.4989169999933,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 361.8619169999988,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        },
+        {
+          "phase": "repair",
+          "version": 6,
+          "dot_ms": 146.32037500000195,
+          "final_ms": 348.4580420000043,
+          "errors": 0,
+          "incomplete": true,
+          "settled_rss_bytes": 23363584,
+          "notifications": [
+            {
+              "ms": 146.32037500000195,
+              "diagnostics": [],
+              "wire_bytes": 149
+            },
+            {
+              "ms": 348.4580420000043,
+              "diagnostics": [
+                {
+                  "range": {
+                    "start": {
+                      "line": 0,
+                      "character": 0
+                    },
+                    "end": {
+                      "line": 0,
+                      "character": 0
+                    }
+                  },
+                  "severity": 3,
+                  "code": "dot-ls:html-incomplete",
+                  "source": "dot-ls",
+                  "relatedInformation": [],
+                  "message": "HTML label checking is incomplete. Further errors may remain."
+                }
+              ],
+              "wire_bytes": 385
+            }
+          ]
+        }
+      ],
+      "startup_ms": 4.668999999992707,
+      "idle": {
+        "t": 65.070218583,
+        "rss_bytes": 2162688,
+        "footprint_bytes": 1360208,
+        "cpu_seconds": 0.0025424166666666663,
+        "start_ticks": 1357329561434
+      },
+      "resources": {
+        "exit_code": 0,
+        "actual_peak_rss_bytes": 126484480,
+        "sampled_peak_rss_bytes": 100122624,
+        "sampled_peak_footprint_bytes": 99320288,
+        "cpu_user_seconds": 2.078779,
+        "cpu_system_seconds": 0.754249,
+        "safety_stop": null,
+        "stderr": ""
+      }
+    }
+  ]
+}

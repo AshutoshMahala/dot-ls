@@ -1,0 +1,121 @@
+=========================
+Attributes
+=========================
+
+graph {
+  stylesheet = "styles.css"
+
+  bgcolor = gray; fontcolor = white
+
+  a0 [a=b]
+
+  b1 [a=b c=d]
+
+  c2 [a=b; c=d, e=f]
+
+  d3 [a="b" c=12.345 d=<e>]
+
+  e4 [multi=
+  lines
+  ]
+}
+
+---
+
+(source_file
+  block: (block
+    (stmt_list
+      (attribute
+        name: (identifier)
+        (operator)
+        value: (string_literal))
+      (attribute
+        name: (identifier)
+        (operator)
+        value: (identifier))
+      (attribute
+        name: (identifier)
+        (operator)
+        value: (identifier))
+      (node_stmt
+        (node_id
+          (identifier))
+        (attr_list
+          (attribute
+            name: (identifier)
+            (operator)
+            value: (identifier))))
+      (node_stmt
+        (node_id
+          (identifier))
+        (attr_list
+          (attribute
+            name: (identifier)
+            (operator)
+            value: (identifier))
+          (attribute
+            name: (identifier)
+            (operator)
+            value: (identifier))))
+      (node_stmt
+        (node_id
+          (identifier))
+        (attr_list
+          (attribute
+            name: (identifier)
+            (operator)
+            value: (identifier))
+          (attribute
+            name: (identifier)
+            (operator)
+            value: (identifier))
+          (attribute
+            name: (identifier)
+            (operator)
+            value: (identifier))))
+      (node_stmt
+        (node_id
+          (identifier))
+        (attr_list
+          (attribute
+            name: (identifier)
+            (operator)
+            value: (string_literal))
+          (attribute
+            name: (identifier)
+            (operator)
+            value: (number_literal))
+          (attribute
+            name: (identifier)
+            (operator)
+            value: (html_string
+              (html_internal)))))
+      (node_stmt
+        (node_id
+          (identifier))
+        (attr_list
+          (attribute
+            name: (identifier)
+            (operator)
+            value: (identifier)))))))
+
+=========================
+Comments
+=========================
+
+graph {
+  // comments
+
+  /*multi
+  lines*/
+
+  # 123
+}
+
+---
+
+(source_file
+  block: (block
+    (comment)
+    (comment)
+    (preproc)))

@@ -1,0 +1,17 @@
+// Open Zed's Outline Panel or Go to Symbol in Editor.
+// The error is intentional. Later nodes must stay in the outline.
+digraph Outline {
+    start;
+    subgraph cluster_inputs {
+        source;
+        cache;
+    }
+    broken -> ;
+    subgraph processing {
+        parse [label=<<B>Parse</B>>];
+        validate;
+    }
+    { anonymous_node; }
+    output;
+    start -> output;
+}

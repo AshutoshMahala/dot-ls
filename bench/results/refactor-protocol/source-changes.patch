@@ -1,0 +1,2916 @@
+--- /dev/null
++++ b/src/app.zig
+@@ -0,0 +1,814 @@
++const std = @import("std");
++const build_options = @import("build_options");
++const framing = @import("protocol/framing.zig");
++const lsp = @import("protocol/lsp.zig");
++const requests = @import("protocol/requests.zig");
++const responses = @import("protocol/responses.zig");
++pub const server_version = lsp.server_version;
++const json_message = @import("protocol/json_message.zig");
++const pos = @import("text/positions.zig");
++const diagnostic_text = @import("analysis/diagnostic_text.zig");
++const context = @import("features/completion_context.zig");
++const references = @import("features/references.zig");
++const labels = @import("features/labels.zig");
++const analysis = @import("analysis/dot.zig");
++const outline = @import("features/outline.zig");
++const actions = @import("features/code_actions.zig");
++const max_file = 200 * 1024 * 1024;
++const max_sources = 512 * 1024 * 1024;
++const Job = struct {
++    text: []const u8,
++    // Exact allocation to free: either a source copy or the transferred packet.
++    allocation: []u8,
++    uri: []u8,
++    version: i64,
++    generation: u64,
++    phase: enum { syntax, context, html, index } = .syntax,
++    want_references: bool = false,
++    labels: ?labels.Collector = null,
++    html: ?labels.Work = null,
++    html_ready: bool = false,
++    previous_html: ?*labels.Cache = null,
++    wording: ?std.heap.ArenaAllocator = null,
++    diagnostics: std.ArrayList(Diagnostic) = .empty,
++    fixes: std.ArrayList(actions.Fix) = .empty,
++    fixes_failed: bool = false,
++    outline_builder: ?outline.Builder = null,
++    builder: ?references.Builder = null,
++    cancel: std.atomic.Value(bool) = .init(false),
++    fn poll(ctx: ?*anyopaque) bool {
++        // The context is the live Job passed to measure; the worker owns its lifetime.
++        const self: *Job = @ptrCast(@alignCast(ctx.?));
++        return self.cancel.load(.acquire);
++    }
++    fn destroy(self: *Job, allocator: std.mem.Allocator) void {
++        if (self.outline_builder) |*builder| builder.deinit();
++        if (self.builder) |*builder| builder.deinit();
++        if (self.labels) |*collector| collector.deinit();
++        if (self.html) |*work| work.deinit();
++        if (self.previous_html) |cache| cache.release(allocator);
++        self.diagnostics.deinit(allocator);
++        self.fixes.deinit(allocator);
++        if (self.wording) |*arena| arena.deinit();
++        allocator.free(self.allocation);
++        allocator.free(self.uri);
++        allocator.destroy(self);
++    }
++};
++const ReferenceRequest = struct { id: lsp.Id, point: pos.Position, include: bool = false, kind: enum { references, completion, hover, symbols } = .references };
++const Document = struct { outline_index: ?outline.Index = null, outline_done: bool = false, fixes: ?[]actions.Fix = null, fixes_done: bool = false, requests: std.ArrayList(ReferenceRequest) = .empty, index_pending: ?*Job = null, uri: []u8, version: i64, generation: u64, pending: ?*Job = null, references: ?references.Index = null, completion: ?context.Index = null, completion_done: bool = false, html_cache: ?*labels.Cache = null };
++const Range = @import("text/types.zig").Range;
++const RelatedInformation = lsp.RelatedInformation;
++const Diagnostic = lsp.Diagnostic;
++const Server = struct {
++    html_allocator: std.mem.Allocator,
++    allocator: std.mem.Allocator,
++    io: std.Io,
++    writer: *std.Io.Writer,
++    mutex: std.Io.Mutex = .init,
++    condition: std.Io.Condition = .init,
++    documents: std.ArrayList(Document) = .empty,
++    active: ?*Job = null,
++    source_bytes: usize = 0,
++    index_bytes: usize = 0,
++    context_bytes: usize = 0,
++    outline_bytes: usize = 0,
++    html_cache_bytes: usize = 0,
++    html_budget: labels.Budget = .{},
++    // Queued syntax jobs plus any large packet being read/decoded by the dispatcher.
++    syntax_pending: std.atomic.Value(usize) = .init(0),
++    generation: u64 = 0,
++    stopping: bool = false,
++    initialized: bool = false,
++    related_information: bool = false,
++    versioned_edits: bool = false,
++    hierarchical_symbols: bool = false,
++    shutdown: bool = false,
++    encoding: pos.Encoding = .utf16,
++    worker: ?std.Thread = null,
++    fn releaseIntake(self: *Server, priority: *bool) void {
++        if (!priority.*) return;
++        priority.* = false;
++        _ = self.syntax_pending.fetchSub(1, .release);
++        self.mutex.lockUncancelable(self.io);
++        self.condition.signal(self.io);
++        self.mutex.unlock(self.io);
++    }
++
++    fn failure(self: *Server, id: lsp.Id, code: i32, message: []const u8) !void {
++        try responses.failure(self.allocator, self.writer, id, code, message);
++    }
++
++    fn find(self: *Server, uri: []const u8) ?usize {
++        for (self.documents.items, 0..) |doc, i| if (std.mem.eql(u8, doc.uri, uri)) return i;
++        return null;
++    }
++    fn clear(self: *Server, uri: []const u8, version: ?i64, message: ?[]const u8) !void {
++        try responses.clear(self.allocator, self.writer, uri, version, message);
++    }
++
++    fn setFixes(self: *Server, doc: *Document, offers: []const actions.Fix, failed: bool) void {
++        std.debug.assert(offers.len <= 1000);
++        if (doc.fixes) |old| self.allocator.free(old);
++        doc.fixes = null;
++        doc.fixes_done = true;
++        if (!failed) doc.fixes = self.allocator.dupe(actions.Fix, offers) catch null;
++    }
++    fn invalidate(self: *Server, doc: *Document) void {
++        if (doc.outline_index) |*index| {
++            self.outline_bytes -= index.bytes();
++            index.deinit(self.allocator);
++            doc.outline_index = null;
++        }
++        doc.outline_done = false;
++        if (doc.fixes) |old| self.allocator.free(old);
++        doc.fixes = null;
++        doc.fixes_done = false;
++        self.failReferences(doc, lsp.ErrorCode.content_modified, "Document changed before the request completed.") catch {};
++        if (doc.index_pending) |job| {
++            self.source_bytes -= job.allocation.len;
++            job.destroy(self.allocator);
++            doc.index_pending = null;
++        }
++        if (doc.completion) |*index| {
++            self.context_bytes -= index.bytes();
++            index.deinit(self.allocator);
++            doc.completion = null;
++        }
++        doc.completion_done = false;
++        if (doc.references) |*index| {
++            self.index_bytes -= index.bytes();
++            index.deinit(self.allocator);
++            doc.references = null;
++        }
++        if (doc.pending) |job| {
++            _ = self.syntax_pending.fetchSub(1, .release);
++            self.source_bytes -= job.allocation.len;
++            job.destroy(self.allocator);
++            doc.pending = null;
++        }
++        if (self.active) |job| if (std.mem.eql(u8, job.uri, doc.uri)) {
++            job.cancel.store(true, .release);
++        };
++        self.generation += 1;
++        doc.generation = self.generation;
++    }
++    fn update(self: *Server, uri: []const u8, text: []const u8, version: i64, opening: bool, message: *json_message.Message, packet: *?[]u8) !void {
++        var index = self.find(uri);
++        if (index == null) {
++            if (!opening or self.documents.items.len == 128) return;
++            const key = try self.allocator.dupe(u8, uri);
++            errdefer self.allocator.free(key);
++            try self.documents.append(self.allocator, .{ .uri = key, .version = version, .generation = 0 });
++            index = self.documents.items.len - 1;
++        }
++        const doc = &self.documents.items[index.?];
++        self.invalidate(doc);
++        doc.version = version;
++        const retained = if (message.inplace) packet.*.?.len else text.len;
++        if (text.len > max_file or retained > max_sources - self.source_bytes) {
++            try self.clear(uri, version, "Analysis skipped: source memory limit exceeded.");
++            return;
++        }
++        const job = try self.allocator.create(Job);
++        errdefer self.allocator.destroy(job);
++        const source = if (message.inplace) text else try self.allocator.dupe(u8, text);
++        errdefer if (!message.inplace) self.allocator.free(source);
++        const owned_uri = try self.allocator.dupe(u8, uri);
++        errdefer self.allocator.free(owned_uri);
++        job.* = .{ .text = source, .allocation = if (message.inplace) packet.*.? else @constCast(source), .uri = owned_uri, .version = version, .generation = doc.generation };
++        if (self.worker == null) self.worker = try std.Thread.spawn(.{ .stack_size = 512 * 1024 }, work, .{self});
++        // Transfer ownership only after all fallible setup has succeeded.
++        // All packet-dependent metadata needed by the worker is now copied.
++        // Message teardown frees metadata only and does not read string views.
++        if (message.inplace) packet.* = null;
++        if (doc.html_cache) |cache| {
++            cache.retain();
++            job.previous_html = cache;
++        }
++        doc.pending = job;
++        _ = self.syntax_pending.fetchAdd(1, .release);
++        self.source_bytes += retained;
++        self.condition.signal(self.io);
++    }
++    fn work(self: *Server) void {
++        while (true) {
++            self.mutex.lockUncancelable(self.io);
++            var job: ?*Job = null;
++            while (job == null and !self.stopping) {
++                // Pending syntax always takes priority over reference indexing.
++                for (self.documents.items) |*doc| if (doc.pending) |pending| {
++                    job = pending;
++                    doc.pending = null;
++                    _ = self.syntax_pending.fetchSub(1, .release);
++                    break;
++                };
++                if (job == null and self.syntax_pending.load(.acquire) == 0) {
++                    // Delayed labels and completion both precede reference interning.
++                    for ([_]u8{ 0, 1, 2 }) |priority| {
++                        for (self.documents.items) |*doc| if (doc.index_pending) |pending| {
++                            if (@as(u8, switch (pending.phase) {
++                                .context => 1,
++                                .html => 0,
++                                else => 2,
++                            }) != priority) continue;
++                            job = pending;
++                            doc.index_pending = null;
++                            break;
++                        };
++                        if (job != null) break;
++                    }
++                }
++                if (job == null) self.condition.waitUncancelable(self.io, &self.mutex);
++            }
++            if (self.stopping) {
++                self.mutex.unlock(self.io);
++                return;
++            }
++            const current = job.?;
++            self.active = current;
++            const encoding = self.encoding;
++            self.mutex.unlock(self.io);
++            const again = (switch (current.phase) {
++                .syntax => self.analyze(current, encoding),
++                .context => self.buildContext(current, encoding),
++                .html => self.buildHtml(current, encoding),
++                .index => self.buildIndex(current, encoding),
++            }) catch blk: {
++                self.mutex.lockUncancelable(self.io);
++                if (self.find(current.uri)) |i| if (self.documents.items[i].generation == current.generation and !self.stopping) {
++                    if (current.phase == .syntax) self.clear(current.uri, current.version, "Analysis failed: resource or output failure.") catch {};
++                    self.failReferences(&self.documents.items[i], lsp.ErrorCode.request_failed, "Reference analysis failed.") catch {};
++                };
++                self.mutex.unlock(self.io);
++                break :blk false;
++            };
++            self.mutex.lockUncancelable(self.io);
++            self.active = null;
++            var retained = false;
++            if (self.find(current.uri)) |i| if (self.documents.items[i].generation == current.generation and !self.stopping and !current.cancel.load(.acquire)) {
++                const doc = &self.documents.items[i];
++                if (again) {
++                    doc.index_pending = current;
++                    retained = true;
++                } else if (doc.references == null) self.failReferences(doc, lsp.ErrorCode.request_failed, "Node references are unavailable: analysis did not complete within limits.") catch {};
++            };
++            if (!retained) {
++                self.source_bytes -= current.allocation.len;
++                current.destroy(self.allocator);
++            }
++            self.mutex.unlock(self.io);
++        }
++    }
++    fn completionReply(self: *Server, id: lsp.Id, index: context.Index, point: pos.Position) !void {
++        try responses.completion(self.allocator, self.writer, id, index, point);
++    }
++
++    fn hoverReply(self: *Server, id: lsp.Id, index: context.Index, point: pos.Position) !void {
++        try responses.hover(self.allocator, self.writer, id, index, point);
++    }
++
++    fn buildContext(self: *Server, job: *Job, encoding: pos.Encoding) !bool {
++        var index: ?context.Index = context.build(self.allocator, job.text, encoding, &job.cancel, &self.syntax_pending) catch |err| blk: {
++            if (err == error.Yield) return true;
++            if (err == error.Cancelled) return false;
++            break :blk null;
++        };
++        defer if (index) |*owned| owned.deinit(self.allocator);
++        var symbols: ?outline.Index = null;
++        defer if (symbols) |*owned| owned.deinit(self.allocator);
++        if (index) |coordinates| if (job.outline_builder) |*builder| {
++            symbols = builder.finish(coordinates.coordinates, &job.cancel, &self.syntax_pending) catch |err| blk: {
++                if (err == error.Yield) return true;
++                if (err == error.Cancelled) return false;
++                break :blk null;
++            };
++        };
++        if (job.outline_builder) |*builder| builder.deinit();
++        job.outline_builder = null;
++        self.mutex.lockUncancelable(self.io);
++        defer self.mutex.unlock(self.io);
++        const i = self.find(job.uri) orelse return false;
++        const doc = &self.documents.items[i];
++        if (self.stopping or doc.generation != job.generation or job.cancel.load(.acquire)) return false;
++        doc.outline_done = true;
++        if (symbols) |owned| if (owned.bytes() <= outline.global_bytes - self.outline_bytes) {
++            self.outline_bytes += owned.bytes();
++            doc.outline_index = owned;
++            symbols = null;
++        };
++        var symbol_n: usize = 0;
++        while (symbol_n < doc.requests.items.len) {
++            if (doc.requests.items[symbol_n].kind != .symbols) {
++                symbol_n += 1;
++                continue;
++            }
++            const request = doc.requests.orderedRemove(symbol_n);
++            defer self.freeReferenceId(request.id);
++            try self.outlineReply(request.id, doc.*);
++        }
++        doc.completion_done = true;
++        if (index) |owned| if (owned.bytes() <= 128 * 1024 * 1024 - self.context_bytes) {
++            self.context_bytes += owned.bytes();
++            doc.completion = owned;
++            index = null;
++        };
++        var n: usize = 0;
++        while (n < doc.requests.items.len) {
++            if (doc.requests.items[n].kind != .completion and doc.requests.items[n].kind != .hover) {
++                n += 1;
++                continue;
++            }
++            const request = doc.requests.orderedRemove(n);
++            defer self.freeReferenceId(request.id);
++            if (doc.completion) |ready| {
++                if (request.kind == .hover) try self.hoverReply(request.id, ready, request.point) else try self.completionReply(request.id, ready, request.point);
++            } else try self.failure(request.id, lsp.ErrorCode.request_failed, "Completion context exceeded resource limits.");
++        }
++        if (job.want_references) {
++            job.phase = .index;
++            return true;
++        }
++        return false;
++    }
++    fn dropHtmlCache(self: *Server, doc: *Document) void {
++        if (doc.html_cache) |cache| {
++            self.html_cache_bytes -= cache.payload_bytes;
++            cache.release(self.allocator);
++            doc.html_cache = null;
++        }
++    }
++    fn buildHtml(self: *Server, job: *Job, encoding: pos.Encoding) !bool {
++        return self.analyzeHtml(job, encoding) catch |err| {
++            if (err == error.Yield) return true;
++            return err;
++        };
++    }
++    fn analyzeHtml(self: *Server, job: *Job, encoding: pos.Encoding) !bool {
++        if (job.html_ready) return self.finishHtml(job, encoding);
++        if (job.html == null) job.html = labels.Work.init(self.allocator) catch {
++            job.html = .{ .allocator = self.allocator, .cache = null, .incomplete = true };
++            job.html_ready = true;
++            return self.finishHtml(job, encoding);
++        };
++        const html_work = &job.html.?;
++        html_work.budget = &self.html_budget;
++        html_work.entry_allocator = self.html_allocator;
++        const finished = html_work.advance(&job.labels.?, job.previous_html, &job.cancel, &self.syntax_pending) catch |err| {
++            if (err == error.Cancelled) return false;
++            // Keep DOT findings and explicitly mark incomplete HTML checking.
++            html_work.incomplete = true;
++            job.html_ready = true;
++            return self.finishHtml(job, encoding);
++        };
++        if (!finished) return true;
++        job.html_ready = true;
++        return self.finishHtml(job, encoding);
++    }
++    fn finishHtml(self: *Server, job: *Job, encoding: pos.Encoding) !bool {
++        const html_work = &job.html.?;
++        var wording = std.heap.ArenaAllocator.init(self.allocator);
++        defer wording.deinit();
++        const arena = wording.allocator();
++        var diagnostics: std.ArrayList(Diagnostic) = .empty;
++        defer diagnostics.deinit(self.allocator);
++        try diagnostics.appendSlice(self.allocator, job.diagnostics.items);
++        var offers: std.ArrayList(actions.Fix) = .empty;
++        defer offers.deinit(self.allocator);
++        var fixes_failed = job.fixes_failed;
++        if (!fixes_failed) offers.appendSlice(self.allocator, job.fixes.items) catch {
++            fixes_failed = true;
++        };
++        var index: ?pos.Index = if (html_work.diagnostics.items.len > 0) try pos.Index.initBackground(self.allocator, job.text, &job.cancel, &self.syntax_pending) else null;
++        defer if (index) |*owned| owned.deinit(self.allocator);
++        for (html_work.diagnostics.items) |item| {
++            if (job.cancel.load(.acquire)) return false;
++            if (self.syntax_pending.load(.acquire) != 0) return error.Yield;
++            if (diagnostics.items.len >= 1000) {
++                html_work.incomplete = true;
++                break;
++            }
++            const d = item.diagnostic;
++            const start = @as(usize, item.origin) + d.span.start;
++            var related: []RelatedInformation = &.{};
++            if (self.related_information) if (d.related) |span| {
++                related = try arena.alloc(RelatedInformation, 1);
++                const at = @as(usize, item.origin) + span.start;
++                related[0] = .{ .location = .{ .uri = job.uri, .range = .{
++                    .start = try index.?.positionBackground(job.text, at, encoding, &job.cancel, &self.syntax_pending),
++                    .end = try index.?.positionBackground(job.text, at + span.len, encoding, &job.cancel, &self.syntax_pending),
++                } }, .message = "Related HTML construct starts here." };
++            };
++            const range: Range = .{ .start = try index.?.positionBackground(job.text, start, encoding, &job.cancel, &self.syntax_pending), .end = try index.?.positionBackground(job.text, start + d.span.len, encoding, &job.cancel, &self.syntax_pending) };
++            var token: ?actions.Token = null;
++            if (!fixes_failed) if (d.suggestedFix()) |fix| {
++                const offer = try actions.Fix.capture(fix, range, d.span, job.text, item.origin, index.?, encoding, &job.cancel, &self.syntax_pending);
++                offers.append(self.allocator, offer) catch {
++                    fixes_failed = true;
++                };
++                if (!fixes_failed) token = .{ .dot_ls_generation = job.generation, .fix = offers.items.len - 1 };
++            };
++            try diagnostics.append(self.allocator, .{
++                .data = token,
++                .range = range,
++                .severity = if (d.code.info().severity == .warning) 2 else 1,
++                .code = d.code.structured(),
++                .relatedInformation = related,
++                .message = try labels.message(arena, job.text, item),
++            });
++        }
++        if (html_work.incomplete) {
++            const origin: pos.Position = .{ .line = 0, .character = 0 };
++            try diagnostics.append(self.allocator, .{ .range = .{ .start = origin, .end = origin }, .severity = 3, .code = "dot-ls:html-incomplete", .message = "HTML label checking is incomplete. Further errors may remain." });
++        }
++        self.mutex.lockUncancelable(self.io);
++        defer self.mutex.unlock(self.io);
++        const i = self.find(job.uri) orelse return false;
++        const doc = &self.documents.items[i];
++        if (self.stopping or doc.generation != job.generation or job.cancel.load(.acquire)) return false;
++        self.setFixes(doc, offers.items, fixes_failed);
++        try responses.diagnostics(self.allocator, self.writer, job.uri, job.version, diagnostics.items);
++        job.fixes.deinit(self.allocator);
++        job.fixes = .empty;
++        const old_bytes = if (doc.html_cache) |cache| cache.payload_bytes else 0;
++        if (html_work.cache) |cache| if (cache.payload_bytes <= 32 * 1024 * 1024 - (self.html_cache_bytes - old_bytes)) {
++            self.dropHtmlCache(doc);
++            doc.html_cache = html_work.cache;
++            self.html_cache_bytes += html_work.cache.?.payload_bytes;
++            html_work.cache = null;
++        };
++        job.phase = .context;
++        return true;
++    }
++    fn buildIndex(self: *Server, job: *Job, encoding: pos.Encoding) !bool {
++        const builder = &job.builder.?;
++        builder.waiting = &self.syntax_pending;
++        var index: ?references.Index = builder.finish(encoding) catch |err| {
++            if (err == error.Yield) return true;
++            return false;
++        };
++        defer if (index) |*owned| owned.deinit(self.allocator);
++        // Release construction storage before replying to queued requests.
++        builder.deinit();
++        job.builder = null;
++        self.mutex.lockUncancelable(self.io);
++        defer self.mutex.unlock(self.io);
++        const i = self.find(job.uri) orelse return false;
++        const doc = &self.documents.items[i];
++        if (self.stopping or doc.generation != job.generation or job.cancel.load(.acquire)) return false;
++        const bytes = index.?.bytes();
++        if (bytes > 256 * 1024 * 1024 - self.index_bytes) return false;
++        self.index_bytes += bytes;
++        doc.references = index;
++        index = null;
++        defer self.clearReferences(doc);
++        for (doc.requests.items) |request| try self.referenceReply(request.id, doc.uri, doc.references.?, request.point, request.include);
++        return false;
++    }
++    fn freeReferenceId(self: *Server, id: lsp.Id) void {
++        if (id == .string) self.allocator.free(id.string);
++    }
++    fn clearReferences(self: *Server, doc: *Document) void {
++        for (doc.requests.items) |request| self.freeReferenceId(request.id);
++        doc.requests.deinit(self.allocator);
++        doc.requests = .empty;
++    }
++    fn failReferences(self: *Server, doc: *Document, code: i32, message: []const u8) !void {
++        defer self.clearReferences(doc);
++        for (doc.requests.items) |request| try self.failure(request.id, code, message);
++    }
++    fn outlineReply(self: *Server, id: lsp.Id, doc: Document) !void {
++        if (doc.outline_index) |index| {
++            if (self.hierarchical_symbols) {
++                try responses.result(self.allocator, self.writer, id, responses.Symbols{ .index = index });
++            } else if (index.response_bound + index.entries.len * (6 * doc.uri.len + 914) <= 128 * 1024 * 1024) {
++                try responses.result(self.allocator, self.writer, id, responses.FlatSymbols{ .index = index, .uri = doc.uri });
++            } else try self.failure(id, lsp.ErrorCode.request_failed, "Flat outline response exceeded resource limits. Results were not truncated.");
++        } else try self.failure(id, lsp.ErrorCode.request_failed, "Document outline exceeded analysis or index resource limits. Results were not truncated.");
++    }
++    fn referenceReply(self: *Server, request: lsp.Id, uri: []const u8, index: references.Index, point: pos.Position, include: bool) !void {
++        try responses.referencesReply(self.allocator, self.writer, request, uri, index, point, include);
++    }
++
++    fn analyze(self: *Server, job: *Job, encoding: pos.Encoding) !bool {
++        var bag: analysis.Bag = .{};
++        var scratch: analysis.Scratch = .{};
++        job.builder = references.Builder.init(self.allocator, job.text, &job.cancel);
++        const builder = &job.builder.?;
++        job.labels = .{ .allocator = self.allocator, .source = job.text };
++        job.outline_builder = .{ .allocator = self.allocator, .source = job.text };
++        const result = analysis.runOutline(job.text, scratch.storage(), &bag, .{ .context = job, .is_requested = Job.poll }, builder, &job.labels.?, &job.outline_builder.?);
++        // Only grammar/recovery results are useful. Resource and cancellation
++        // failures must not present a truncated outline as complete.
++        if (result.outcome != .success and result.outcome != .invalid_syntax) job.outline_builder.?.failed = true;
++        if (result.outcome == .cancelled or job.cancel.load(.acquire)) return false;
++        job.wording = std.heap.ArenaAllocator.init(self.allocator);
++        const wording = &job.wording.?;
++        const diagnostics = &job.diagnostics;
++        if (bag.items().len > 0) {
++            var index = try pos.Index.initCancellable(self.allocator, job.text, &job.cancel);
++            defer index.deinit(self.allocator);
++            for (bag.items()) |d| {
++                if (job.cancel.load(.acquire)) return false;
++                var message_buffer: [1536]u8 = undefined;
++                const rendered = diagnostic_text.format(&message_buffer, d) catch d.code.info().summary;
++                const owned_message = try wording.allocator().dupe(u8, rendered);
++                var note_storage: [2]diagnostic_text.Note = undefined;
++                const notes = if (self.related_information) diagnostic_text.notes(d, &note_storage) else &.{};
++                const related = try wording.allocator().alloc(RelatedInformation, notes.len);
++                for (notes, related) |note, *out| {
++                    out.* = .{ .location = .{ .uri = job.uri, .range = .{
++                        .start = try index.positionCancellable(job.text, note.span.start, encoding, &job.cancel),
++                        .end = try index.positionCancellable(job.text, @as(usize, note.span.start) + note.span.len, encoding, &job.cancel),
++                    } }, .message = note.message };
++                }
++                const range: Range = .{ .start = try index.positionCancellable(job.text, d.span.start, encoding, &job.cancel), .end = try index.positionCancellable(job.text, @as(usize, d.span.start) + d.span.len, encoding, &job.cancel) };
++                var token: ?actions.Token = null;
++                if (!job.fixes_failed) if (d.fix) |fix| {
++                    const offer = try actions.Fix.capture(fix, range, d.span, job.text, 0, index, encoding, &job.cancel, null);
++                    job.fixes.append(self.allocator, offer) catch {
++                        job.fixes_failed = true;
++                    };
++                    if (!job.fixes_failed) token = .{ .dot_ls_generation = job.generation, .fix = job.fixes.items.len - 1 };
++                };
++                try diagnostics.append(self.allocator, .{
++                    .data = token,
++                    .range = range,
++                    .severity = if (d.code.info().severity == .warning) 2 else 1,
++                    .code = d.code.structured(),
++                    .message = owned_message,
++                    .relatedInformation = related,
++                });
++            }
++        }
++        if (bag.incomplete and result.completion == .complete) {
++            const origin = pos.Position{ .line = 0, .character = 0 };
++            try diagnostics.append(self.allocator, .{ .range = .{ .start = origin, .end = origin }, .severity = 3, .code = "dot-ls:validation-incomplete", .message = "DOT validation is incomplete. Further errors or repeated attributes may remain." });
++        }
++        if (result.completion != .complete) {
++            const origin = pos.Position{ .line = 0, .character = 0 };
++            try diagnostics.append(self.allocator, .{ .range = .{ .start = origin, .end = origin }, .severity = 3, .code = "dot-ls:incomplete", .message = "Syntax analysis is incomplete. Further errors may remain." });
++        }
++        if (job.cancel.load(.acquire)) return false;
++        self.mutex.lockUncancelable(self.io);
++        defer self.mutex.unlock(self.io);
++        const i = self.find(job.uri) orelse return false;
++        if (self.stopping or self.documents.items[i].generation != job.generation) return false;
++        self.setFixes(&self.documents.items[i], job.fixes.items, job.fixes_failed);
++        try responses.diagnostics(self.allocator, self.writer, job.uri, job.version, diagnostics.items);
++        if (job.labels.?.spans.count == 0 and !job.labels.?.incomplete) {
++            job.fixes.deinit(self.allocator);
++            job.fixes = .empty;
++        }
++        if (job.labels.?.spans.count == 0 and !job.labels.?.incomplete) self.dropHtmlCache(&self.documents.items[i]);
++        job.want_references = result.outcome == .success and result.completion == .complete and !builder.failed;
++        if (!job.want_references) {
++            builder.deinit();
++            job.builder = null;
++        }
++        job.phase = if (job.labels.?.spans.count > 0 or job.labels.?.incomplete) .html else .context;
++        return true;
++    }
++    fn codeActions(self: *Server, request: lsp.Id, decoded: ?requests.CodeActions) !void {
++        const params = decoded orelse {
++            try self.failure(request, lsp.ErrorCode.invalid_params, "Code actions require an open document, valid range and diagnostics array.");
++            return;
++        };
++        if (params.too_many) {
++            try self.failure(request, lsp.ErrorCode.invalid_params, "Code action diagnostic context exceeds its limit.");
++            return;
++        }
++        const i = self.find(params.uri) orelse {
++            try self.failure(request, lsp.ErrorCode.invalid_params, "Code actions require an open document.");
++            return;
++        };
++        const doc = &self.documents.items[i];
++        switch (params.only) {
++            .invalid_array => {
++                try self.failure(request, lsp.ErrorCode.invalid_params, "Code action kinds must be an array.");
++                return;
++            },
++            .invalid_strings => {
++                try self.failure(request, lsp.ErrorCode.invalid_params, "Code action kinds must be strings.");
++                return;
++            },
++            .none => {
++                try responses.result(self.allocator, self.writer, request, @as([]const bool, &.{}));
++                return;
++            },
++            .all => {},
++        }
++        if (!self.versioned_edits) {
++            try responses.result(self.allocator, self.writer, request, @as([]const bool, &.{}));
++            return;
++        }
++        const offers = doc.fixes orelse {
++            if (doc.fixes_done) {
++                try self.failure(request, lsp.ErrorCode.request_failed, "Quick fixes are unavailable within resource limits.");
++                return;
++            }
++            try self.failure(request, lsp.ErrorCode.content_modified, "Current diagnostics are not ready. Request code actions again after diagnostics arrive.");
++            return;
++        };
++        if (params.mixed_generations or if (params.generation) |generation| generation < 0 or @as(u64, @intCast(generation)) != doc.generation else false) {
++            try self.failure(request, lsp.ErrorCode.content_modified, "Document changed since these diagnostics were produced.");
++            return;
++        }
++        try responses.codeActions(self.allocator, self.writer, request, doc.uri, doc.version, offers, params.range);
++    }
++
++    fn handle(self: *Server, message: *json_message.Message, packet: *?[]u8) !bool {
++        self.mutex.lockUncancelable(self.io);
++        defer self.mutex.unlock(self.io);
++        const lifecycle: requests.Lifecycle = if (!self.initialized) .before_initialize else if (self.shutdown) .shutdown else .ready;
++        const command = switch (requests.decode(message.value, lifecycle)) {
++            .failure => |f| {
++                try self.failure(f.id, f.code, f.message);
++                return false;
++            },
++            .command => |c| c,
++        };
++        const id = command.id;
++        const method = command.method;
++        if (method == .exit) return true;
++        if (!self.initialized) {
++            if (method != .initialize) {
++                if (id) |request| try self.failure(request, lsp.ErrorCode.not_initialized, "Server not initialized");
++                return false;
++            }
++            if (id == null) return false;
++            const caps = command.body.initialize;
++            self.versioned_edits = caps.versioned_edits;
++            self.hierarchical_symbols = caps.hierarchical_symbols;
++            self.related_information = caps.related_information;
++            self.encoding = caps.encoding;
++            self.initialized = true;
++            try responses.initialized(self.allocator, self.writer, id.?, self.encoding);
++            return false;
++        }
++        if (self.shutdown) {
++            if (id) |request| try self.failure(request, lsp.ErrorCode.invalid_request, "Server has shut down");
++            return false;
++        }
++        if (method == .initialize) {
++            if (id) |request| try self.failure(request, lsp.ErrorCode.invalid_request, "Already initialized");
++        } else if (method == .shutdown) {
++            if (id) |request| {
++                self.shutdown = true;
++                for (self.documents.items) |*doc| self.invalidate(doc);
++                try responses.result(self.allocator, self.writer, request, @as(?u8, null));
++            }
++        } else if (method == .code_actions) {
++            try self.codeActions(id orelse return false, command.body.code_actions);
++        } else if (method == .symbols) {
++            const request = id orelse return false;
++            const uri = command.body.symbols;
++            const doc = if (uri) |u| if (self.find(u)) |i| &self.documents.items[i] else null else null;
++            if (doc == null) {
++                try self.failure(request, lsp.ErrorCode.invalid_params, "Document outline requires an open document.");
++            } else if (doc.?.outline_done) {
++                try self.outlineReply(request, doc.?.*);
++            } else if (!(doc.?.pending != null or doc.?.index_pending != null or if (self.active) |job| std.mem.eql(u8, job.uri, doc.?.uri) and job.generation == doc.?.generation else false)) {
++                try self.failure(request, lsp.ErrorCode.request_failed, "Document outline analysis did not complete within limits.");
++            } else if (doc.?.requests.items.len >= 64 or (request == .string and request.string.len > 8192)) {
++                try self.failure(request, lsp.ErrorCode.request_failed, "Pending outline request limit exceeded.");
++            } else {
++                const owned = if (request == .string) lsp.Id{ .string = try self.allocator.dupe(u8, request.string) } else request;
++                errdefer self.freeReferenceId(owned);
++                try doc.?.requests.append(self.allocator, .{ .id = owned, .point = .{ .line = 0, .character = 0 }, .kind = .symbols });
++            }
++        } else if (method == .references) {
++            const request = id orelse return false;
++            const params = command.body.references orelse {
++                try self.failure(request, lsp.ErrorCode.invalid_params, "References requires a document, position and includeDeclaration boolean.");
++                return false;
++            };
++            const document = self.find(params.uri) orelse {
++                try self.failure(request, lsp.ErrorCode.invalid_params, "References requires an open document.");
++                return false;
++            };
++            const doc = &self.documents.items[document];
++            const point_value = params.point;
++            if (doc.references) |index| {
++                try self.referenceReply(request, doc.uri, index, point_value, params.include);
++            } else {
++                const pending = doc.pending != null or doc.index_pending != null or if (self.active) |job| std.mem.eql(u8, job.uri, doc.uri) and job.generation == doc.generation else false;
++                if (!pending) {
++                    try self.failure(request, lsp.ErrorCode.request_failed, "Node references are unavailable: syntax analysis or index construction did not complete within limits.");
++                } else if (doc.requests.items.len >= 64 or (request == .string and request.string.len > 8192)) {
++                    try self.failure(request, lsp.ErrorCode.request_failed, "Pending reference request limit exceeded.");
++                } else {
++                    const owned = if (request == .string) lsp.Id{ .string = try self.allocator.dupe(u8, request.string) } else request;
++                    errdefer self.freeReferenceId(owned);
++                    try doc.requests.append(self.allocator, .{ .id = owned, .point = point_value, .include = params.include });
++                }
++            }
++        } else if (method == .cancel) {
++            const cancelled = command.body.cancel orelse return false;
++            for (self.documents.items) |*doc| {
++                for (doc.requests.items, 0..) |request, i| {
++                    const equal = if (cancelled == .string and request.id == .string) std.mem.eql(u8, cancelled.string, request.id.string) else cancelled == .integer and request.id == .integer and cancelled.integer == request.id.integer;
++                    if (equal) {
++                        const removed = doc.requests.orderedRemove(i);
++                        defer self.freeReferenceId(removed.id);
++                        try self.failure(removed.id, lsp.ErrorCode.request_cancelled, "Request cancelled.");
++                        return false;
++                    }
++                }
++            }
++        } else if (method == .completion or method == .hover) {
++            const is_hover = method == .hover;
++            const request_id = id orelse return false;
++            const params = command.body.positioned orelse {
++                try self.failure(request_id, lsp.ErrorCode.invalid_params, "Completion requires an open document and a non-negative position.");
++                return false;
++            };
++            const i = self.find(params.uri) orelse {
++                try self.failure(request_id, lsp.ErrorCode.invalid_params, "Completion requires an open document and a non-negative position.");
++                return false;
++            };
++            const doc = &self.documents.items[i];
++            const point_value = params.point;
++            if (doc.completion) |ready| {
++                if (is_hover) try self.hoverReply(request_id, ready, point_value) else try self.completionReply(request_id, ready, point_value);
++            } else if (doc.completion_done or (doc.pending == null and doc.index_pending == null and !(if (self.active) |job| std.mem.eql(u8, job.uri, doc.uri) and job.generation == doc.generation else false))) {
++                try self.failure(request_id, lsp.ErrorCode.request_failed, "Completion context is unavailable within resource limits.");
++            } else if (doc.requests.items.len >= 64 or (request_id == .string and request_id.string.len > 8192)) {
++                try self.failure(request_id, lsp.ErrorCode.request_failed, "Pending request limit exceeded.");
++            } else {
++                const owned = if (request_id == .string) lsp.Id{ .string = try self.allocator.dupe(u8, request_id.string) } else request_id;
++                errdefer self.freeReferenceId(owned);
++                try doc.requests.append(self.allocator, .{ .id = owned, .point = point_value, .kind = if (is_hover) .hover else .completion });
++            }
++        } else if (method == .open or method == .change) {
++            const params = command.body.update orelse return false;
++            try self.update(params.uri, params.text, params.version, params.opening, message, packet);
++        } else if (method == .close) {
++            const uri = command.body.close orelse return false;
++            if (self.find(uri)) |i| {
++                self.invalidate(&self.documents.items[i]);
++                self.dropHtmlCache(&self.documents.items[i]);
++                const removed = self.documents.orderedRemove(i);
++                defer self.allocator.free(removed.uri);
++                try self.clear(uri, null, null);
++            }
++        } else if (id) |request| try self.failure(request, lsp.ErrorCode.method_not_found, "Method not found");
++        return false;
++    }
++    fn deinit(self: *Server) void {
++        self.mutex.lockUncancelable(self.io);
++        self.stopping = true;
++        for (self.documents.items) |*doc| self.invalidate(doc);
++        self.condition.signal(self.io);
++        self.mutex.unlock(self.io);
++        if (self.worker) |worker| worker.join();
++        for (self.documents.items) |*doc| {
++            self.dropHtmlCache(doc);
++            self.allocator.free(doc.uri);
++        }
++        self.documents.deinit(self.allocator);
++    }
++};
++/// Transitional state owner: document/job/worker extraction is step 4/5.
++/// Protocol helpers borrow data synchronously under the existing server lock.
++pub fn run(io: std.Io, allocator: std.mem.Allocator, html_allocator: std.mem.Allocator, reader: *std.Io.Reader, writer: *std.Io.Writer) !bool {
++    var server: Server = .{ .html_allocator = html_allocator, .allocator = allocator, .io = io, .writer = writer };
++    var exit_requested = false;
++    {
++        defer server.deinit();
++        var intake_priority = false;
++        while (try framing.readHeader(reader)) |length| {
++            if (length >= 64 * 1024) {
++                _ = server.syntax_pending.fetchAdd(1, .release);
++                intake_priority = true;
++            }
++            defer server.releaseIntake(&intake_priority);
++            const bytes = try framing.readBody(reader, allocator, length);
++            var packet: ?[]u8 = bytes;
++            defer if (packet) |owned| allocator.free(owned);
++            var parsed: json_message.Message = .{ .allocator = allocator };
++            defer parsed.deinit();
++            const decoding = if (build_options.json_storage == .inplace) parsed.parseInPlace(bytes) else parsed.parse(bytes, if (build_options.json_storage == .buffer) .buffer else .arena);
++            decoding catch |err| {
++                server.mutex.lockUncancelable(io);
++                defer server.mutex.unlock(io);
++                try server.failure(.null, if (err == error.OutOfMemory) @as(i32, lsp.ErrorCode.internal_error) else lsp.ErrorCode.parse_error, if (err == error.OutOfMemory) "Message storage exhausted" else "Parse error");
++                continue;
++            };
++            if (try server.handle(&parsed, &packet)) {
++                exit_requested = true;
++                break;
++            }
++        }
++    }
++    return exit_requested and !server.shutdown;
++}
++
++test "fix snapshot allocation failure leaves diagnostics publication independent" {
++    var server: Server = .{ .allocator = std.testing.failing_allocator, .html_allocator = std.testing.failing_allocator, .io = undefined, .writer = undefined };
++    var document: Document = .{ .uri = @constCast("untitled:test"), .version = 1, .generation = 1 };
++    const offers = [_]actions.Fix{.{ .diagnostic = .{ .start = .{ .line = 0, .character = 0 }, .end = .{ .line = 0, .character = 1 } }, .edit = .{ .start = .{ .line = 0, .character = 0 }, .end = .{ .line = 0, .character = 1 } }, .kind = .delete, .preferred = true }};
++    server.setFixes(&document, &offers, false);
++    try std.testing.expect(document.fixes_done);
++    try std.testing.expect(document.fixes == null);
++}
+--- a/src/features/code_actions.zig
++++ b/src/features/code_actions.zig
+@@ -24,7 +24,7 @@
+     }
+ };
+ pub const Token = struct { dot_ls_generation: u64, fix: usize };
+-pub const TextEdit = struct { range: Range, newText: []const u8 };
++pub const Edit = struct { range: Range, text: []const u8 };
+ pub const Fix = struct {
+     diagnostic: CompactRange,
+     edit: CompactRange,
+@@ -75,13 +75,13 @@
+             .replace => try std.fmt.allocPrint(allocator, "Replace with '{s}'", .{self.replacement.text()}),
+         };
+     }
+-    pub fn edits(self: Fix, storage: *[2]TextEdit) []const TextEdit {
++    pub fn edits(self: Fix, storage: *[2]Edit) []const Edit {
+         const range = self.edit.wire();
+         if (self.kind == .quote) {
+-            storage.* = .{ .{ .range = .{ .start = range.start, .end = range.start }, .newText = "\"" }, .{ .range = .{ .start = range.end, .end = range.end }, .newText = "\"" } };
++            storage.* = .{ .{ .range = .{ .start = range.start, .end = range.start }, .text = "\"" }, .{ .range = .{ .start = range.end, .end = range.end }, .text = "\"" } };
+             return storage;
+         }
+-        storage[0] = .{ .range = range, .newText = if (self.kind == .delete) "" else self.replacement.text() };
++        storage[0] = .{ .range = range, .text = if (self.kind == .delete) "" else self.replacement.text() };
+         return storage[0..1];
+     }
+     pub fn touches(self: Fix, range: Range) bool {
+@@ -95,11 +95,11 @@
+ test "fix records stay small and quotation inserts do not copy source" {
+     try std.testing.expect(@sizeOf(Fix) <= 40);
+     const f: Fix = .{ .diagnostic = CompactRange.from(.{ .start = .{ .line = 0, .character = 2 }, .end = .{ .line = 0, .character = 6 } }), .edit = CompactRange.from(.{ .start = .{ .line = 0, .character = 2 }, .end = .{ .line = 0, .character = 6 } }), .kind = .quote, .preferred = true };
+-    var storage: [2]TextEdit = undefined;
++    var storage: [2]Edit = undefined;
+     const edits = f.edits(&storage);
+     try std.testing.expectEqual(@as(usize, 2), edits.len);
+     try std.testing.expectEqual(@as(usize, 6), edits[1].range.start.character);
+-    try std.testing.expectEqualStrings("\"", edits[0].newText);
++    try std.testing.expectEqualStrings("\"", edits[0].text);
+ }
+ 
+ fn replacementOf(r: anytype) dot.diagnostic.Replacement {
+--- a/src/features/completion.zig
++++ b/src/features/completion.zig
+@@ -1,12 +1,12 @@
+ //! Static keyword lists selected by the compact lexical context index.
+-pub const Item = struct { label: []const u8, kind: u8 = 14, detail: []const u8, insertText: []const u8 };
++pub const Item = struct { label: []const u8, detail: []const u8 };
+ pub const items = [_]Item{
+-    .{ .label = "graph", .insertText = "graph", .detail = "Undirected graph or graph attribute defaults" },
+-    .{ .label = "digraph", .insertText = "digraph", .detail = "Directed graph" },
+-    .{ .label = "strict", .insertText = "strict", .detail = "Graph without parallel edges" },
+-    .{ .label = "subgraph", .insertText = "subgraph", .detail = "Subgraph or attribute scope" },
+-    .{ .label = "node", .insertText = "node", .detail = "Default node attributes" },
+-    .{ .label = "edge", .insertText = "edge", .detail = "Default edge attributes" },
++    .{ .label = "graph", .detail = "Undirected graph or graph attribute defaults" },
++    .{ .label = "digraph", .detail = "Directed graph" },
++    .{ .label = "strict", .detail = "Graph without parallel edges" },
++    .{ .label = "subgraph", .detail = "Subgraph or attribute scope" },
++    .{ .label = "node", .detail = "Default node attributes" },
++    .{ .label = "edge", .detail = "Default edge attributes" },
+ };
+ 
+ const body = [_]Item{ items[0], items[3], items[4], items[5] };
+@@ -19,32 +19,3 @@
+         .endpoint => items[3..4],
+     };
+ }
+-
+-pub const List = struct {
+-    kind: @import("completion_context.zig").Kind,
+-    pub fn jsonStringify(self: List, json: *@import("std").json.Stringify) @import("std").json.Stringify.Error!void {
+-        const attrs = @import("attributes.zig");
+-        const target: ?attrs.Target = switch (self.kind) {
+-            .attr_graph => .graph,
+-            .attr_node => .node,
+-            .attr_edge => .edge,
+-            .attr_subgraph => .subgraph,
+-            .attr_cluster => .cluster,
+-            else => null,
+-        };
+-        try json.beginObject();
+-        try json.objectField("isIncomplete");
+-        try json.write(false);
+-        try json.objectField("items");
+-        try json.beginArray();
+-        if (target) |t| {
+-            for (attrs.catalog.entries) |entry| if (attrs.applies(entry, t)) {
+-                var buffer: [2048]u8 = undefined;
+-                const text = attrs.help(&buffer, entry) catch entry.type_name;
+-                try json.write(.{ .label = entry.name, .kind = @as(u8, 10), .insertText = entry.name, .detail = entry.type_name, .documentation = .{ .kind = "plaintext", .value = text } });
+-            };
+-        } else for (forContext(self.kind)) |entry| try json.write(entry);
+-        try json.endArray();
+-        try json.endObject();
+-    }
+-};
+--- a/src/features/outline.zig
++++ b/src/features/outline.zig
+@@ -8,7 +8,7 @@
+ pub const max_bytes = 32 * 1024 * 1024;
+ pub const global_bytes = 64 * 1024 * 1024;
+ const none = std.math.maxInt(u32);
+-const Kind = enum(u8) { graph = 3, subgraph = 4, cluster = 2, node = 13 };
++const Kind = enum(u8) { graph, subgraph, cluster, node };
+ const Point = struct { line: u32, character: u32 };
+ const Range = struct { start: Point, end: Point };
+ const Entry = struct { range: Range, selection: Range, name_start: u32, name_len: u32, next: u32, kind: Kind };
+@@ -23,38 +23,6 @@
+     pub fn deinit(self: *Index, allocator: std.mem.Allocator) void {
+         allocator.free(self.entries);
+         allocator.free(self.names);
+-    }
+-    pub fn jsonStringify(self: Index, json: *std.json.Stringify) !void {
+-        try json.beginArray();
+-        var i: usize = 0;
+-        while (i < self.entries.len) {
+-            try self.symbol(i, json);
+-            i = self.entries[i].next;
+-        }
+-        try json.endArray();
+-    }
+-    fn symbol(self: Index, i: usize, json: *std.json.Stringify) std.json.Stringify.Error!void {
+-        const e = self.entries[i];
+-        try json.beginObject();
+-        try json.objectField("name");
+-        try json.write(self.names[e.name_start..][0..e.name_len]);
+-        try json.objectField("kind");
+-        try json.write(@backingInt(e.kind));
+-        try json.objectField("range");
+-        try json.write(e.range);
+-        try json.objectField("selectionRange");
+-        try json.write(e.selection);
+-        if (i + 1 < e.next) {
+-            try json.objectField("children");
+-            try json.beginArray();
+-            var child = i + 1;
+-            while (child < e.next) {
+-                try self.symbol(child, json);
+-                child = self.entries[child].next;
+-            }
+-            try json.endArray();
+-        }
+-        try json.endObject();
+     }
+ };
+ pub const Builder = struct {
+@@ -145,30 +113,6 @@
+     return .{ .line = @intCast(p.line), .character = @intCast(p.character) };
+ }
+ 
+-/// Older clients receive SymbolInformation instead of hierarchical symbols.
+-pub const Flat = struct {
+-    index: Index,
+-    uri: []const u8,
+-    pub fn jsonStringify(self: Flat, json: *std.json.Stringify) !void {
+-        try json.beginArray();
+-        var stack: [257]u32 = undefined;
+-        var depth: usize = 0;
+-        for (self.index.entries, 0..) |e, i| {
+-            while (depth > 0 and self.index.entries[stack[depth - 1]].next <= i) depth -= 1;
+-            const container = if (depth > 0) blk: {
+-                const parent = self.index.entries[stack[depth - 1]];
+-                break :blk self.index.names[parent.name_start..][0..parent.name_len];
+-            } else "";
+-            try json.write(.{ .name = self.index.names[e.name_start..][0..e.name_len], .kind = @backingInt(e.kind), .location = .{ .uri = self.uri, .range = e.range }, .containerName = container });
+-            if (e.next > i + 1) {
+-                stack[depth] = @intCast(i);
+-                depth += 1;
+-            }
+-        }
+-        try json.endArray();
+-    }
+-};
+-
+ test "outline storage is compact and allocation failure is explicit" {
+     try std.testing.expectEqual(@as(usize, 24), @sizeOf(Raw));
+     try std.testing.expectEqual(@as(usize, 48), @sizeOf(Entry));
+--- a/src/json_message.zig
++++ /dev/null
+@@ -1,208 +0,0 @@
+-const std = @import("std");
+-pub const Mode = enum { arena, buffer, inplace };
+-/// One message owns all decoded data. The packet stays alive until deinit.
+-/// Do not move this value after parse: managed arrays borrow its allocator context.
+-pub const Message = struct {
+-    allocator: std.mem.Allocator,
+-    value: std.json.Value = .null,
+-    parsed: ?std.json.Parsed(std.json.Value) = null,
+-    buffer: ?[]u8 = null,
+-    fixed: std.heap.FixedBufferAllocator = undefined,
+-    used_fallback: bool = false,
+-    inplace: bool = false,
+-    /// Mutate only string bytes that the standard scanner has already consumed.
+-    /// All string views borrow the packet; metadata belongs to the arena.
+-    pub fn parseInPlace(self: *Message, bytes: []u8) !void {
+-        std.debug.assert(self.buffer == null and self.parsed == null);
+-        const arena = try self.allocator.create(std.heap.ArenaAllocator);
+-        arena.* = std.heap.ArenaAllocator.init(self.allocator);
+-        errdefer {
+-            arena.deinit();
+-            self.allocator.destroy(arena);
+-        }
+-        var source: InPlaceTokens = .{ .scanner = std.json.Scanner.initCompleteInput(arena.allocator(), bytes), .bytes = bytes };
+-        defer source.scanner.deinit();
+-        self.value = try std.json.parseFromTokenSourceLeaky(std.json.Value, arena.allocator(), &source, .{ .max_value_len = bytes.len });
+-        self.parsed = .{ .arena = arena, .value = self.value };
+-        self.inplace = true;
+-    }
+-    pub fn parse(self: *Message, bytes: []const u8, mode: Mode) !void {
+-        std.debug.assert(mode != .inplace);
+-        std.debug.assert(self.buffer == null and self.parsed == null);
+-        if (mode == .buffer) {
+-            // Leave room for geometric string growth while allowing it to resize
+-            // in place. Unused mapped capacity is not necessarily resident.
+-            const capacity = try std.math.add(usize, try std.math.mul(usize, bytes.len, 2), 16 * 1024);
+-            // This region is backing storage, not initialized JSON values. The
+-            // JSON parser initializes the slices it uses before reading them. Avoid
+-            // poisoning unused capacity in ReleaseSafe: never read that capacity.
+-            const pointer = self.allocator.rawAlloc(capacity, .of(u8), @returnAddress()) orelse return error.OutOfMemory;
+-            const region = pointer[0..capacity];
+-            self.buffer = region;
+-            self.fixed = .init(region);
+-            self.value = std.json.parseFromSliceLeaky(std.json.Value, self.fixed.allocator(), bytes, .{ .max_value_len = bytes.len }) catch |err| {
+-                self.allocator.rawFree(region, .of(u8), @returnAddress());
+-                self.buffer = null;
+-                if (err != error.OutOfMemory) return err;
+-                // Metadata-heavy messages can exceed the fast-path budget. Retry
+-                // from the original immutable packet; no partial value escapes.
+-                self.used_fallback = true;
+-                try self.parseArena(bytes);
+-                return;
+-            };
+-        } else try self.parseArena(bytes);
+-    }
+-    fn parseArena(self: *Message, bytes: []const u8) !void {
+-        self.parsed = try std.json.parseFromSlice(std.json.Value, self.allocator, bytes, .{ .max_value_len = bytes.len });
+-        self.value = self.parsed.?.value;
+-    }
+-    pub fn deinit(self: *Message) void {
+-        if (self.parsed) |parsed| parsed.deinit();
+-        // Matches rawAlloc's exact extent/alignment. No decoded view may outlive
+-        // this owner. Raw release avoids touching unused backing capacity.
+-        if (self.buffer) |buffer| self.allocator.rawFree(buffer, .of(u8), @returnAddress());
+-        self.* = undefined;
+-    }
+-};
+-test "request buffer preserves escapes, arrays, and borrowed source" {
+-    const bytes = "{\"text\":\"a\\n\\uD83D\\uDE00\",\"array\":[1,2]}";
+-    var message: Message = .{ .allocator = std.testing.allocator };
+-    defer message.deinit();
+-    try message.parse(bytes, .buffer);
+-    try std.testing.expectEqualStrings("a\n😀", message.value.object.get("text").?.string);
+-    try std.testing.expectEqual(@as(i64, 2), message.value.object.get("array").?.array.items[1].integer);
+-    try std.testing.expect(!message.used_fallback);
+-}
+-test "metadata-heavy request retries without leaking" {
+-    var bytes: std.ArrayList(u8) = .empty;
+-    defer bytes.deinit(std.testing.allocator);
+-    try bytes.append(std.testing.allocator, '[');
+-    for (0..2000) |i| {
+-        if (i != 0) try bytes.append(std.testing.allocator, ',');
+-        try bytes.append(std.testing.allocator, '0');
+-    }
+-    try bytes.append(std.testing.allocator, ']');
+-    var message: Message = .{ .allocator = std.testing.allocator };
+-    defer message.deinit();
+-    try message.parse(bytes.items, .buffer);
+-    try std.testing.expect(message.used_fallback);
+-    try std.testing.expectEqual(@as(usize, 2000), message.value.array.items.len);
+-}
+-test "malformed messages free temporary storage" {
+-    inline for (.{ Mode.arena, Mode.buffer }) |mode| {
+-        var message: Message = .{ .allocator = std.testing.allocator };
+-        defer message.deinit();
+-        try std.testing.expectError(error.UnexpectedEndOfInput, message.parse("{\"a\":", mode));
+-    }
+-}
+-
+-test "request buffer allocation failure leaves an empty owner" {
+-    var message: Message = .{ .allocator = std.testing.failing_allocator };
+-    defer message.deinit();
+-    try std.testing.expectError(error.OutOfMemory, message.parse("{}", .buffer));
+-    try std.testing.expect(message.buffer == null and message.parsed == null);
+-}
+-
+-/// Adapter for std.json.Value's leaky parser. Its allocated-string tokens have
+-/// packet lifetime rather than individual allocation lifetime. Value's leaky
+-/// parser stores these views and never frees them; only the metadata arena is
+-/// released. Do not use this adapter with parsers that free individual tokens.
+-const InPlaceTokens = struct {
+-    scanner: std.json.Scanner,
+-    bytes: []u8,
+-    pub const NextError = std.json.Scanner.NextError;
+-    pub const PeekError = std.json.Scanner.PeekError;
+-    pub const AllocError = std.json.Scanner.AllocError || NextError;
+-    pub fn next(self: *InPlaceTokens) NextError!std.json.Token {
+-        return self.scanner.next();
+-    }
+-    pub fn nextAllocMax(self: *InPlaceTokens, allocator: std.mem.Allocator, when: std.json.AllocWhen, max_len: usize) AllocError!std.json.Token {
+-        const kind = try self.scanner.peekNextTokenType();
+-        if (kind != .string) return self.scanner.nextAllocMax(allocator, when, max_len);
+-        // peek leaves cursor at the opening quote.
+-        std.debug.assert(self.bytes[self.scanner.cursor] == '"');
+-        const start = self.scanner.cursor + 1;
+-        var written: usize = start;
+-        var token = try self.scanner.next();
+-        // No escapes: borrow the validated span without even a same-buffer copy.
+-        if (token == .string) {
+-            if (token.string.len > max_len) return error.ValueTooLong;
+-            return .{ .allocated_string = @constCast(token.string) };
+-        }
+-        while (true) {
+-            const part: []const u8 = switch (token) {
+-                .string, .partial_string => |v| v,
+-                .partial_string_escaped_1 => &token.partial_string_escaped_1,
+-                .partial_string_escaped_2 => &token.partial_string_escaped_2,
+-                .partial_string_escaped_3 => &token.partial_string_escaped_3,
+-                .partial_string_escaped_4 => &token.partial_string_escaped_4,
+-                else => unreachable,
+-            };
+-            if (part.len > max_len - (written - start)) return error.ValueTooLong;
+-            std.debug.assert(written + part.len <= self.scanner.cursor);
+-            // Forward copy supports overlap: decoded bytes never overtake input.
+-            for (part) |byte| {
+-                self.bytes[written] = byte;
+-                written += 1;
+-            }
+-            if (token == .string) return .{ .allocated_string = self.bytes[start..written] };
+-            token = try self.scanner.next();
+-        }
+-    }
+-};
+-
+-test "in-place strings match standard JSON across escapes and truncations" {
+-    const samples = [_][]const u8{
+-        "{\"text\":\"a\\n\\uD83D\\uDE00\\t\\r\\b\\f\\\\\\/\\\"z\",\"list\":[true,null,-12.5e2]}",
+-        "[\"\",\"plain\",\"😀\",\"\\u0000\\u007f\\u0080\\u07ff\\u0800\\uffff\",{},[]]",
+-        "{\"\\u0061\":1,\"a\":2}",
+-        "\"\\uD800\"",
+-        "\"\\uDC00\"",
+-        "\"\\x\"",
+-        "\"\xff\"",
+-        "0 1",
+-        "{\"a\":}",
+-    };
+-    for (samples) |sample| {
+-        for (0..sample.len + 1) |end| {
+-            const bytes = try std.testing.allocator.dupe(u8, sample[0..end]);
+-            defer std.testing.allocator.free(bytes);
+-            var message: Message = .{ .allocator = std.testing.allocator };
+-            defer message.deinit();
+-            const reference = std.json.parseFromSlice(std.json.Value, std.testing.allocator, sample[0..end], .{}) catch |expected| {
+-                if (message.parseInPlace(bytes)) |_| return error.ExpectedParseFailure else |actual| try std.testing.expectEqualStrings(@errorName(expected), @errorName(actual));
+-                continue;
+-            };
+-            defer reference.deinit();
+-            try message.parseInPlace(bytes);
+-            const a = try std.json.Stringify.valueAlloc(std.testing.allocator, reference.value, .{});
+-            defer std.testing.allocator.free(a);
+-            const b = try std.json.Stringify.valueAlloc(std.testing.allocator, message.value, .{});
+-            defer std.testing.allocator.free(b);
+-            try std.testing.expectEqualStrings(a, b);
+-        }
+-    }
+-}
+-
+-fn inplaceAllocationCheck(allocator: std.mem.Allocator) !void {
+-    const input = "{\"text\":\"a\\n\\uD83D\\uDE00\",\"items\":[1,2,{},[true,false,null]],\"uri\":\"untitled:test\"}";
+-    var bytes: [input.len]u8 = undefined;
+-    @memcpy(&bytes, input);
+-    var message: Message = .{ .allocator = allocator };
+-    defer message.deinit();
+-    try message.parseInPlace(&bytes);
+-}
+-test "in-place metadata allocation failures release all owners" {
+-    try std.testing.checkAllAllocationFailures(std.testing.allocator, inplaceAllocationCheck, .{});
+-}
+-
+-test "in-place arbitrary ASCII strings match standard encoder" {
+-    var text: [128]u8 = undefined;
+-    for (&text, 0..) |*byte, i| byte.* = @intCast(i);
+-    const encoded = try std.json.Stringify.valueAlloc(std.testing.allocator, .{ .text = text[0..] }, .{});
+-    defer std.testing.allocator.free(encoded);
+-    var message: Message = .{ .allocator = std.testing.allocator };
+-    defer message.deinit();
+-    try message.parseInPlace(encoded);
+-    try std.testing.expectEqualStrings(&text, message.value.object.get("text").?.string);
+-}
+--- a/src/main.zig
++++ b/src/main.zig
+@@ -1,925 +1,6 @@
+ const std = @import("std");
+ const build_options = @import("build_options");
+-const json_message = @import("json_message.zig");
+-const pos = @import("text/positions.zig");
+-const diagnostic_text = @import("analysis/diagnostic_text.zig");
+-const completion = @import("features/completion.zig");
+-const attributes = @import("features/attributes.zig");
+-const context = @import("features/completion_context.zig");
+-const references = @import("features/references.zig");
+-const labels = @import("features/labels.zig");
+-const analysis = @import("analysis/dot.zig");
+-const outline = @import("features/outline.zig");
+-const actions = @import("features/code_actions.zig");
+-const max_file = 200 * 1024 * 1024;
+-const max_message = 256 * 1024 * 1024;
+-const max_sources = 512 * 1024 * 1024;
+-const Job = struct {
+-    text: []const u8,
+-    // Exact allocation to free: either a source copy or the transferred packet.
+-    allocation: []u8,
+-    uri: []u8,
+-    version: i64,
+-    generation: u64,
+-    phase: enum { syntax, context, html, index } = .syntax,
+-    want_references: bool = false,
+-    labels: ?labels.Collector = null,
+-    html: ?labels.Work = null,
+-    html_ready: bool = false,
+-    previous_html: ?*labels.Cache = null,
+-    wording: ?std.heap.ArenaAllocator = null,
+-    diagnostics: std.ArrayList(Diagnostic) = .empty,
+-    fixes: std.ArrayList(actions.Fix) = .empty,
+-    fixes_failed: bool = false,
+-    outline_builder: ?outline.Builder = null,
+-    builder: ?references.Builder = null,
+-    cancel: std.atomic.Value(bool) = .init(false),
+-    fn poll(ctx: ?*anyopaque) bool {
+-        // The context is the live Job passed to measure; the worker owns its lifetime.
+-        const self: *Job = @ptrCast(@alignCast(ctx.?));
+-        return self.cancel.load(.acquire);
+-    }
+-    fn destroy(self: *Job, allocator: std.mem.Allocator) void {
+-        if (self.outline_builder) |*builder| builder.deinit();
+-        if (self.builder) |*builder| builder.deinit();
+-        if (self.labels) |*collector| collector.deinit();
+-        if (self.html) |*work| work.deinit();
+-        if (self.previous_html) |cache| cache.release(allocator);
+-        self.diagnostics.deinit(allocator);
+-        self.fixes.deinit(allocator);
+-        if (self.wording) |*arena| arena.deinit();
+-        allocator.free(self.allocation);
+-        allocator.free(self.uri);
+-        allocator.destroy(self);
+-    }
+-};
+-const ReferenceRequest = struct { id: std.json.Value, point: pos.Position, include: bool = false, kind: enum { references, completion, hover, symbols } = .references };
+-const Document = struct { outline_index: ?outline.Index = null, outline_done: bool = false, fixes: ?[]actions.Fix = null, fixes_done: bool = false, requests: std.ArrayList(ReferenceRequest) = .empty, index_pending: ?*Job = null, uri: []u8, version: i64, generation: u64, pending: ?*Job = null, references: ?references.Index = null, completion: ?context.Index = null, completion_done: bool = false, html_cache: ?*labels.Cache = null };
+-const Range = @import("text/types.zig").Range;
+-const RelatedInformation = struct { location: struct { uri: []const u8, range: Range }, message: []const u8 };
+-const Diagnostic = struct { data: ?actions.Token = null, range: Range, severity: u8, code: []const u8, source: []const u8 = "dot-ls", relatedInformation: []const RelatedInformation = &.{}, message: []const u8 };
+-const Server = struct {
+-    html_allocator: std.mem.Allocator,
+-    allocator: std.mem.Allocator,
+-    io: std.Io,
+-    writer: *std.Io.Writer,
+-    mutex: std.Io.Mutex = .init,
+-    condition: std.Io.Condition = .init,
+-    documents: std.ArrayList(Document) = .empty,
+-    active: ?*Job = null,
+-    source_bytes: usize = 0,
+-    index_bytes: usize = 0,
+-    context_bytes: usize = 0,
+-    outline_bytes: usize = 0,
+-    html_cache_bytes: usize = 0,
+-    html_budget: labels.Budget = .{},
+-    // Queued syntax jobs plus any large packet being read/decoded by the dispatcher.
+-    syntax_pending: std.atomic.Value(usize) = .init(0),
+-    generation: u64 = 0,
+-    stopping: bool = false,
+-    initialized: bool = false,
+-    related_information: bool = false,
+-    versioned_edits: bool = false,
+-    hierarchical_symbols: bool = false,
+-    shutdown: bool = false,
+-    encoding: pos.Encoding = .utf16,
+-    worker: ?std.Thread = null,
+-    fn releaseIntake(self: *Server, priority: *bool) void {
+-        if (!priority.*) return;
+-        priority.* = false;
+-        _ = self.syntax_pending.fetchSub(1, .release);
+-        self.mutex.lockUncancelable(self.io);
+-        self.condition.signal(self.io);
+-        self.mutex.unlock(self.io);
+-    }
+-    fn send(self: *Server, value: anytype) !void {
+-        const bytes = try std.json.Stringify.valueAlloc(self.allocator, value, .{});
+-        defer self.allocator.free(bytes);
+-        try self.writer.print("Content-Length: {d}\r\n\r\n", .{bytes.len});
+-        try self.writer.writeAll(bytes);
+-        try self.writer.flush();
+-    }
+-    fn failure(self: *Server, id: std.json.Value, code: i32, message: []const u8) !void {
+-        try self.send(.{ .jsonrpc = "2.0", .id = id, .@"error" = .{ .code = code, .message = message } });
+-    }
+-    fn find(self: *Server, uri: []const u8) ?usize {
+-        for (self.documents.items, 0..) |doc, i| if (std.mem.eql(u8, doc.uri, uri)) return i;
+-        return null;
+-    }
+-    fn clear(self: *Server, uri: []const u8, version: ?i64, message: ?[]const u8) !void {
+-        const origin = pos.Position{ .line = 0, .character = 0 };
+-        const single = [_]Diagnostic{.{ .range = .{ .start = origin, .end = origin }, .severity = 3, .code = "dot-ls:limits", .message = message orelse "" }};
+-        try self.send(.{ .jsonrpc = "2.0", .method = "textDocument/publishDiagnostics", .params = .{ .uri = uri, .version = version, .diagnostics = if (message != null) single[0..] else single[0..0] } });
+-    }
+-    fn setFixes(self: *Server, doc: *Document, offers: []const actions.Fix, failed: bool) void {
+-        std.debug.assert(offers.len <= 1000);
+-        if (doc.fixes) |old| self.allocator.free(old);
+-        doc.fixes = null;
+-        doc.fixes_done = true;
+-        if (!failed) doc.fixes = self.allocator.dupe(actions.Fix, offers) catch null;
+-    }
+-    fn invalidate(self: *Server, doc: *Document) void {
+-        if (doc.outline_index) |*index| {
+-            self.outline_bytes -= index.bytes();
+-            index.deinit(self.allocator);
+-            doc.outline_index = null;
+-        }
+-        doc.outline_done = false;
+-        if (doc.fixes) |old| self.allocator.free(old);
+-        doc.fixes = null;
+-        doc.fixes_done = false;
+-        self.failReferences(doc, -32801, "Document changed before the request completed.") catch {};
+-        if (doc.index_pending) |job| {
+-            self.source_bytes -= job.allocation.len;
+-            job.destroy(self.allocator);
+-            doc.index_pending = null;
+-        }
+-        if (doc.completion) |*index| {
+-            self.context_bytes -= index.bytes();
+-            index.deinit(self.allocator);
+-            doc.completion = null;
+-        }
+-        doc.completion_done = false;
+-        if (doc.references) |*index| {
+-            self.index_bytes -= index.bytes();
+-            index.deinit(self.allocator);
+-            doc.references = null;
+-        }
+-        if (doc.pending) |job| {
+-            _ = self.syntax_pending.fetchSub(1, .release);
+-            self.source_bytes -= job.allocation.len;
+-            job.destroy(self.allocator);
+-            doc.pending = null;
+-        }
+-        if (self.active) |job| if (std.mem.eql(u8, job.uri, doc.uri)) {
+-            job.cancel.store(true, .release);
+-        };
+-        self.generation += 1;
+-        doc.generation = self.generation;
+-    }
+-    fn update(self: *Server, uri: []const u8, text: []const u8, version: i64, opening: bool, message: *json_message.Message, packet: *?[]u8) !void {
+-        var index = self.find(uri);
+-        if (index == null) {
+-            if (!opening or self.documents.items.len == 128) return;
+-            const key = try self.allocator.dupe(u8, uri);
+-            errdefer self.allocator.free(key);
+-            try self.documents.append(self.allocator, .{ .uri = key, .version = version, .generation = 0 });
+-            index = self.documents.items.len - 1;
+-        }
+-        const doc = &self.documents.items[index.?];
+-        self.invalidate(doc);
+-        doc.version = version;
+-        const retained = if (message.inplace) packet.*.?.len else text.len;
+-        if (text.len > max_file or retained > max_sources - self.source_bytes) {
+-            try self.clear(uri, version, "Analysis skipped: source memory limit exceeded.");
+-            return;
+-        }
+-        const job = try self.allocator.create(Job);
+-        errdefer self.allocator.destroy(job);
+-        const source = if (message.inplace) text else try self.allocator.dupe(u8, text);
+-        errdefer if (!message.inplace) self.allocator.free(source);
+-        const owned_uri = try self.allocator.dupe(u8, uri);
+-        errdefer self.allocator.free(owned_uri);
+-        job.* = .{ .text = source, .allocation = if (message.inplace) packet.*.? else @constCast(source), .uri = owned_uri, .version = version, .generation = doc.generation };
+-        if (self.worker == null) self.worker = try std.Thread.spawn(.{ .stack_size = 512 * 1024 }, work, .{self});
+-        // Transfer ownership only after all fallible setup has succeeded.
+-        // All packet-dependent metadata needed by the worker is now copied.
+-        // Message teardown frees metadata only and does not read string views.
+-        if (message.inplace) packet.* = null;
+-        if (doc.html_cache) |cache| {
+-            cache.retain();
+-            job.previous_html = cache;
+-        }
+-        doc.pending = job;
+-        _ = self.syntax_pending.fetchAdd(1, .release);
+-        self.source_bytes += retained;
+-        self.condition.signal(self.io);
+-    }
+-    fn work(self: *Server) void {
+-        while (true) {
+-            self.mutex.lockUncancelable(self.io);
+-            var job: ?*Job = null;
+-            while (job == null and !self.stopping) {
+-                // Pending syntax always takes priority over reference indexing.
+-                for (self.documents.items) |*doc| if (doc.pending) |pending| {
+-                    job = pending;
+-                    doc.pending = null;
+-                    _ = self.syntax_pending.fetchSub(1, .release);
+-                    break;
+-                };
+-                if (job == null and self.syntax_pending.load(.acquire) == 0) {
+-                    // Delayed labels and completion both precede reference interning.
+-                    for ([_]u8{ 0, 1, 2 }) |priority| {
+-                        for (self.documents.items) |*doc| if (doc.index_pending) |pending| {
+-                            if (@as(u8, switch (pending.phase) {
+-                                .context => 1,
+-                                .html => 0,
+-                                else => 2,
+-                            }) != priority) continue;
+-                            job = pending;
+-                            doc.index_pending = null;
+-                            break;
+-                        };
+-                        if (job != null) break;
+-                    }
+-                }
+-                if (job == null) self.condition.waitUncancelable(self.io, &self.mutex);
+-            }
+-            if (self.stopping) {
+-                self.mutex.unlock(self.io);
+-                return;
+-            }
+-            const current = job.?;
+-            self.active = current;
+-            const encoding = self.encoding;
+-            self.mutex.unlock(self.io);
+-            const again = (switch (current.phase) {
+-                .syntax => self.analyze(current, encoding),
+-                .context => self.buildContext(current, encoding),
+-                .html => self.buildHtml(current, encoding),
+-                .index => self.buildIndex(current, encoding),
+-            }) catch blk: {
+-                self.mutex.lockUncancelable(self.io);
+-                if (self.find(current.uri)) |i| if (self.documents.items[i].generation == current.generation and !self.stopping) {
+-                    if (current.phase == .syntax) self.clear(current.uri, current.version, "Analysis failed: resource or output failure.") catch {};
+-                    self.failReferences(&self.documents.items[i], -32803, "Reference analysis failed.") catch {};
+-                };
+-                self.mutex.unlock(self.io);
+-                break :blk false;
+-            };
+-            self.mutex.lockUncancelable(self.io);
+-            self.active = null;
+-            var retained = false;
+-            if (self.find(current.uri)) |i| if (self.documents.items[i].generation == current.generation and !self.stopping and !current.cancel.load(.acquire)) {
+-                const doc = &self.documents.items[i];
+-                if (again) {
+-                    doc.index_pending = current;
+-                    retained = true;
+-                } else if (doc.references == null) self.failReferences(doc, -32803, "Node references are unavailable: analysis did not complete within limits.") catch {};
+-            };
+-            if (!retained) {
+-                self.source_bytes -= current.allocation.len;
+-                current.destroy(self.allocator);
+-            }
+-            self.mutex.unlock(self.io);
+-        }
+-    }
+-    fn completionReply(self: *Server, id: std.json.Value, index: context.Index, point: pos.Position) !void {
+-        try self.send(.{ .jsonrpc = "2.0", .id = id, .result = completion.List{ .kind = index.at(point) } });
+-    }
+-    fn hoverReply(self: *Server, id: std.json.Value, index: context.Index, point: pos.Position) !void {
+-        if (!index.attributes.available) return self.failure(id, -32803, "Attribute hover exceeded its memory limit.");
+-        const byte = index.coordinates.byteAt(point);
+-        const match = if (byte) |b| index.attributes.at(b) else null;
+-        if (match) |key| {
+-            const entry = attributes.catalog.entries[key.id];
+-            var buffer: [2048]u8 = undefined;
+-            const text = try attributes.help(&buffer, entry);
+-            try self.send(.{ .jsonrpc = "2.0", .id = id, .result = .{ .contents = .{ .kind = "plaintext", .value = text }, .range = .{ .start = index.coordinates.positionAt(key.span.start), .end = index.coordinates.positionAt(@intCast(key.span.endOffset())) } } });
+-        } else try self.send(.{ .jsonrpc = "2.0", .id = id, .result = @as(?u8, null) });
+-    }
+-    fn buildContext(self: *Server, job: *Job, encoding: pos.Encoding) !bool {
+-        var index: ?context.Index = context.build(self.allocator, job.text, encoding, &job.cancel, &self.syntax_pending) catch |err| blk: {
+-            if (err == error.Yield) return true;
+-            if (err == error.Cancelled) return false;
+-            break :blk null;
+-        };
+-        defer if (index) |*owned| owned.deinit(self.allocator);
+-        var symbols: ?outline.Index = null;
+-        defer if (symbols) |*owned| owned.deinit(self.allocator);
+-        if (index) |coordinates| if (job.outline_builder) |*builder| {
+-            symbols = builder.finish(coordinates.coordinates, &job.cancel, &self.syntax_pending) catch |err| blk: {
+-                if (err == error.Yield) return true;
+-                if (err == error.Cancelled) return false;
+-                break :blk null;
+-            };
+-        };
+-        if (job.outline_builder) |*builder| builder.deinit();
+-        job.outline_builder = null;
+-        self.mutex.lockUncancelable(self.io);
+-        defer self.mutex.unlock(self.io);
+-        const i = self.find(job.uri) orelse return false;
+-        const doc = &self.documents.items[i];
+-        if (self.stopping or doc.generation != job.generation or job.cancel.load(.acquire)) return false;
+-        doc.outline_done = true;
+-        if (symbols) |owned| if (owned.bytes() <= outline.global_bytes - self.outline_bytes) {
+-            self.outline_bytes += owned.bytes();
+-            doc.outline_index = owned;
+-            symbols = null;
+-        };
+-        var symbol_n: usize = 0;
+-        while (symbol_n < doc.requests.items.len) {
+-            if (doc.requests.items[symbol_n].kind != .symbols) {
+-                symbol_n += 1;
+-                continue;
+-            }
+-            const request = doc.requests.orderedRemove(symbol_n);
+-            defer self.freeReferenceId(request.id);
+-            try self.outlineReply(request.id, doc.*);
+-        }
+-        doc.completion_done = true;
+-        if (index) |owned| if (owned.bytes() <= 128 * 1024 * 1024 - self.context_bytes) {
+-            self.context_bytes += owned.bytes();
+-            doc.completion = owned;
+-            index = null;
+-        };
+-        var n: usize = 0;
+-        while (n < doc.requests.items.len) {
+-            if (doc.requests.items[n].kind != .completion and doc.requests.items[n].kind != .hover) {
+-                n += 1;
+-                continue;
+-            }
+-            const request = doc.requests.orderedRemove(n);
+-            defer self.freeReferenceId(request.id);
+-            if (doc.completion) |ready| {
+-                if (request.kind == .hover) try self.hoverReply(request.id, ready, request.point) else try self.completionReply(request.id, ready, request.point);
+-            } else try self.failure(request.id, -32803, "Completion context exceeded resource limits.");
+-        }
+-        if (job.want_references) {
+-            job.phase = .index;
+-            return true;
+-        }
+-        return false;
+-    }
+-    fn dropHtmlCache(self: *Server, doc: *Document) void {
+-        if (doc.html_cache) |cache| {
+-            self.html_cache_bytes -= cache.payload_bytes;
+-            cache.release(self.allocator);
+-            doc.html_cache = null;
+-        }
+-    }
+-    fn buildHtml(self: *Server, job: *Job, encoding: pos.Encoding) !bool {
+-        return self.analyzeHtml(job, encoding) catch |err| {
+-            if (err == error.Yield) return true;
+-            return err;
+-        };
+-    }
+-    fn analyzeHtml(self: *Server, job: *Job, encoding: pos.Encoding) !bool {
+-        if (job.html_ready) return self.finishHtml(job, encoding);
+-        if (job.html == null) job.html = labels.Work.init(self.allocator) catch {
+-            job.html = .{ .allocator = self.allocator, .cache = null, .incomplete = true };
+-            job.html_ready = true;
+-            return self.finishHtml(job, encoding);
+-        };
+-        const html_work = &job.html.?;
+-        html_work.budget = &self.html_budget;
+-        html_work.entry_allocator = self.html_allocator;
+-        const finished = html_work.advance(&job.labels.?, job.previous_html, &job.cancel, &self.syntax_pending) catch |err| {
+-            if (err == error.Cancelled) return false;
+-            // Keep DOT findings and explicitly mark incomplete HTML checking.
+-            html_work.incomplete = true;
+-            job.html_ready = true;
+-            return self.finishHtml(job, encoding);
+-        };
+-        if (!finished) return true;
+-        job.html_ready = true;
+-        return self.finishHtml(job, encoding);
+-    }
+-    fn finishHtml(self: *Server, job: *Job, encoding: pos.Encoding) !bool {
+-        const html_work = &job.html.?;
+-        var wording = std.heap.ArenaAllocator.init(self.allocator);
+-        defer wording.deinit();
+-        const arena = wording.allocator();
+-        var diagnostics: std.ArrayList(Diagnostic) = .empty;
+-        defer diagnostics.deinit(self.allocator);
+-        try diagnostics.appendSlice(self.allocator, job.diagnostics.items);
+-        var offers: std.ArrayList(actions.Fix) = .empty;
+-        defer offers.deinit(self.allocator);
+-        var fixes_failed = job.fixes_failed;
+-        if (!fixes_failed) offers.appendSlice(self.allocator, job.fixes.items) catch {
+-            fixes_failed = true;
+-        };
+-        var index: ?pos.Index = if (html_work.diagnostics.items.len > 0) try pos.Index.initBackground(self.allocator, job.text, &job.cancel, &self.syntax_pending) else null;
+-        defer if (index) |*owned| owned.deinit(self.allocator);
+-        for (html_work.diagnostics.items) |item| {
+-            if (job.cancel.load(.acquire)) return false;
+-            if (self.syntax_pending.load(.acquire) != 0) return error.Yield;
+-            if (diagnostics.items.len >= 1000) {
+-                html_work.incomplete = true;
+-                break;
+-            }
+-            const d = item.diagnostic;
+-            const start = @as(usize, item.origin) + d.span.start;
+-            var related: []RelatedInformation = &.{};
+-            if (self.related_information) if (d.related) |span| {
+-                related = try arena.alloc(RelatedInformation, 1);
+-                const at = @as(usize, item.origin) + span.start;
+-                related[0] = .{ .location = .{ .uri = job.uri, .range = .{
+-                    .start = try index.?.positionBackground(job.text, at, encoding, &job.cancel, &self.syntax_pending),
+-                    .end = try index.?.positionBackground(job.text, at + span.len, encoding, &job.cancel, &self.syntax_pending),
+-                } }, .message = "Related HTML construct starts here." };
+-            };
+-            const range: Range = .{ .start = try index.?.positionBackground(job.text, start, encoding, &job.cancel, &self.syntax_pending), .end = try index.?.positionBackground(job.text, start + d.span.len, encoding, &job.cancel, &self.syntax_pending) };
+-            var token: ?actions.Token = null;
+-            if (!fixes_failed) if (d.suggestedFix()) |fix| {
+-                const offer = try actions.Fix.capture(fix, range, d.span, job.text, item.origin, index.?, encoding, &job.cancel, &self.syntax_pending);
+-                offers.append(self.allocator, offer) catch {
+-                    fixes_failed = true;
+-                };
+-                if (!fixes_failed) token = .{ .dot_ls_generation = job.generation, .fix = offers.items.len - 1 };
+-            };
+-            try diagnostics.append(self.allocator, .{
+-                .data = token,
+-                .range = range,
+-                .severity = if (d.code.info().severity == .warning) 2 else 1,
+-                .code = d.code.structured(),
+-                .relatedInformation = related,
+-                .message = try labels.message(arena, job.text, item),
+-            });
+-        }
+-        if (html_work.incomplete) {
+-            const origin: pos.Position = .{ .line = 0, .character = 0 };
+-            try diagnostics.append(self.allocator, .{ .range = .{ .start = origin, .end = origin }, .severity = 3, .code = "dot-ls:html-incomplete", .message = "HTML label checking is incomplete. Further errors may remain." });
+-        }
+-        self.mutex.lockUncancelable(self.io);
+-        defer self.mutex.unlock(self.io);
+-        const i = self.find(job.uri) orelse return false;
+-        const doc = &self.documents.items[i];
+-        if (self.stopping or doc.generation != job.generation or job.cancel.load(.acquire)) return false;
+-        self.setFixes(doc, offers.items, fixes_failed);
+-        try self.send(.{ .jsonrpc = "2.0", .method = "textDocument/publishDiagnostics", .params = .{ .uri = job.uri, .version = job.version, .diagnostics = diagnostics.items } });
+-        job.fixes.deinit(self.allocator);
+-        job.fixes = .empty;
+-        const old_bytes = if (doc.html_cache) |cache| cache.payload_bytes else 0;
+-        if (html_work.cache) |cache| if (cache.payload_bytes <= 32 * 1024 * 1024 - (self.html_cache_bytes - old_bytes)) {
+-            self.dropHtmlCache(doc);
+-            doc.html_cache = html_work.cache;
+-            self.html_cache_bytes += html_work.cache.?.payload_bytes;
+-            html_work.cache = null;
+-        };
+-        job.phase = .context;
+-        return true;
+-    }
+-    fn buildIndex(self: *Server, job: *Job, encoding: pos.Encoding) !bool {
+-        const builder = &job.builder.?;
+-        builder.waiting = &self.syntax_pending;
+-        var index: ?references.Index = builder.finish(encoding) catch |err| {
+-            if (err == error.Yield) return true;
+-            return false;
+-        };
+-        defer if (index) |*owned| owned.deinit(self.allocator);
+-        // Release construction storage before replying to queued requests.
+-        builder.deinit();
+-        job.builder = null;
+-        self.mutex.lockUncancelable(self.io);
+-        defer self.mutex.unlock(self.io);
+-        const i = self.find(job.uri) orelse return false;
+-        const doc = &self.documents.items[i];
+-        if (self.stopping or doc.generation != job.generation or job.cancel.load(.acquire)) return false;
+-        const bytes = index.?.bytes();
+-        if (bytes > 256 * 1024 * 1024 - self.index_bytes) return false;
+-        self.index_bytes += bytes;
+-        doc.references = index;
+-        index = null;
+-        defer self.clearReferences(doc);
+-        for (doc.requests.items) |request| try self.referenceReply(request.id, doc.uri, doc.references.?, request.point, request.include);
+-        return false;
+-    }
+-    fn freeReferenceId(self: *Server, id: std.json.Value) void {
+-        if (id == .string) self.allocator.free(id.string);
+-    }
+-    fn clearReferences(self: *Server, doc: *Document) void {
+-        for (doc.requests.items) |request| self.freeReferenceId(request.id);
+-        doc.requests.deinit(self.allocator);
+-        doc.requests = .empty;
+-    }
+-    fn failReferences(self: *Server, doc: *Document, code: i32, message: []const u8) !void {
+-        defer self.clearReferences(doc);
+-        for (doc.requests.items) |request| try self.failure(request.id, code, message);
+-    }
+-    fn outlineReply(self: *Server, id: std.json.Value, doc: Document) !void {
+-        if (doc.outline_index) |index| {
+-            if (self.hierarchical_symbols) {
+-                try self.send(.{ .jsonrpc = "2.0", .id = id, .result = index });
+-            } else if (index.response_bound + index.entries.len * (6 * doc.uri.len + 914) <= 128 * 1024 * 1024) {
+-                try self.send(.{ .jsonrpc = "2.0", .id = id, .result = outline.Flat{ .index = index, .uri = doc.uri } });
+-            } else try self.failure(id, -32803, "Flat outline response exceeded resource limits. Results were not truncated.");
+-        } else try self.failure(id, -32803, "Document outline exceeded analysis or index resource limits. Results were not truncated.");
+-    }
+-    fn referenceReply(self: *Server, request: std.json.Value, uri: []const u8, index: references.Index, point: pos.Position, include: bool) !void {
+-        const Location = struct { uri: []const u8, range: references.Range };
+-        var locations: std.ArrayList(Location) = .empty;
+-        defer locations.deinit(self.allocator);
+-        if (index.symbolAt(point)) |symbol| {
+-            var first = true;
+-            for (index.entries) |entry| if (entry.symbol == symbol) {
+-                if (include or !first) {
+-                    if (locations.items.len == 10_000) {
+-                        try self.failure(request, -32803, "Node has more than 10,000 reference results. Results were not truncated.");
+-                        return;
+-                    }
+-                    try locations.append(self.allocator, .{ .uri = uri, .range = index.range(entry) });
+-                }
+-                first = false;
+-            };
+-        }
+-        try self.send(.{ .jsonrpc = "2.0", .id = request, .result = locations.items });
+-    }
+-    fn analyze(self: *Server, job: *Job, encoding: pos.Encoding) !bool {
+-        var bag: analysis.Bag = .{};
+-        var scratch: analysis.Scratch = .{};
+-        job.builder = references.Builder.init(self.allocator, job.text, &job.cancel);
+-        const builder = &job.builder.?;
+-        job.labels = .{ .allocator = self.allocator, .source = job.text };
+-        job.outline_builder = .{ .allocator = self.allocator, .source = job.text };
+-        const result = analysis.runOutline(job.text, scratch.storage(), &bag, .{ .context = job, .is_requested = Job.poll }, builder, &job.labels.?, &job.outline_builder.?);
+-        // Only grammar/recovery results are useful. Resource and cancellation
+-        // failures must not present a truncated outline as complete.
+-        if (result.outcome != .success and result.outcome != .invalid_syntax) job.outline_builder.?.failed = true;
+-        if (result.outcome == .cancelled or job.cancel.load(.acquire)) return false;
+-        job.wording = std.heap.ArenaAllocator.init(self.allocator);
+-        const wording = &job.wording.?;
+-        const diagnostics = &job.diagnostics;
+-        if (bag.items().len > 0) {
+-            var index = try pos.Index.initCancellable(self.allocator, job.text, &job.cancel);
+-            defer index.deinit(self.allocator);
+-            for (bag.items()) |d| {
+-                if (job.cancel.load(.acquire)) return false;
+-                var message_buffer: [1536]u8 = undefined;
+-                const rendered = diagnostic_text.format(&message_buffer, d) catch d.code.info().summary;
+-                const owned_message = try wording.allocator().dupe(u8, rendered);
+-                var note_storage: [2]diagnostic_text.Note = undefined;
+-                const notes = if (self.related_information) diagnostic_text.notes(d, &note_storage) else &.{};
+-                const related = try wording.allocator().alloc(RelatedInformation, notes.len);
+-                for (notes, related) |note, *out| {
+-                    out.* = .{ .location = .{ .uri = job.uri, .range = .{
+-                        .start = try index.positionCancellable(job.text, note.span.start, encoding, &job.cancel),
+-                        .end = try index.positionCancellable(job.text, @as(usize, note.span.start) + note.span.len, encoding, &job.cancel),
+-                    } }, .message = note.message };
+-                }
+-                const range: Range = .{ .start = try index.positionCancellable(job.text, d.span.start, encoding, &job.cancel), .end = try index.positionCancellable(job.text, @as(usize, d.span.start) + d.span.len, encoding, &job.cancel) };
+-                var token: ?actions.Token = null;
+-                if (!job.fixes_failed) if (d.fix) |fix| {
+-                    const offer = try actions.Fix.capture(fix, range, d.span, job.text, 0, index, encoding, &job.cancel, null);
+-                    job.fixes.append(self.allocator, offer) catch {
+-                        job.fixes_failed = true;
+-                    };
+-                    if (!job.fixes_failed) token = .{ .dot_ls_generation = job.generation, .fix = job.fixes.items.len - 1 };
+-                };
+-                try diagnostics.append(self.allocator, .{
+-                    .data = token,
+-                    .range = range,
+-                    .severity = if (d.code.info().severity == .warning) 2 else 1,
+-                    .code = d.code.structured(),
+-                    .message = owned_message,
+-                    .relatedInformation = related,
+-                });
+-            }
+-        }
+-        if (bag.incomplete and result.completion == .complete) {
+-            const origin = pos.Position{ .line = 0, .character = 0 };
+-            try diagnostics.append(self.allocator, .{ .range = .{ .start = origin, .end = origin }, .severity = 3, .code = "dot-ls:validation-incomplete", .message = "DOT validation is incomplete. Further errors or repeated attributes may remain." });
+-        }
+-        if (result.completion != .complete) {
+-            const origin = pos.Position{ .line = 0, .character = 0 };
+-            try diagnostics.append(self.allocator, .{ .range = .{ .start = origin, .end = origin }, .severity = 3, .code = "dot-ls:incomplete", .message = "Syntax analysis is incomplete. Further errors may remain." });
+-        }
+-        if (job.cancel.load(.acquire)) return false;
+-        self.mutex.lockUncancelable(self.io);
+-        defer self.mutex.unlock(self.io);
+-        const i = self.find(job.uri) orelse return false;
+-        if (self.stopping or self.documents.items[i].generation != job.generation) return false;
+-        self.setFixes(&self.documents.items[i], job.fixes.items, job.fixes_failed);
+-        try self.send(.{ .jsonrpc = "2.0", .method = "textDocument/publishDiagnostics", .params = .{ .uri = job.uri, .version = job.version, .diagnostics = diagnostics.items } });
+-        if (job.labels.?.spans.count == 0 and !job.labels.?.incomplete) {
+-            job.fixes.deinit(self.allocator);
+-            job.fixes = .empty;
+-        }
+-        if (job.labels.?.spans.count == 0 and !job.labels.?.incomplete) self.dropHtmlCache(&self.documents.items[i]);
+-        job.want_references = result.outcome == .success and result.completion == .complete and !builder.failed;
+-        if (!job.want_references) {
+-            builder.deinit();
+-            job.builder = null;
+-        }
+-        job.phase = if (job.labels.?.spans.count > 0 or job.labels.?.incomplete) .html else .context;
+-        return true;
+-    }
+-    fn codeActions(self: *Server, request: std.json.Value, params: std.json.Value) !void {
+-        const uri = string(field(field(params, "textDocument") orelse .null, "uri") orelse .null);
+-        const range = actionRange(field(params, "range") orelse .null);
+-        const ctx = field(params, "context") orelse .null;
+-        const diagnostics = field(ctx, "diagnostics") orelse .null;
+-        if (uri == null or range == null or diagnostics != .array) {
+-            try self.failure(request, -32602, "Code actions require an open document, valid range and diagnostics array.");
+-            return;
+-        }
+-        if (diagnostics.array.items.len > 1024) {
+-            try self.failure(request, -32602, "Code action diagnostic context exceeds its limit.");
+-            return;
+-        }
+-        const i = self.find(uri.?) orelse {
+-            try self.failure(request, -32602, "Code actions require an open document.");
+-            return;
+-        };
+-        const doc = &self.documents.items[i];
+-        if (field(ctx, "only")) |only| {
+-            if (only != .array or only.array.items.len > 64) {
+-                try self.failure(request, -32602, "Code action kinds must be an array.");
+-                return;
+-            }
+-            var wanted = false;
+-            for (only.array.items) |item| {
+-                const kind = string(item) orelse {
+-                    try self.failure(request, -32602, "Code action kinds must be strings.");
+-                    return;
+-                };
+-                if (kind.len == 0 or std.mem.eql(u8, kind, "quickfix")) wanted = true;
+-            }
+-            if (!wanted) {
+-                try self.send(.{ .jsonrpc = "2.0", .id = request, .result = @as([]const std.json.Value, &.{}) });
+-                return;
+-            }
+-        }
+-        // Never fall back to unversioned edits on an older client.
+-        if (!self.versioned_edits) {
+-            try self.send(.{ .jsonrpc = "2.0", .id = request, .result = @as([]const std.json.Value, &.{}) });
+-            return;
+-        }
+-        const offers = doc.fixes orelse {
+-            if (doc.fixes_done) {
+-                try self.failure(request, -32803, "Quick fixes are unavailable within resource limits.");
+-                return;
+-            }
+-            try self.failure(request, -32801, "Current diagnostics are not ready. Request code actions again after diagnostics arrive.");
+-            return;
+-        };
+-        for (diagnostics.array.items) |diagnostic| {
+-            const data = field(diagnostic, "data") orelse .null;
+-            if (integer(field(data, "dot_ls_generation") orelse .null)) |generation| {
+-                if (generation < 0 or @as(u64, @intCast(generation)) != doc.generation) {
+-                    try self.failure(request, -32801, "Document changed since these diagnostics were produced.");
+-                    return;
+-                }
+-            }
+-        }
+-        const Change = struct { textDocument: struct { uri: []const u8, version: i64 }, edits: []const actions.TextEdit };
+-        const Action = struct { title: []const u8, kind: []const u8 = "quickfix", isPreferred: bool, edit: struct { documentChanges: []const Change } };
+-        var arena = std.heap.ArenaAllocator.init(self.allocator);
+-        defer arena.deinit();
+-        const allocator = arena.allocator();
+-        var result: std.ArrayList(Action) = .empty;
+-        for (offers) |offer| {
+-            if (!offer.touches(range.?)) continue;
+-            const storage = try allocator.create([2]actions.TextEdit);
+-            const changes = try allocator.alloc(Change, 1);
+-            changes[0] = .{ .textDocument = .{ .uri = doc.uri, .version = doc.version }, .edits = offer.edits(storage) };
+-            try result.append(allocator, .{ .title = try offer.title(allocator), .isPreferred = offer.preferred, .edit = .{ .documentChanges = changes } });
+-        }
+-        try self.send(.{ .jsonrpc = "2.0", .id = request, .result = result.items });
+-    }
+-    fn handle(self: *Server, message: *json_message.Message, packet: *?[]u8) !bool {
+-        const value = message.value;
+-        self.mutex.lockUncancelable(self.io);
+-        defer self.mutex.unlock(self.io);
+-        const id = field(value, "id");
+-        if (id) |identifier| {
+-            if (identifier != .integer and identifier != .string and identifier != .null) {
+-                try self.failure(.null, -32600, "Invalid request ID");
+-                return false;
+-            }
+-        }
+-        const method = string(field(value, "method") orelse .null) orelse {
+-            try self.failure(id orelse .null, -32600, "Invalid request");
+-            return false;
+-        };
+-        if (!std.mem.eql(u8, string(field(value, "jsonrpc") orelse .null) orelse "", "2.0")) {
+-            try self.failure(id orelse .null, -32600, "Invalid JSON-RPC version");
+-            return false;
+-        }
+-        const params = field(value, "params") orelse .null;
+-        if (std.mem.eql(u8, method, "exit")) return true;
+-        if (!self.initialized) {
+-            if (!std.mem.eql(u8, method, "initialize")) {
+-                if (id) |request| try self.failure(request, -32002, "Server not initialized");
+-                return false;
+-            }
+-            if (id == null) return false;
+-            const caps = field(params, "capabilities") orelse .null;
+-            const workspace_edit = field(field(caps, "workspace") orelse .null, "workspaceEdit") orelse .null;
+-            const document_changes = field(workspace_edit, "documentChanges") orelse .null;
+-            self.versioned_edits = document_changes == .bool and document_changes.bool;
+-            const hierarchy = field(field(field(caps, "textDocument") orelse .null, "documentSymbol") orelse .null, "hierarchicalDocumentSymbolSupport") orelse .null;
+-            self.hierarchical_symbols = hierarchy == .bool and hierarchy.bool;
+-            const text_document = field(caps, "textDocument") orelse .null;
+-            const publish = field(text_document, "publishDiagnostics") orelse .null;
+-            const related_cap = field(publish, "relatedInformation") orelse .null;
+-            self.related_information = related_cap == .bool and related_cap.bool;
+-            const general = field(caps, "general") orelse .null;
+-            if (field(general, "positionEncodings")) |encodings| if (encodings == .array) {
+-                var has32 = false;
+-                for (encodings.array.items) |v| {
+-                    const enc = string(v) orelse continue;
+-                    if (std.mem.eql(u8, enc, "utf-32")) has32 = true;
+-                    if (std.mem.eql(u8, enc, "utf-8")) {
+-                        self.encoding = .utf8;
+-                        break;
+-                    }
+-                }
+-                if (self.encoding != .utf8 and has32) self.encoding = .utf32;
+-            };
+-            self.initialized = true;
+-            const enc = switch (self.encoding) {
+-                .utf8 => "utf-8",
+-                .utf16 => "utf-16",
+-                .utf32 => "utf-32",
+-            };
+-            try self.send(.{ .jsonrpc = "2.0", .id = id.?, .result = .{ .capabilities = .{ .positionEncoding = enc, .codeActionProvider = .{ .codeActionKinds = [_][]const u8{"quickfix"}, .resolveProvider = false }, .documentSymbolProvider = true, .referencesProvider = true, .hoverProvider = true, .completionProvider = .{ .resolveProvider = false }, .textDocumentSync = .{ .openClose = true, .change = 1 } }, .serverInfo = .{ .name = "dot-ls", .version = "0.0.1-dev; dot-parser 0.5.0+outline-hook.2 (75ce950)" } } });
+-            return false;
+-        }
+-        if (self.shutdown) {
+-            if (id) |request| try self.failure(request, -32600, "Server has shut down");
+-            return false;
+-        }
+-        if (std.mem.eql(u8, method, "initialize")) {
+-            if (id) |request| try self.failure(request, -32600, "Already initialized");
+-        } else if (std.mem.eql(u8, method, "shutdown")) {
+-            if (id) |request| {
+-                self.shutdown = true;
+-                for (self.documents.items) |*doc| self.invalidate(doc);
+-                try self.send(.{ .jsonrpc = "2.0", .id = request, .result = @as(?u8, null) });
+-            }
+-        } else if (std.mem.eql(u8, method, "textDocument/codeAction")) {
+-            try self.codeActions(id orelse return false, params);
+-        } else if (std.mem.eql(u8, method, "textDocument/documentSymbol")) {
+-            const request = id orelse return false;
+-            const uri = string(field(field(params, "textDocument") orelse .null, "uri") orelse .null);
+-            const doc = if (uri) |u| if (self.find(u)) |i| &self.documents.items[i] else null else null;
+-            if (doc == null) {
+-                try self.failure(request, -32602, "Document outline requires an open document.");
+-            } else if (doc.?.outline_done) {
+-                try self.outlineReply(request, doc.?.*);
+-            } else if (!(doc.?.pending != null or doc.?.index_pending != null or if (self.active) |job| std.mem.eql(u8, job.uri, doc.?.uri) and job.generation == doc.?.generation else false)) {
+-                try self.failure(request, -32803, "Document outline analysis did not complete within limits.");
+-            } else if (doc.?.requests.items.len >= 64 or (request == .string and request.string.len > 8192)) {
+-                try self.failure(request, -32803, "Pending outline request limit exceeded.");
+-            } else {
+-                const owned = if (request == .string) std.json.Value{ .string = try self.allocator.dupe(u8, request.string) } else request;
+-                errdefer self.freeReferenceId(owned);
+-                try doc.?.requests.append(self.allocator, .{ .id = owned, .point = .{ .line = 0, .character = 0 }, .kind = .symbols });
+-            }
+-        } else if (std.mem.eql(u8, method, "textDocument/references")) {
+-            const request = id orelse return false;
+-            const uri = string(field(field(params, "textDocument") orelse .null, "uri") orelse .null);
+-            const point = field(params, "position") orelse .null;
+-            const line = integer(field(point, "line") orelse .null);
+-            const character = integer(field(point, "character") orelse .null);
+-            const include = field(field(params, "context") orelse .null, "includeDeclaration") orelse .null;
+-            if (uri == null or line == null or character == null or line.? < 0 or character.? < 0 or include != .bool) {
+-                try self.failure(request, -32602, "References requires a document, position and includeDeclaration boolean.");
+-                return false;
+-            }
+-            const document = self.find(uri.?) orelse {
+-                try self.failure(request, -32602, "References requires an open document.");
+-                return false;
+-            };
+-            const doc = &self.documents.items[document];
+-            const point_value = pos.Position{ .line = @intCast(line.?), .character = @intCast(character.?) };
+-            if (doc.references) |index| {
+-                try self.referenceReply(request, doc.uri, index, point_value, include.bool);
+-            } else {
+-                const pending = doc.pending != null or doc.index_pending != null or if (self.active) |job| std.mem.eql(u8, job.uri, doc.uri) and job.generation == doc.generation else false;
+-                if (!pending) {
+-                    try self.failure(request, -32803, "Node references are unavailable: syntax analysis or index construction did not complete within limits.");
+-                } else if (doc.requests.items.len >= 64 or (request == .string and request.string.len > 8192)) {
+-                    try self.failure(request, -32803, "Pending reference request limit exceeded.");
+-                } else {
+-                    const owned = if (request == .string) std.json.Value{ .string = try self.allocator.dupe(u8, request.string) } else request;
+-                    errdefer self.freeReferenceId(owned);
+-                    try doc.requests.append(self.allocator, .{ .id = owned, .point = point_value, .include = include.bool });
+-                }
+-            }
+-        } else if (std.mem.eql(u8, method, "$/cancelRequest")) {
+-            const cancelled = field(params, "id") orelse return false;
+-            for (self.documents.items) |*doc| {
+-                for (doc.requests.items, 0..) |request, i| {
+-                    const equal = if (cancelled == .string and request.id == .string) std.mem.eql(u8, cancelled.string, request.id.string) else cancelled == .integer and request.id == .integer and cancelled.integer == request.id.integer;
+-                    if (equal) {
+-                        const removed = doc.requests.orderedRemove(i);
+-                        defer self.freeReferenceId(removed.id);
+-                        try self.failure(removed.id, -32800, "Request cancelled.");
+-                        return false;
+-                    }
+-                }
+-            }
+-        } else if (std.mem.eql(u8, method, "textDocument/completion") or std.mem.eql(u8, method, "textDocument/hover")) {
+-            const is_hover = std.mem.eql(u8, method, "textDocument/hover");
+-            const request_id = id orelse return false;
+-            const document = field(params, "textDocument") orelse .null;
+-            const uri = string(field(document, "uri") orelse .null);
+-            const position = field(params, "position") orelse .null;
+-            const line = integer(field(position, "line") orelse .null);
+-            const character = integer(field(position, "character") orelse .null);
+-            if (uri == null or self.find(uri.?) == null or line == null or character == null or line.? < 0 or character.? < 0) {
+-                try self.failure(request_id, -32602, "Completion requires an open document and a non-negative position.");
+-                return false;
+-            }
+-            const doc = &self.documents.items[self.find(uri.?).?];
+-            const point_value = pos.Position{ .line = @intCast(line.?), .character = @intCast(character.?) };
+-            if (doc.completion) |ready| {
+-                if (is_hover) try self.hoverReply(request_id, ready, point_value) else try self.completionReply(request_id, ready, point_value);
+-            } else if (doc.completion_done or (doc.pending == null and doc.index_pending == null and !(if (self.active) |job| std.mem.eql(u8, job.uri, doc.uri) and job.generation == doc.generation else false))) {
+-                try self.failure(request_id, -32803, "Completion context is unavailable within resource limits.");
+-            } else if (doc.requests.items.len >= 64 or (request_id == .string and request_id.string.len > 8192)) {
+-                try self.failure(request_id, -32803, "Pending request limit exceeded.");
+-            } else {
+-                const owned = if (request_id == .string) std.json.Value{ .string = try self.allocator.dupe(u8, request_id.string) } else request_id;
+-                errdefer self.freeReferenceId(owned);
+-                try doc.requests.append(self.allocator, .{ .id = owned, .point = point_value, .kind = if (is_hover) .hover else .completion });
+-            }
+-        } else if (std.mem.eql(u8, method, "textDocument/didOpen") or std.mem.eql(u8, method, "textDocument/didChange")) {
+-            const document = field(params, "textDocument") orelse return false;
+-            const uri = string(field(document, "uri") orelse .null) orelse return false;
+-            if (uri.len > 8192) return false;
+-            const version = integer(field(document, "version") orelse .null) orelse return false;
+-            const opening = std.mem.eql(u8, method, "textDocument/didOpen");
+-            var text = if (opening) string(field(document, "text") orelse .null) else null;
+-            if (!opening) {
+-                const changes = field(params, "contentChanges") orelse return false;
+-                if (changes != .array) return false;
+-                for (changes.array.items) |change| {
+-                    if (field(change, "range") != null) return false;
+-                    text = string(field(change, "text") orelse .null) orelse return false;
+-                }
+-            }
+-            try self.update(uri, text orelse return false, version, opening, message, packet);
+-        } else if (std.mem.eql(u8, method, "textDocument/didClose")) {
+-            const document = field(params, "textDocument") orelse return false;
+-            const uri = string(field(document, "uri") orelse .null) orelse return false;
+-            if (self.find(uri)) |i| {
+-                self.invalidate(&self.documents.items[i]);
+-                self.dropHtmlCache(&self.documents.items[i]);
+-                const removed = self.documents.orderedRemove(i);
+-                defer self.allocator.free(removed.uri);
+-                try self.clear(uri, null, null);
+-            }
+-        } else if (id) |request| try self.failure(request, -32601, "Method not found");
+-        return false;
+-    }
+-    fn deinit(self: *Server) void {
+-        self.mutex.lockUncancelable(self.io);
+-        self.stopping = true;
+-        for (self.documents.items) |*doc| self.invalidate(doc);
+-        self.condition.signal(self.io);
+-        self.mutex.unlock(self.io);
+-        if (self.worker) |worker| worker.join();
+-        for (self.documents.items) |*doc| {
+-            self.dropHtmlCache(doc);
+-            self.allocator.free(doc.uri);
+-        }
+-        self.documents.deinit(self.allocator);
+-    }
+-};
+-fn field(v: std.json.Value, key: []const u8) ?std.json.Value {
+-    return if (v == .object) v.object.get(key) else null;
+-}
+-fn string(v: std.json.Value) ?[]const u8 {
+-    return if (v == .string) v.string else null;
+-}
+-fn integer(v: std.json.Value) ?i64 {
+-    return if (v == .integer) v.integer else null;
+-}
+-fn readMessage(reader: *std.Io.Reader, allocator: std.mem.Allocator, server: *Server, priority: *bool) !?[]u8 {
+-    var length: ?usize = null;
+-    var header_bytes: usize = 0;
+-    while (true) {
+-        const line = reader.takeDelimiterExclusive('\n') catch |err| {
+-            if (err == error.EndOfStream and header_bytes == 0) return null;
+-            return err;
+-        };
+-        if (try reader.takeByte() != '\n') return error.InvalidHeader;
+-        header_bytes += line.len + 1;
+-        if (header_bytes > 8192) return error.HeaderTooLarge;
+-        if (std.mem.eql(u8, line, "\r")) break;
+-        const colon = std.mem.indexOfScalar(u8, line, ':') orelse return error.InvalidHeader;
+-        if (std.ascii.eqlIgnoreCase(line[0..colon], "Content-Length")) {
+-            if (length != null) return error.DuplicateLength;
+-            length = try std.fmt.parseInt(usize, std.mem.trim(u8, line[colon + 1 ..], " \r\t"), 10);
+-        }
+-    }
+-    const n = length orelse return error.MissingLength;
+-    if (n > max_message) return error.MessageTooLarge;
+-    if (n >= 64 * 1024) {
+-        _ = server.syntax_pending.fetchAdd(1, .release);
+-        priority.* = true;
+-    }
+-    errdefer server.releaseIntake(priority);
+-    const bytes = try allocator.alloc(u8, n);
+-    errdefer allocator.free(bytes);
+-    try reader.readSliceAll(bytes);
+-    return bytes;
+-}
+-fn actionPoint(value: std.json.Value) ?pos.Position {
+-    const line = integer(field(value, "line") orelse .null) orelse return null;
+-    const character = integer(field(value, "character") orelse .null) orelse return null;
+-    if (line < 0 or character < 0 or line > std.math.maxInt(u32) or character > std.math.maxInt(u32)) return null;
+-    return .{ .line = @intCast(line), .character = @intCast(character) };
+-}
+-fn actionRange(value: std.json.Value) ?Range {
+-    const start = actionPoint(field(value, "start") orelse .null) orelse return null;
+-    const end = actionPoint(field(value, "end") orelse .null) orelse return null;
+-    if (actions.before(end, start)) return null;
+-    return .{ .start = start, .end = end };
+-}
++const app = @import("app.zig");
+ pub fn main(init: std.process.Init) !void {
+     var debug_allocator: std.heap.DebugAllocator(.{ .thread_safe = true }) = .init;
+     defer if (build_options.allocator_kind == .debug) std.debug.assert(debug_allocator.deinit() == .ok);
+@@ -933,7 +14,7 @@
+     if (args.len > 1 and (std.mem.eql(u8, args[1], "--help") or std.mem.eql(u8, args[1], "--version"))) {
+         var buffer: [1024]u8 = undefined;
+         var out = std.Io.File.Writer.init(.stdout(), init.io, &buffer);
+-        try out.interface.writeAll(if (std.mem.eql(u8, args[1], "--version")) "dot-ls 0.0.1-dev; dot-parser 0.5.0+outline-hook.2 (75ce950)\n" else "Usage: dot-ls [lsp | --stdio | --version | --help]\nDevelopment checkpoint: DOT and HTML-label diagnostics, keyword completion and node references over stdio.\n");
++        try out.interface.writeAll(if (std.mem.eql(u8, args[1], "--version")) "dot-ls " ++ app.server_version ++ "\n" else "Usage: dot-ls [lsp | --stdio | --version | --help]\nDevelopment checkpoint: DOT and HTML-label diagnostics, keyword completion and node references over stdio.\n");
+         try out.interface.flush();
+         return;
+     }
+@@ -945,38 +26,5 @@
+     // Small HTML cache allocations share pages. Return empty buckets on close.
+     var html_allocator: std.heap.DebugAllocator(.{ .thread_safe = true, .stack_trace_frames = 0 }) = .{ .backing_allocator = allocator };
+     defer std.debug.assert(html_allocator.deinit() == .ok);
+-    var server: Server = .{ .html_allocator = html_allocator.allocator(), .allocator = allocator, .io = init.io, .writer = &output.interface };
+-    var exit_requested = false;
+-    {
+-        defer server.deinit();
+-        var intake_priority = false;
+-        while (try readMessage(&input.interface, allocator, &server, &intake_priority)) |bytes| {
+-            defer server.releaseIntake(&intake_priority);
+-            var packet: ?[]u8 = bytes;
+-            defer if (packet) |owned| allocator.free(owned);
+-            var parsed: json_message.Message = .{ .allocator = allocator };
+-            defer parsed.deinit();
+-            const decoding = if (build_options.json_storage == .inplace) parsed.parseInPlace(bytes) else parsed.parse(bytes, if (build_options.json_storage == .buffer) .buffer else .arena);
+-            decoding catch |err| {
+-                server.mutex.lockUncancelable(init.io);
+-                defer server.mutex.unlock(init.io);
+-                try server.failure(.null, if (err == error.OutOfMemory) @as(i32, -32603) else -32700, if (err == error.OutOfMemory) "Message storage exhausted" else "Parse error");
+-                continue;
+-            };
+-            if (try server.handle(&parsed, &packet)) {
+-                exit_requested = true;
+-                break;
+-            }
+-        }
+-    }
+-    if (exit_requested and !server.shutdown) std.process.exit(1);
++    if (try app.run(init.io, allocator, html_allocator.allocator(), &input.interface, &output.interface)) std.process.exit(1);
+ }
+-
+-test "fix snapshot allocation failure leaves diagnostics publication independent" {
+-    var server: Server = .{ .allocator = std.testing.failing_allocator, .html_allocator = std.testing.failing_allocator, .io = undefined, .writer = undefined };
+-    var document: Document = .{ .uri = @constCast("untitled:test"), .version = 1, .generation = 1 };
+-    const offers = [_]actions.Fix{.{ .diagnostic = .{ .start = .{ .line = 0, .character = 0 }, .end = .{ .line = 0, .character = 1 } }, .edit = .{ .start = .{ .line = 0, .character = 0 }, .end = .{ .line = 0, .character = 1 } }, .kind = .delete, .preferred = true }};
+-    server.setFixes(&document, &offers, false);
+-    try std.testing.expect(document.fixes_done);
+-    try std.testing.expect(document.fixes == null);
+-}
+--- /dev/null
++++ b/src/protocol/framing.zig
+@@ -0,0 +1,60 @@
++//! Stdio framing only. The application owns intake priority and packet lifetime.
++const std = @import("std");
++pub const max_message = 256 * 1024 * 1024;
++pub fn readHeader(reader: *std.Io.Reader) !?usize {
++    var length: ?usize = null;
++    var header_bytes: usize = 0;
++    while (true) {
++        const line = reader.takeDelimiterExclusive('\n') catch |err| {
++            if (err == error.EndOfStream and header_bytes == 0) return null;
++            return err;
++        };
++        if (try reader.takeByte() != '\n') return error.InvalidHeader;
++        header_bytes += line.len + 1;
++        if (header_bytes > 8192) return error.HeaderTooLarge;
++        if (std.mem.eql(u8, line, "\r")) break;
++        const colon = std.mem.indexOfScalar(u8, line, ':') orelse return error.InvalidHeader;
++        if (std.ascii.eqlIgnoreCase(line[0..colon], "Content-Length")) {
++            if (length != null) return error.DuplicateLength;
++            length = try std.fmt.parseInt(usize, std.mem.trim(u8, line[colon + 1 ..], " \r\t"), 10);
++        }
++    }
++    const n = length orelse return error.MissingLength;
++    if (n > max_message) return error.MessageTooLarge;
++    return n;
++}
++
++pub fn readBody(reader: *std.Io.Reader, allocator: std.mem.Allocator, n: usize) ![]u8 {
++    const bytes = try allocator.alloc(u8, n);
++    errdefer allocator.free(bytes);
++    try reader.readSliceAll(bytes);
++    return bytes;
++}
++
++test "framing preserves packet boundaries and header rules" {
++    var reader = std.Io.Reader.fixed("content-length: 3\r\nOther: ignored\r\n\r\nabcContent-Length: 0\r\n\r\n");
++    const length = (try readHeader(&reader)).?;
++    try std.testing.expectEqual(@as(usize, 3), length);
++    const bytes = try readBody(&reader, std.testing.allocator, length);
++    defer std.testing.allocator.free(bytes);
++    try std.testing.expectEqualStrings("abc", bytes);
++    try std.testing.expectEqual(@as(?usize, 0), try readHeader(&reader));
++    try std.testing.expectEqual(@as(?usize, null), try readHeader(&reader));
++    var duplicate = std.Io.Reader.fixed("Content-Length: 1\r\nContent-Length: 2\r\n\r\n");
++    try std.testing.expectError(error.DuplicateLength, readHeader(&duplicate));
++    var missing = std.Io.Reader.fixed("\r\n");
++    try std.testing.expectError(error.MissingLength, readHeader(&missing));
++    var oversized = std.Io.Reader.fixed("Content-Length: 268435457\r\n\r\n");
++    try std.testing.expectError(error.MessageTooLarge, readHeader(&oversized));
++    var invalid = std.Io.Reader.fixed("invalid\r\n");
++    try std.testing.expectError(error.InvalidHeader, readHeader(&invalid));
++}
++
++test "truncated packets and allocation failures release body storage" {
++    var truncated = std.Io.Reader.fixed("ab");
++    try std.testing.expectError(error.EndOfStream, readBody(&truncated, std.testing.allocator, 3));
++    var reader = std.Io.Reader.fixed("abc");
++    try std.testing.expectError(error.OutOfMemory, readBody(&reader, std.testing.failing_allocator, 3));
++    var incomplete_header = std.Io.Reader.fixed("Content-Length: 3\r\n");
++    try std.testing.expectError(error.EndOfStream, readHeader(&incomplete_header));
++}
+--- /dev/null
++++ b/src/protocol/json_message.zig
+@@ -0,0 +1,208 @@
++const std = @import("std");
++pub const Mode = enum { arena, buffer, inplace };
++/// One message owns all decoded data. The packet stays alive until deinit.
++/// Do not move this value after parse: managed arrays borrow its allocator context.
++pub const Message = struct {
++    allocator: std.mem.Allocator,
++    value: std.json.Value = .null,
++    parsed: ?std.json.Parsed(std.json.Value) = null,
++    buffer: ?[]u8 = null,
++    fixed: std.heap.FixedBufferAllocator = undefined,
++    used_fallback: bool = false,
++    inplace: bool = false,
++    /// Mutate only string bytes that the standard scanner has already consumed.
++    /// All string views borrow the packet; metadata belongs to the arena.
++    pub fn parseInPlace(self: *Message, bytes: []u8) !void {
++        std.debug.assert(self.buffer == null and self.parsed == null);
++        const arena = try self.allocator.create(std.heap.ArenaAllocator);
++        arena.* = std.heap.ArenaAllocator.init(self.allocator);
++        errdefer {
++            arena.deinit();
++            self.allocator.destroy(arena);
++        }
++        var source: InPlaceTokens = .{ .scanner = std.json.Scanner.initCompleteInput(arena.allocator(), bytes), .bytes = bytes };
++        defer source.scanner.deinit();
++        self.value = try std.json.parseFromTokenSourceLeaky(std.json.Value, arena.allocator(), &source, .{ .max_value_len = bytes.len });
++        self.parsed = .{ .arena = arena, .value = self.value };
++        self.inplace = true;
++    }
++    pub fn parse(self: *Message, bytes: []const u8, mode: Mode) !void {
++        std.debug.assert(mode != .inplace);
++        std.debug.assert(self.buffer == null and self.parsed == null);
++        if (mode == .buffer) {
++            // Leave room for geometric string growth while allowing it to resize
++            // in place. Unused mapped capacity is not necessarily resident.
++            const capacity = try std.math.add(usize, try std.math.mul(usize, bytes.len, 2), 16 * 1024);
++            // This region is backing storage, not initialized JSON values. The
++            // JSON parser initializes the slices it uses before reading them. Avoid
++            // poisoning unused capacity in ReleaseSafe: never read that capacity.
++            const pointer = self.allocator.rawAlloc(capacity, .of(u8), @returnAddress()) orelse return error.OutOfMemory;
++            const region = pointer[0..capacity];
++            self.buffer = region;
++            self.fixed = .init(region);
++            self.value = std.json.parseFromSliceLeaky(std.json.Value, self.fixed.allocator(), bytes, .{ .max_value_len = bytes.len }) catch |err| {
++                self.allocator.rawFree(region, .of(u8), @returnAddress());
++                self.buffer = null;
++                if (err != error.OutOfMemory) return err;
++                // Metadata-heavy messages can exceed the fast-path budget. Retry
++                // from the original immutable packet; no partial value escapes.
++                self.used_fallback = true;
++                try self.parseArena(bytes);
++                return;
++            };
++        } else try self.parseArena(bytes);
++    }
++    fn parseArena(self: *Message, bytes: []const u8) !void {
++        self.parsed = try std.json.parseFromSlice(std.json.Value, self.allocator, bytes, .{ .max_value_len = bytes.len });
++        self.value = self.parsed.?.value;
++    }
++    pub fn deinit(self: *Message) void {
++        if (self.parsed) |parsed| parsed.deinit();
++        // Matches rawAlloc's exact extent/alignment. No decoded view may outlive
++        // this owner. Raw release avoids touching unused backing capacity.
++        if (self.buffer) |buffer| self.allocator.rawFree(buffer, .of(u8), @returnAddress());
++        self.* = undefined;
++    }
++};
++test "request buffer preserves escapes, arrays, and borrowed source" {
++    const bytes = "{\"text\":\"a\\n\\uD83D\\uDE00\",\"array\":[1,2]}";
++    var message: Message = .{ .allocator = std.testing.allocator };
++    defer message.deinit();
++    try message.parse(bytes, .buffer);
++    try std.testing.expectEqualStrings("a\n😀", message.value.object.get("text").?.string);
++    try std.testing.expectEqual(@as(i64, 2), message.value.object.get("array").?.array.items[1].integer);
++    try std.testing.expect(!message.used_fallback);
++}
++test "metadata-heavy request retries without leaking" {
++    var bytes: std.ArrayList(u8) = .empty;
++    defer bytes.deinit(std.testing.allocator);
++    try bytes.append(std.testing.allocator, '[');
++    for (0..2000) |i| {
++        if (i != 0) try bytes.append(std.testing.allocator, ',');
++        try bytes.append(std.testing.allocator, '0');
++    }
++    try bytes.append(std.testing.allocator, ']');
++    var message: Message = .{ .allocator = std.testing.allocator };
++    defer message.deinit();
++    try message.parse(bytes.items, .buffer);
++    try std.testing.expect(message.used_fallback);
++    try std.testing.expectEqual(@as(usize, 2000), message.value.array.items.len);
++}
++test "malformed messages free temporary storage" {
++    inline for (.{ Mode.arena, Mode.buffer }) |mode| {
++        var message: Message = .{ .allocator = std.testing.allocator };
++        defer message.deinit();
++        try std.testing.expectError(error.UnexpectedEndOfInput, message.parse("{\"a\":", mode));
++    }
++}
++
++test "request buffer allocation failure leaves an empty owner" {
++    var message: Message = .{ .allocator = std.testing.failing_allocator };
++    defer message.deinit();
++    try std.testing.expectError(error.OutOfMemory, message.parse("{}", .buffer));
++    try std.testing.expect(message.buffer == null and message.parsed == null);
++}
++
++/// Adapter for std.json.Value's leaky parser. Its allocated-string tokens have
++/// packet lifetime rather than individual allocation lifetime. Value's leaky
++/// parser stores these views and never frees them; only the metadata arena is
++/// released. Do not use this adapter with parsers that free individual tokens.
++const InPlaceTokens = struct {
++    scanner: std.json.Scanner,
++    bytes: []u8,
++    pub const NextError = std.json.Scanner.NextError;
++    pub const PeekError = std.json.Scanner.PeekError;
++    pub const AllocError = std.json.Scanner.AllocError || NextError;
++    pub fn next(self: *InPlaceTokens) NextError!std.json.Token {
++        return self.scanner.next();
++    }
++    pub fn nextAllocMax(self: *InPlaceTokens, allocator: std.mem.Allocator, when: std.json.AllocWhen, max_len: usize) AllocError!std.json.Token {
++        const kind = try self.scanner.peekNextTokenType();
++        if (kind != .string) return self.scanner.nextAllocMax(allocator, when, max_len);
++        // peek leaves cursor at the opening quote.
++        std.debug.assert(self.bytes[self.scanner.cursor] == '"');
++        const start = self.scanner.cursor + 1;
++        var written: usize = start;
++        var token = try self.scanner.next();
++        // No escapes: borrow the validated span without even a same-buffer copy.
++        if (token == .string) {
++            if (token.string.len > max_len) return error.ValueTooLong;
++            return .{ .allocated_string = @constCast(token.string) };
++        }
++        while (true) {
++            const part: []const u8 = switch (token) {
++                .string, .partial_string => |v| v,
++                .partial_string_escaped_1 => &token.partial_string_escaped_1,
++                .partial_string_escaped_2 => &token.partial_string_escaped_2,
++                .partial_string_escaped_3 => &token.partial_string_escaped_3,
++                .partial_string_escaped_4 => &token.partial_string_escaped_4,
++                else => unreachable,
++            };
++            if (part.len > max_len - (written - start)) return error.ValueTooLong;
++            std.debug.assert(written + part.len <= self.scanner.cursor);
++            // Forward copy supports overlap: decoded bytes never overtake input.
++            for (part) |byte| {
++                self.bytes[written] = byte;
++                written += 1;
++            }
++            if (token == .string) return .{ .allocated_string = self.bytes[start..written] };
++            token = try self.scanner.next();
++        }
++    }
++};
++
++test "in-place strings match standard JSON across escapes and truncations" {
++    const samples = [_][]const u8{
++        "{\"text\":\"a\\n\\uD83D\\uDE00\\t\\r\\b\\f\\\\\\/\\\"z\",\"list\":[true,null,-12.5e2]}",
++        "[\"\",\"plain\",\"😀\",\"\\u0000\\u007f\\u0080\\u07ff\\u0800\\uffff\",{},[]]",
++        "{\"\\u0061\":1,\"a\":2}",
++        "\"\\uD800\"",
++        "\"\\uDC00\"",
++        "\"\\x\"",
++        "\"\xff\"",
++        "0 1",
++        "{\"a\":}",
++    };
++    for (samples) |sample| {
++        for (0..sample.len + 1) |end| {
++            const bytes = try std.testing.allocator.dupe(u8, sample[0..end]);
++            defer std.testing.allocator.free(bytes);
++            var message: Message = .{ .allocator = std.testing.allocator };
++            defer message.deinit();
++            const reference = std.json.parseFromSlice(std.json.Value, std.testing.allocator, sample[0..end], .{}) catch |expected| {
++                if (message.parseInPlace(bytes)) |_| return error.ExpectedParseFailure else |actual| try std.testing.expectEqualStrings(@errorName(expected), @errorName(actual));
++                continue;
++            };
++            defer reference.deinit();
++            try message.parseInPlace(bytes);
++            const a = try std.json.Stringify.valueAlloc(std.testing.allocator, reference.value, .{});
++            defer std.testing.allocator.free(a);
++            const b = try std.json.Stringify.valueAlloc(std.testing.allocator, message.value, .{});
++            defer std.testing.allocator.free(b);
++            try std.testing.expectEqualStrings(a, b);
++        }
++    }
++}
++
++fn inplaceAllocationCheck(allocator: std.mem.Allocator) !void {
++    const input = "{\"text\":\"a\\n\\uD83D\\uDE00\",\"items\":[1,2,{},[true,false,null]],\"uri\":\"untitled:test\"}";
++    var bytes: [input.len]u8 = undefined;
++    @memcpy(&bytes, input);
++    var message: Message = .{ .allocator = allocator };
++    defer message.deinit();
++    try message.parseInPlace(&bytes);
++}
++test "in-place metadata allocation failures release all owners" {
++    try std.testing.checkAllAllocationFailures(std.testing.allocator, inplaceAllocationCheck, .{});
++}
++
++test "in-place arbitrary ASCII strings match standard encoder" {
++    var text: [128]u8 = undefined;
++    for (&text, 0..) |*byte, i| byte.* = @intCast(i);
++    const encoded = try std.json.Stringify.valueAlloc(std.testing.allocator, .{ .text = text[0..] }, .{});
++    defer std.testing.allocator.free(encoded);
++    var message: Message = .{ .allocator = std.testing.allocator };
++    defer message.deinit();
++    try message.parseInPlace(encoded);
++    try std.testing.expectEqualStrings(&text, message.value.object.get("text").?.string);
++}
+--- /dev/null
++++ b/src/protocol/lsp.zig
+@@ -0,0 +1,32 @@
++//! Wire types and constants. No runtime or document-state dependency.
++const std = @import("std");
++const text = @import("../text/types.zig");
++const actions = @import("../features/code_actions.zig");
++pub const server_version = "0.0.1-dev; dot-parser 0.5.0+outline-hook.2 (75ce950)";
++pub const Id = union(enum) {
++    null,
++    integer: i64,
++    string: []const u8,
++    pub fn jsonStringify(self: Id, json: *std.json.Stringify) std.json.Stringify.Error!void {
++        switch (self) {
++            .null => try json.write(null),
++            .integer => |n| try json.write(n),
++            .string => |s| try json.write(s),
++        }
++    }
++};
++pub const ErrorCode = struct {
++    pub const parse_error: i32 = -32700;
++    pub const invalid_request: i32 = -32600;
++    pub const method_not_found: i32 = -32601;
++    pub const invalid_params: i32 = -32602;
++    pub const internal_error: i32 = -32603;
++    pub const not_initialized: i32 = -32002;
++    pub const request_cancelled: i32 = -32800;
++    pub const content_modified: i32 = -32801;
++    pub const request_failed: i32 = -32803;
++};
++pub const Failure = struct { id: Id = .null, code: i32, message: []const u8 };
++pub const RelatedInformation = struct { location: struct { uri: []const u8, range: text.Range }, message: []const u8 };
++pub const Diagnostic = struct { data: ?actions.Token = null, range: text.Range, severity: u8, code: []const u8, source: []const u8 = "dot-ls", relatedInformation: []const RelatedInformation = &.{}, message: []const u8 };
++pub const TextEdit = struct { range: text.Range, newText: []const u8 };
+--- /dev/null
++++ b/src/protocol/requests.zig
+@@ -0,0 +1,210 @@
++//! Typed borrowed commands. All views expire with Message/packet teardown.
++//! No document lookup, request queue, source ownership transfer or output here.
++const std = @import("std");
++const lsp = @import("lsp.zig");
++const text = @import("../text/types.zig");
++pub const Capabilities = struct { versioned_edits: bool = false, hierarchical_symbols: bool = false, related_information: bool = false, encoding: text.Encoding = .utf16 };
++pub const Positioned = struct { uri: []const u8, point: text.Position };
++pub const References = struct { uri: []const u8, point: text.Position, include: bool };
++pub const Update = struct { uri: []const u8, text: []const u8, version: i64, opening: bool };
++pub const CodeActions = struct {
++    uri: []const u8,
++    range: text.Range,
++    too_many: bool,
++    only: enum { all, none, invalid_array, invalid_strings } = .all,
++    generation: ?i64 = null,
++    mixed_generations: bool = false,
++};
++pub const Method = enum { initialize, shutdown, exit, symbols, references, cancel, completion, hover, open, change, close, code_actions, unknown };
++pub const Command = struct {
++    id: ?lsp.Id,
++    method: Method,
++    body: union(enum) {
++        none,
++        initialize: Capabilities,
++        symbols: ?[]const u8,
++        references: ?References,
++        positioned: ?Positioned,
++        update: ?Update,
++        close: ?[]const u8,
++        cancel: ?lsp.Id,
++        code_actions: ?CodeActions,
++    },
++};
++pub const Decoded = union(enum) { command: Command, failure: lsp.Failure };
++fn field(v: std.json.Value, key: []const u8) ?std.json.Value {
++    return if (v == .object) v.object.get(key) else null;
++}
++fn string(v: std.json.Value) ?[]const u8 {
++    return if (v == .string) v.string else null;
++}
++fn integer(v: std.json.Value) ?i64 {
++    return if (v == .integer) v.integer else null;
++}
++fn identifier(v: std.json.Value) ?lsp.Id {
++    return switch (v) {
++        .integer => |n| .{ .integer = n },
++        .string => |s| .{ .string = s },
++        .null => .null,
++        else => null,
++    };
++}
++fn uri(params: std.json.Value) ?[]const u8 {
++    return string(field(field(params, "textDocument") orelse .null, "uri") orelse .null);
++}
++fn point(value: std.json.Value, bounded: bool) ?text.Position {
++    const line = integer(field(value, "line") orelse .null) orelse return null;
++    const character = integer(field(value, "character") orelse .null) orelse return null;
++    if (line < 0 or character < 0) return null;
++    if (bounded and (line > std.math.maxInt(u32) or character > std.math.maxInt(u32))) return null;
++    return .{ .line = @intCast(line), .character = @intCast(character) };
++}
++fn range(value: std.json.Value) ?text.Range {
++    const start = point(field(value, "start") orelse .null, true) orelse return null;
++    const end = point(field(value, "end") orelse .null, true) orelse return null;
++    if (end.line < start.line or (end.line == start.line and end.character < start.character)) return null;
++    return .{ .start = start, .end = end };
++}
++fn capabilities(params: std.json.Value) Capabilities {
++    var result: Capabilities = .{};
++    const caps = field(params, "capabilities") orelse .null;
++    const workspace_edit = field(field(caps, "workspace") orelse .null, "workspaceEdit") orelse .null;
++    const document_changes = field(workspace_edit, "documentChanges") orelse .null;
++    result.versioned_edits = document_changes == .bool and document_changes.bool;
++    const hierarchy = field(field(field(caps, "textDocument") orelse .null, "documentSymbol") orelse .null, "hierarchicalDocumentSymbolSupport") orelse .null;
++    result.hierarchical_symbols = hierarchy == .bool and hierarchy.bool;
++    const publish = field(field(caps, "textDocument") orelse .null, "publishDiagnostics") orelse .null;
++    const related = field(publish, "relatedInformation") orelse .null;
++    result.related_information = related == .bool and related.bool;
++    if (field(field(caps, "general") orelse .null, "positionEncodings")) |encodings| if (encodings == .array) {
++        var has32 = false;
++        for (encodings.array.items) |v| {
++            const enc = string(v) orelse continue;
++            if (std.mem.eql(u8, enc, "utf-32")) has32 = true;
++            if (std.mem.eql(u8, enc, "utf-8")) {
++                result.encoding = .utf8;
++                break;
++            }
++        }
++        if (result.encoding != .utf8 and has32) result.encoding = .utf32;
++    };
++    return result;
++}
++fn positioned(params: std.json.Value) ?Positioned {
++    return .{ .uri = uri(params) orelse return null, .point = point(field(params, "position") orelse .null, false) orelse return null };
++}
++fn references(params: std.json.Value) ?References {
++    const p = positioned(params) orelse return null;
++    const include = field(field(params, "context") orelse .null, "includeDeclaration") orelse .null;
++    if (include != .bool) return null;
++    return .{ .uri = p.uri, .point = p.point, .include = include.bool };
++}
++fn update(params: std.json.Value, opening: bool) ?Update {
++    const document = field(params, "textDocument") orelse return null;
++    const u = string(field(document, "uri") orelse .null) orelse return null;
++    if (u.len > 8192) return null;
++    const version = integer(field(document, "version") orelse .null) orelse return null;
++    var source = if (opening) string(field(document, "text") orelse .null) else null;
++    if (!opening) {
++        const changes = field(params, "contentChanges") orelse return null;
++        if (changes != .array) return null;
++        for (changes.array.items) |change| {
++            if (field(change, "range") != null) return null;
++            source = string(field(change, "text") orelse .null) orelse return null;
++        }
++    }
++    return .{ .uri = u, .text = source orelse return null, .version = version, .opening = opening };
++}
++fn codeActions(params: std.json.Value) ?CodeActions {
++    const context = field(params, "context") orelse .null;
++    const diagnostics = field(context, "diagnostics") orelse .null;
++    const u = uri(params) orelse return null;
++    const r = range(field(params, "range") orelse .null) orelse return null;
++    if (diagnostics != .array) return null;
++    var result: CodeActions = .{ .uri = u, .range = r, .too_many = diagnostics.array.items.len > 1024 };
++    if (result.too_many) return result;
++    if (field(context, "only")) |only| {
++        if (only != .array or only.array.items.len > 64) {
++            result.only = .invalid_array;
++            return result;
++        }
++        var wanted = false;
++        for (only.array.items) |item| {
++            const kind = string(item) orelse {
++                result.only = .invalid_strings;
++                return result;
++            };
++            if (kind.len == 0 or std.mem.eql(u8, kind, "quickfix")) wanted = true;
++        }
++        result.only = if (wanted) .all else .none;
++    }
++    for (diagnostics.array.items) |diagnostic| {
++        const data = field(diagnostic, "data") orelse .null;
++        if (integer(field(data, "dot_ls_generation") orelse .null)) |generation| {
++            if (result.generation) |previous| if (previous != generation) {
++                result.mixed_generations = true;
++            };
++            result.generation = generation;
++        }
++    }
++    return result;
++}
++pub const Lifecycle = enum { before_initialize, ready, shutdown };
++pub fn decode(value: std.json.Value, lifecycle: Lifecycle) Decoded {
++    var id: ?lsp.Id = null;
++    if (field(value, "id")) |v| id = identifier(v) orelse return .{ .failure = .{ .code = lsp.ErrorCode.invalid_request, .message = "Invalid request ID" } };
++    const method = string(field(value, "method") orelse .null) orelse return .{ .failure = .{ .id = id orelse .null, .code = lsp.ErrorCode.invalid_request, .message = "Invalid request" } };
++    if (!std.mem.eql(u8, string(field(value, "jsonrpc") orelse .null) orelse "", "2.0")) return .{ .failure = .{ .id = id orelse .null, .code = lsp.ErrorCode.invalid_request, .message = "Invalid JSON-RPC version" } };
++    const params = field(value, "params") orelse .null;
++    const m: Method = if (std.mem.eql(u8, method, "initialize")) .initialize else if (std.mem.eql(u8, method, "shutdown")) .shutdown else if (std.mem.eql(u8, method, "exit")) .exit else if (std.mem.eql(u8, method, "textDocument/documentSymbol")) .symbols else if (std.mem.eql(u8, method, "textDocument/references")) .references else if (std.mem.eql(u8, method, "$/cancelRequest")) .cancel else if (std.mem.eql(u8, method, "textDocument/completion")) .completion else if (std.mem.eql(u8, method, "textDocument/hover")) .hover else if (std.mem.eql(u8, method, "textDocument/didOpen")) .open else if (std.mem.eql(u8, method, "textDocument/didChange")) .change else if (std.mem.eql(u8, method, "textDocument/didClose")) .close else if (std.mem.eql(u8, method, "textDocument/codeAction")) .code_actions else .unknown;
++    // Preserve lifecycle precedence and avoid walking ignored parameter arrays.
++    const active = lifecycle == .ready;
++    const request = active and id != null;
++    return .{ .command = .{ .id = id, .method = m, .body = switch (m) {
++        .initialize => .{ .initialize = if (lifecycle == .before_initialize and id != null) capabilities(params) else .{} },
++        .symbols => .{ .symbols = if (request) uri(params) else null },
++        .references => .{ .references = if (request) references(params) else null },
++        .completion, .hover => .{ .positioned = if (request) positioned(params) else null },
++        .open, .change => .{ .update = if (active) update(params, m == .open) else null },
++        .close => .{ .close = if (active) uri(params) else null },
++        .cancel => .{ .cancel = if (active) identifier(field(params, "id") orelse .null) else null },
++        .code_actions => .{ .code_actions = if (request) codeActions(params) else null },
++        else => .none,
++    } } };
++}
++
++test "typed commands preserve IDs capabilities and full-sync source views" {
++    const messages = @import("json_message.zig");
++    var message: messages.Message = .{ .allocator = std.testing.allocator };
++    defer message.deinit();
++    try message.parse("{\"jsonrpc\":\"2.0\",\"id\":null,\"method\":\"initialize\",\"params\":{\"capabilities\":{\"general\":{\"positionEncodings\":[\"utf-32\",\"utf-8\"]},\"workspace\":{\"workspaceEdit\":{\"documentChanges\":true}}}}}", .buffer);
++    const command = decode(message.value, .before_initialize).command;
++    try std.testing.expect(command.id.? == .null);
++    try std.testing.expectEqual(text.Encoding.utf8, command.body.initialize.encoding);
++    try std.testing.expect(command.body.initialize.versioned_edits);
++    var change: messages.Message = .{ .allocator = std.testing.allocator };
++    defer change.deinit();
++    try change.parse("{\"jsonrpc\":\"2.0\",\"id\":\"quoted id\",\"method\":\"textDocument/didChange\",\"params\":{\"textDocument\":{\"uri\":\"untitled:test\",\"version\":2},\"contentChanges\":[{\"text\":\"first\"},{\"text\":\"last\"}]}}", .buffer);
++    const parsed = decode(change.value, .ready).command;
++    try std.testing.expectEqualStrings("quoted id", parsed.id.?.string);
++    try std.testing.expectEqualStrings("last", parsed.body.update.?.text);
++    try std.testing.expect(!parsed.body.update.?.opening);
++}
++
++test "request envelope failures precede parameter validation" {
++    const messages = @import("json_message.zig");
++    const sources = [_][]const u8{
++        "{\"jsonrpc\":\"2.0\",\"id\":[],\"method\":\"initialize\"}",
++        "{\"jsonrpc\":\"2.0\",\"id\":3}",
++        "{\"jsonrpc\":\"1.0\",\"id\":3,\"method\":\"textDocument/hover\"}",
++    };
++    const expected = [_][]const u8{ "Invalid request ID", "Invalid request", "Invalid JSON-RPC version" };
++    for (sources, expected) |source, msg| {
++        var message: messages.Message = .{ .allocator = std.testing.allocator };
++        defer message.deinit();
++        try message.parse(source, .buffer);
++        const failure = decode(message.value, .before_initialize).failure;
++        try std.testing.expectEqual(@as(i32, -32600), failure.code);
++        try std.testing.expectEqualStrings(msg, failure.message);
++    }
++}
+--- /dev/null
++++ b/src/protocol/responses.zig
+@@ -0,0 +1,191 @@
++//! Wire response encoding. Calls borrow stable data until synchronous send ends.
++//! This remains blocking until the separate bounded-output migration step.
++const std = @import("std");
++const lsp = @import("lsp.zig");
++const pos = @import("../text/types.zig");
++const completion_feature = @import("../features/completion.zig");
++const attributes = @import("../features/attributes.zig");
++const context = @import("../features/completion_context.zig");
++const references = @import("../features/references.zig");
++const outline = @import("../features/outline.zig");
++const actions = @import("../features/code_actions.zig");
++pub fn send(allocator: std.mem.Allocator, writer: *std.Io.Writer, value: anytype) !void {
++    const bytes = try std.json.Stringify.valueAlloc(allocator, value, .{});
++    defer allocator.free(bytes);
++    try writer.print("Content-Length: {d}\r\n\r\n", .{bytes.len});
++    try writer.writeAll(bytes);
++    try writer.flush();
++}
++pub fn failure(allocator: std.mem.Allocator, writer: *std.Io.Writer, id: lsp.Id, code: i32, message: []const u8) !void {
++    try send(allocator, writer, .{ .jsonrpc = "2.0", .id = id, .@"error" = .{ .code = code, .message = message } });
++}
++pub fn result(allocator: std.mem.Allocator, writer: *std.Io.Writer, id: lsp.Id, value: anytype) !void {
++    try send(allocator, writer, .{ .jsonrpc = "2.0", .id = id, .result = value });
++}
++pub fn diagnostics(allocator: std.mem.Allocator, writer: *std.Io.Writer, uri: []const u8, version: ?i64, items: []const lsp.Diagnostic) !void {
++    try send(allocator, writer, .{ .jsonrpc = "2.0", .method = "textDocument/publishDiagnostics", .params = .{ .uri = uri, .version = version, .diagnostics = items } });
++}
++pub fn clear(allocator: std.mem.Allocator, writer: *std.Io.Writer, uri: []const u8, version: ?i64, message: ?[]const u8) !void {
++    const origin = pos.Position{ .line = 0, .character = 0 };
++    const single = [_]lsp.Diagnostic{.{ .range = .{ .start = origin, .end = origin }, .severity = 3, .code = "dot-ls:limits", .message = message orelse "" }};
++    try diagnostics(allocator, writer, uri, version, if (message != null) single[0..] else single[0..0]);
++}
++pub fn initialized(allocator: std.mem.Allocator, writer: *std.Io.Writer, id: lsp.Id, encoding: pos.Encoding) !void {
++    const enc = switch (encoding) {
++        .utf8 => "utf-8",
++        .utf16 => "utf-16",
++        .utf32 => "utf-32",
++    };
++    try result(allocator, writer, id, .{ .capabilities = .{ .positionEncoding = enc, .codeActionProvider = .{ .codeActionKinds = [_][]const u8{"quickfix"}, .resolveProvider = false }, .documentSymbolProvider = true, .referencesProvider = true, .hoverProvider = true, .completionProvider = .{ .resolveProvider = false }, .textDocumentSync = .{ .openClose = true, .change = 1 } }, .serverInfo = .{ .name = "dot-ls", .version = lsp.server_version } });
++}
++pub fn completion(allocator: std.mem.Allocator, writer: *std.Io.Writer, id: lsp.Id, index: context.Index, point: pos.Position) !void {
++    try send(allocator, writer, .{ .jsonrpc = "2.0", .id = id, .result = CompletionList{ .kind = index.at(point) } });
++}
++pub fn hover(allocator: std.mem.Allocator, writer: *std.Io.Writer, id: lsp.Id, index: context.Index, point: pos.Position) !void {
++    if (!index.attributes.available) return failure(allocator, writer, id, lsp.ErrorCode.request_failed, "Attribute hover exceeded its memory limit.");
++    const byte = index.coordinates.byteAt(point);
++    const match = if (byte) |b| index.attributes.at(b) else null;
++    if (match) |key| {
++        const entry = attributes.catalog.entries[key.id];
++        var buffer: [2048]u8 = undefined;
++        const text = try attributes.help(&buffer, entry);
++        try send(allocator, writer, .{ .jsonrpc = "2.0", .id = id, .result = .{ .contents = .{ .kind = "plaintext", .value = text }, .range = .{ .start = index.coordinates.positionAt(key.span.start), .end = index.coordinates.positionAt(@intCast(key.span.endOffset())) } } });
++    } else try send(allocator, writer, .{ .jsonrpc = "2.0", .id = id, .result = @as(?u8, null) });
++}
++pub fn referencesReply(allocator: std.mem.Allocator, writer: *std.Io.Writer, request: lsp.Id, uri: []const u8, index: references.Index, point: pos.Position, include: bool) !void {
++    const Location = struct { uri: []const u8, range: references.Range };
++    var locations: std.ArrayList(Location) = .empty;
++    defer locations.deinit(allocator);
++    if (index.symbolAt(point)) |symbol| {
++        var first = true;
++        for (index.entries) |entry| if (entry.symbol == symbol) {
++            if (include or !first) {
++                if (locations.items.len == 10_000) {
++                    try failure(allocator, writer, request, lsp.ErrorCode.request_failed, "Node has more than 10,000 reference results. Results were not truncated.");
++                    return;
++                }
++                try locations.append(allocator, .{ .uri = uri, .range = index.range(entry) });
++            }
++            first = false;
++        };
++    }
++    try send(allocator, writer, .{ .jsonrpc = "2.0", .id = request, .result = locations.items });
++}
++pub const CompletionList = struct {
++    kind: @import("../features/completion_context.zig").Kind,
++    pub fn jsonStringify(self: CompletionList, json: *@import("std").json.Stringify) @import("std").json.Stringify.Error!void {
++        const attrs = @import("../features/attributes.zig");
++        const target: ?attrs.Target = switch (self.kind) {
++            .attr_graph => .graph,
++            .attr_node => .node,
++            .attr_edge => .edge,
++            .attr_subgraph => .subgraph,
++            .attr_cluster => .cluster,
++            else => null,
++        };
++        try json.beginObject();
++        try json.objectField("isIncomplete");
++        try json.write(false);
++        try json.objectField("items");
++        try json.beginArray();
++        if (target) |t| {
++            for (attrs.catalog.entries) |entry| if (attrs.applies(entry, t)) {
++                var buffer: [2048]u8 = undefined;
++                const text = attrs.help(&buffer, entry) catch entry.type_name;
++                try json.write(.{ .label = entry.name, .kind = @as(u8, 10), .insertText = entry.name, .detail = entry.type_name, .documentation = .{ .kind = "plaintext", .value = text } });
++            };
++        } else for (completion_feature.forContext(self.kind)) |entry| try json.write(.{ .label = entry.label, .kind = @as(u8, 14), .detail = entry.detail, .insertText = entry.label });
++        try json.endArray();
++        try json.endObject();
++    }
++};
++
++fn symbolKind(kind: anytype) u8 {
++    return switch (kind) {
++        .graph => 3,
++        .subgraph => 4,
++        .cluster => 2,
++        .node => 13,
++    };
++}
++pub const Symbols = struct {
++    index: outline.Index,
++    pub fn jsonStringify(self: Symbols, json: *std.json.Stringify) !void {
++        try json.beginArray();
++        var i: usize = 0;
++        while (i < self.index.entries.len) {
++            try self.symbol(i, json);
++            i = self.index.entries[i].next;
++        }
++        try json.endArray();
++    }
++    fn symbol(self: Symbols, i: usize, json: *std.json.Stringify) std.json.Stringify.Error!void {
++        const e = self.index.entries[i];
++        try json.beginObject();
++        try json.objectField("name");
++        try json.write(self.index.names[e.name_start..][0..e.name_len]);
++        try json.objectField("kind");
++        try json.write(symbolKind(e.kind));
++        try json.objectField("range");
++        try json.write(e.range);
++        try json.objectField("selectionRange");
++        try json.write(e.selection);
++        if (i + 1 < e.next) {
++            try json.objectField("children");
++            try json.beginArray();
++            var child = i + 1;
++            while (child < e.next) {
++                try self.symbol(child, json);
++                child = self.index.entries[child].next;
++            }
++            try json.endArray();
++        }
++        try json.endObject();
++    }
++};
++/// Older clients receive SymbolInformation instead of hierarchical symbols.
++pub const FlatSymbols = struct {
++    index: outline.Index,
++    uri: []const u8,
++    pub fn jsonStringify(self: FlatSymbols, json: *std.json.Stringify) !void {
++        try json.beginArray();
++        var stack: [257]u32 = undefined;
++        var depth: usize = 0;
++        for (self.index.entries, 0..) |e, i| {
++            while (depth > 0 and self.index.entries[stack[depth - 1]].next <= i) depth -= 1;
++            const container = if (depth > 0) blk: {
++                const parent = self.index.entries[stack[depth - 1]];
++                break :blk self.index.names[parent.name_start..][0..parent.name_len];
++            } else "";
++            try json.write(.{ .name = self.index.names[e.name_start..][0..e.name_len], .kind = symbolKind(e.kind), .location = .{ .uri = self.uri, .range = e.range }, .containerName = container });
++            if (e.next > i + 1) {
++                stack[depth] = @intCast(i);
++                depth += 1;
++            }
++        }
++        try json.endArray();
++    }
++};
++
++fn wireEdits(offer: actions.Fix, storage: *[2]lsp.TextEdit) []const lsp.TextEdit {
++    var edits: [2]actions.Edit = undefined;
++    const values = offer.edits(&edits);
++    for (values, 0..) |edit, i| storage[i] = .{ .range = edit.range, .newText = edit.text };
++    return storage[0..values.len];
++}
++pub fn codeActions(gpa: std.mem.Allocator, writer: *std.Io.Writer, request: lsp.Id, uri: []const u8, version: i64, offers: []const actions.Fix, range: pos.Range) !void {
++    const Change = struct { textDocument: struct { uri: []const u8, version: i64 }, edits: []const lsp.TextEdit };
++    const Action = struct { title: []const u8, kind: []const u8 = "quickfix", isPreferred: bool, edit: struct { documentChanges: []const Change } };
++    var arena = std.heap.ArenaAllocator.init(gpa);
++    defer arena.deinit();
++    const allocator = arena.allocator();
++    var items: std.ArrayList(Action) = .empty;
++    for (offers) |offer| {
++        if (!offer.touches(range)) continue;
++        const storage = try allocator.create([2]lsp.TextEdit);
++        const changes = try allocator.alloc(Change, 1);
++        changes[0] = .{ .textDocument = .{ .uri = uri, .version = version }, .edits = wireEdits(offer, storage) };
++        try items.append(allocator, .{ .title = try offer.title(allocator), .isPreferred = offer.preferred, .edit = .{ .documentChanges = changes } });
++    }
++    try send(gpa, writer, .{ .jsonrpc = "2.0", .id = request, .result = items.items });
++}
+--- a/src/tests.zig
++++ b/src/tests.zig
+@@ -1,7 +1,12 @@
+ //! Unit-test entry point. Not imported by the production executable.
+ test {
+     _ = @import("main.zig");
+-    _ = @import("json_message.zig");
++    _ = @import("app.zig");
++    _ = @import("protocol/json_message.zig");
++    _ = @import("protocol/framing.zig");
++    _ = @import("protocol/lsp.zig");
++    _ = @import("protocol/requests.zig");
++    _ = @import("protocol/responses.zig");
+     _ = @import("analysis/dot.zig");
+     _ = @import("analysis/parser_policy.zig");
+     _ = @import("analysis/validation.zig");

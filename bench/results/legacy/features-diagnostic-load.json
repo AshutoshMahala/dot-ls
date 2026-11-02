@@ -1,0 +1,71 @@
+{
+  "runs": [
+    {
+      "label": "before",
+      "source_bytes": 8412,
+      "diagnostics": 1001,
+      "request_ms": [
+        2.072875,
+        1.595,
+        1.6725,
+        1.541042,
+        1.468166
+      ],
+      "median_ms": 1.595,
+      "warm_startup_ms": [
+        3.548166000000002,
+        3.0745419999999997,
+        3.1037500000000025,
+        2.8524590000000014,
+        2.505124999999997,
+        2.366041999999999,
+        2.685082999999998,
+        2.324791,
+        2.4530830000000017,
+        2.4817079999999994,
+        2.242083000000006,
+        2.0679170000000022,
+        2.2727909999999962,
+        2.230167000000005,
+        2.1344169999999996
+      ],
+      "median_warm_startup_ms": 2.4530830000000017,
+      "peak_rss_bytes": 2719744,
+      "time_output": "        0.01 real         0.00 user         0.00 sys\n             2719744  maximum resident set size\n                   0  average shared memory size\n                   0  average unshared data size\n                   0  average unshared stack size\n                 631  page reclaims\n                   0  page faults\n                   0  swaps\n                   0  block input operations\n                   0  block output operations\n                   0  messages sent\n                   0  messages received\n                   0  signals received\n                  23  voluntary context switches\n                  16  involuntary context switches\n            76496142  instructions retired\n            16404860  cycles elapsed\n             1966416  peak memory footprint\n"
+    },
+    {
+      "label": "after",
+      "source_bytes": 8412,
+      "diagnostics": 1001,
+      "request_ms": [
+        2.295625,
+        1.985417,
+        1.758792,
+        1.921666,
+        1.741875
+      ],
+      "median_ms": 1.921666,
+      "warm_startup_ms": [
+        2.3659160000000097,
+        2.2875409999999903,
+        2.195458999999997,
+        2.447999999999992,
+        2.4591670000000123,
+        2.2635420000000073,
+        2.1877909999999945,
+        2.6228750000000107,
+        2.4029170000000044,
+        2.4929589999999893,
+        2.3375419999999982,
+        2.3837499999999903,
+        2.3143330000000017,
+        2.317166999999981,
+        2.2247089999999914
+      ],
+      "median_warm_startup_ms": 2.3375419999999982,
+      "peak_rss_bytes": 3080192,
+      "time_output": "        0.01 real         0.00 user         0.00 sys\n             3080192  maximum resident set size\n                   0  average shared memory size\n                   0  average unshared data size\n                   0  average unshared stack size\n                 814  page reclaims\n                   0  page faults\n                   0  swaps\n                   0  block input operations\n                   0  block output operations\n                   0  messages sent\n                   0  messages received\n                   0  signals received\n                  33  voluntary context switches\n                  13  involuntary context switches\n            97347886  instructions retired\n            20739036  cycles elapsed\n             2277712  peak memory footprint\n"
+    }
+  ],
+  "notes": "Separate capped-diagnostic workload and 15 direct warm starts per binary. Timing excludes client encoding. Actual macOS time -l peak across five versions."
+}

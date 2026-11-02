@@ -1,0 +1,65 @@
+{
+  "moved_modules": [
+    {
+      "before": "labels.zig",
+      "after": "features/labels.zig",
+      "only_import_paths_changed": true
+    },
+    {
+      "before": "attributes.zig",
+      "after": "features/attributes.zig",
+      "only_import_paths_changed": true
+    },
+    {
+      "before": "completion_context.zig",
+      "after": "features/completion_context.zig",
+      "only_import_paths_changed": true
+    },
+    {
+      "before": "completion.zig",
+      "after": "features/completion.zig",
+      "only_import_paths_changed": true
+    },
+    {
+      "before": "references.zig",
+      "after": "features/references.zig",
+      "only_import_paths_changed": true
+    },
+    {
+      "before": "outline.zig",
+      "after": "features/outline.zig",
+      "only_import_paths_changed": true
+    },
+    {
+      "before": "code_actions.zig",
+      "after": "features/code_actions.zig",
+      "only_import_paths_changed": true
+    },
+    {
+      "before": "parser_policy.zig",
+      "after": "analysis/parser_policy.zig",
+      "only_import_paths_changed": true
+    },
+    {
+      "before": "validation.zig",
+      "after": "analysis/validation.zig",
+      "only_import_paths_changed": true
+    },
+    {
+      "before": "diagnostic_text.zig",
+      "after": "analysis/diagnostic_text.zig",
+      "only_import_paths_changed": true
+    },
+    {
+      "before": "analysis.zig",
+      "after": "analysis/dot.zig",
+      "only_import_paths_changed": true
+    },
+    {
+      "before": "parser_session_tests.zig",
+      "after": "tests/parser_sessions.zig",
+      "only_import_paths_changed": true
+    }
+  ],
+  "shared_text_bytes_unchanged": true
+}

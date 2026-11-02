@@ -1,0 +1,460 @@
+{
+  "builds": {
+    "before": {
+      "sha256": "fb02d43fd1f9b61be949a95e84c9ef3ec3becd60a62d096aaf3c8f7cc4375d9a",
+      "startup_ms_median": 7.0101665000015245,
+      "idle_rss_bytes_median": 2179072.0
+    },
+    "after": {
+      "sha256": "fdea34c2600f08b83902605ef825e168ad8f43daa4af202d06fbbf422cf25f5a",
+      "startup_ms_median": 5.525688000000528,
+      "idle_rss_bytes_median": 2179072.0
+    }
+  },
+  "cases": [
+    {
+      "mb": 5,
+      "kind": "plain",
+      "before": {
+        "peak_rss_bytes_max": 17842176,
+        "phases": {
+          "clean": {
+            "first_ms_median": 40.086749999999505,
+            "final_ms_median": 40.086749999999505,
+            "settled_rss_bytes_median": 6668288
+          },
+          "operator-1": {
+            "first_ms_median": 40.215707999999964,
+            "final_ms_median": 40.215707999999964,
+            "settled_rss_bytes_median": 6668288
+          },
+          "repair": {
+            "first_ms_median": 39.82025,
+            "final_ms_median": 39.82025,
+            "settled_rss_bytes_median": 6668288
+          },
+          "operator-1000": {
+            "first_ms_median": 41.46358400000061,
+            "final_ms_median": 41.46358400000061,
+            "settled_rss_bytes_median": 6668288
+          },
+          "duplicates-1000": {
+            "first_ms_median": 41.15987499999996,
+            "final_ms_median": 41.15987499999996,
+            "settled_rss_bytes_median": 6668288
+          },
+          "clean-final": {
+            "first_ms_median": 40.354209000000196,
+            "final_ms_median": 40.354209000000196,
+            "settled_rss_bytes_median": 6668288
+          }
+        }
+      },
+      "after": {
+        "peak_rss_bytes_max": 17858560,
+        "phases": {
+          "clean": {
+            "first_ms_median": 43.29595899999994,
+            "final_ms_median": 43.29595899999994,
+            "settled_rss_bytes_median": 6684672
+          },
+          "operator-1": {
+            "first_ms_median": 45.05520900000004,
+            "final_ms_median": 45.05520900000004,
+            "settled_rss_bytes_median": 6684672
+          },
+          "repair": {
+            "first_ms_median": 44.07320799999992,
+            "final_ms_median": 44.07320799999992,
+            "settled_rss_bytes_median": 6684672
+          },
+          "operator-1000": {
+            "first_ms_median": 48.97987500000012,
+            "final_ms_median": 48.97987500000012,
+            "settled_rss_bytes_median": 6684672
+          },
+          "duplicates-1000": {
+            "first_ms_median": 46.51716700000108,
+            "final_ms_median": 46.51716700000108,
+            "settled_rss_bytes_median": 6684672
+          },
+          "clean-final": {
+            "first_ms_median": 36.72387499999985,
+            "final_ms_median": 36.72387499999985,
+            "settled_rss_bytes_median": 6684672
+          }
+        }
+      }
+    },
+    {
+      "mb": 5,
+      "kind": "html",
+      "before": {
+        "peak_rss_bytes_max": 17956864,
+        "phases": {
+          "clean": {
+            "first_ms_median": 37.3896250000012,
+            "final_ms_median": 37.92300000000104,
+            "settled_rss_bytes_median": 5029888
+          },
+          "operator-1": {
+            "first_ms_median": 35.001707999999354,
+            "final_ms_median": 35.474707999998856,
+            "settled_rss_bytes_median": 5029888
+          },
+          "repair": {
+            "first_ms_median": 35.49100000000038,
+            "final_ms_median": 35.931417000000465,
+            "settled_rss_bytes_median": 5029888
+          },
+          "operator-1000": {
+            "first_ms_median": 38.0420000000008,
+            "final_ms_median": 38.55262500000123,
+            "settled_rss_bytes_median": 5029888
+          },
+          "duplicates-1000": {
+            "first_ms_median": 36.767541999999764,
+            "final_ms_median": 37.26412500000009,
+            "settled_rss_bytes_median": 5046272
+          },
+          "clean-final": {
+            "first_ms_median": 34.13716600000072,
+            "final_ms_median": 34.63045800000053,
+            "settled_rss_bytes_median": 5029888
+          }
+        }
+      },
+      "after": {
+        "peak_rss_bytes_max": 17956864,
+        "phases": {
+          "clean": {
+            "first_ms_median": 39.311500000000166,
+            "final_ms_median": 39.77758299999934,
+            "settled_rss_bytes_median": 5029888
+          },
+          "operator-1": {
+            "first_ms_median": 42.90529200000037,
+            "final_ms_median": 43.34849999999868,
+            "settled_rss_bytes_median": 5029888
+          },
+          "repair": {
+            "first_ms_median": 36.628625000000525,
+            "final_ms_median": 37.1006670000007,
+            "settled_rss_bytes_median": 5029888
+          },
+          "operator-1000": {
+            "first_ms_median": 45.26558400000091,
+            "final_ms_median": 48.90858399999942,
+            "settled_rss_bytes_median": 5029888
+          },
+          "duplicates-1000": {
+            "first_ms_median": 41.489125000000016,
+            "final_ms_median": 44.99612500000083,
+            "settled_rss_bytes_median": 5046272
+          },
+          "clean-final": {
+            "first_ms_median": 35.38545800000037,
+            "final_ms_median": 35.828708000000375,
+            "settled_rss_bytes_median": 5029888
+          }
+        }
+      }
+    },
+    {
+      "mb": 20,
+      "kind": "plain",
+      "before": {
+        "peak_rss_bytes_max": 63815680,
+        "phases": {
+          "clean": {
+            "first_ms_median": 95.76995800000176,
+            "final_ms_median": 95.76995800000176,
+            "settled_rss_bytes_median": 19218432
+          },
+          "operator-1": {
+            "first_ms_median": 97.6708749999986,
+            "final_ms_median": 97.6708749999986,
+            "settled_rss_bytes_median": 19218432
+          },
+          "repair": {
+            "first_ms_median": 101.83587499999902,
+            "final_ms_median": 101.83587499999902,
+            "settled_rss_bytes_median": 19218432
+          },
+          "operator-1000": {
+            "first_ms_median": 100.22291699999997,
+            "final_ms_median": 100.22291699999997,
+            "settled_rss_bytes_median": 19218432
+          },
+          "duplicates-1000": {
+            "first_ms_median": 99.43470800000043,
+            "final_ms_median": 99.43470800000043,
+            "settled_rss_bytes_median": 19218432
+          },
+          "clean-final": {
+            "first_ms_median": 103.44212499999728,
+            "final_ms_median": 103.44212499999728,
+            "settled_rss_bytes_median": 19218432
+          }
+        }
+      },
+      "after": {
+        "peak_rss_bytes_max": 63832064,
+        "phases": {
+          "clean": {
+            "first_ms_median": 109.41537499999754,
+            "final_ms_median": 109.41537499999754,
+            "settled_rss_bytes_median": 19234816
+          },
+          "operator-1": {
+            "first_ms_median": 122.08129200000073,
+            "final_ms_median": 122.08129200000073,
+            "settled_rss_bytes_median": 19234816
+          },
+          "repair": {
+            "first_ms_median": 105.2512909999983,
+            "final_ms_median": 105.2512909999983,
+            "settled_rss_bytes_median": 19234816
+          },
+          "operator-1000": {
+            "first_ms_median": 121.65633400000075,
+            "final_ms_median": 121.65633400000075,
+            "settled_rss_bytes_median": 19234816
+          },
+          "duplicates-1000": {
+            "first_ms_median": 111.98845799999901,
+            "final_ms_median": 111.98845799999901,
+            "settled_rss_bytes_median": 19234816
+          },
+          "clean-final": {
+            "first_ms_median": 100.14383400000071,
+            "final_ms_median": 100.14383400000071,
+            "settled_rss_bytes_median": 19234816
+          }
+        }
+      }
+    },
+    {
+      "mb": 20,
+      "kind": "html",
+      "before": {
+        "peak_rss_bytes_max": 63930368,
+        "phases": {
+          "clean": {
+            "first_ms_median": 93.90216599999945,
+            "final_ms_median": 95.27895800000152,
+            "settled_rss_bytes_median": 12304384
+          },
+          "operator-1": {
+            "first_ms_median": 87.7188750000002,
+            "final_ms_median": 89.08120900000327,
+            "settled_rss_bytes_median": 12304384
+          },
+          "repair": {
+            "first_ms_median": 94.05379199999686,
+            "final_ms_median": 95.3259169999967,
+            "settled_rss_bytes_median": 12304384
+          },
+          "operator-1000": {
+            "first_ms_median": 86.27445899999842,
+            "final_ms_median": 87.65187499999882,
+            "settled_rss_bytes_median": 12304384
+          },
+          "duplicates-1000": {
+            "first_ms_median": 91.37720799999727,
+            "final_ms_median": 92.71433299999643,
+            "settled_rss_bytes_median": 12304384
+          },
+          "clean-final": {
+            "first_ms_median": 88.33633299999377,
+            "final_ms_median": 89.67554199999483,
+            "settled_rss_bytes_median": 12304384
+          }
+        }
+      },
+      "after": {
+        "peak_rss_bytes_max": 63897600,
+        "phases": {
+          "clean": {
+            "first_ms_median": 95.22312499999686,
+            "final_ms_median": 96.5716669999992,
+            "settled_rss_bytes_median": 12304384
+          },
+          "operator-1": {
+            "first_ms_median": 102.64437499999701,
+            "final_ms_median": 103.83162499999798,
+            "settled_rss_bytes_median": 12304384
+          },
+          "repair": {
+            "first_ms_median": 93.1063750000014,
+            "final_ms_median": 94.38074999999913,
+            "settled_rss_bytes_median": 12304384
+          },
+          "operator-1000": {
+            "first_ms_median": 105.9679580000008,
+            "final_ms_median": 108.87891699999841,
+            "settled_rss_bytes_median": 12304384
+          },
+          "duplicates-1000": {
+            "first_ms_median": 104.08950000000061,
+            "final_ms_median": 108.22258299999987,
+            "settled_rss_bytes_median": 12304384
+          },
+          "clean-final": {
+            "first_ms_median": 90.98016700000144,
+            "final_ms_median": 92.21712500000123,
+            "settled_rss_bytes_median": 12304384
+          }
+        }
+      }
+    },
+    {
+      "mb": 40,
+      "kind": "plain",
+      "before": {
+        "peak_rss_bytes_max": 125075456,
+        "phases": {
+          "clean": {
+            "first_ms_median": 177.29745900000182,
+            "final_ms_median": 177.29745900000182,
+            "settled_rss_bytes_median": 35930112
+          },
+          "operator-1": {
+            "first_ms_median": 181.39675000000466,
+            "final_ms_median": 181.39675000000466,
+            "settled_rss_bytes_median": 35930112
+          },
+          "repair": {
+            "first_ms_median": 175.5669169999976,
+            "final_ms_median": 175.5669169999976,
+            "settled_rss_bytes_median": 35930112
+          },
+          "operator-1000": {
+            "first_ms_median": 174.53245899999814,
+            "final_ms_median": 174.53245899999814,
+            "settled_rss_bytes_median": 35930112
+          },
+          "duplicates-1000": {
+            "first_ms_median": 181.98762499999788,
+            "final_ms_median": 181.98762499999788,
+            "settled_rss_bytes_median": 35930112
+          },
+          "clean-final": {
+            "first_ms_median": 177.3413330000011,
+            "final_ms_median": 177.3413330000011,
+            "settled_rss_bytes_median": 35930112
+          }
+        }
+      },
+      "after": {
+        "peak_rss_bytes_max": 125075456,
+        "phases": {
+          "clean": {
+            "first_ms_median": 187.33845799999926,
+            "final_ms_median": 187.33845799999926,
+            "settled_rss_bytes_median": 35946496
+          },
+          "operator-1": {
+            "first_ms_median": 204.35108400000246,
+            "final_ms_median": 204.35108400000246,
+            "settled_rss_bytes_median": 35946496
+          },
+          "repair": {
+            "first_ms_median": 184.10233299999845,
+            "final_ms_median": 184.10233299999845,
+            "settled_rss_bytes_median": 35946496
+          },
+          "operator-1000": {
+            "first_ms_median": 205.16562499999935,
+            "final_ms_median": 205.16562499999935,
+            "settled_rss_bytes_median": 35946496
+          },
+          "duplicates-1000": {
+            "first_ms_median": 202.4374590000022,
+            "final_ms_median": 202.4374590000022,
+            "settled_rss_bytes_median": 35946496
+          },
+          "clean-final": {
+            "first_ms_median": 184.66562499999384,
+            "final_ms_median": 184.66562499999384,
+            "settled_rss_bytes_median": 35946496
+          }
+        }
+      }
+    },
+    {
+      "mb": 40,
+      "kind": "html",
+      "before": {
+        "peak_rss_bytes_max": 125173760,
+        "phases": {
+          "clean": {
+            "first_ms_median": 153.13125000000127,
+            "final_ms_median": 155.77108400000128,
+            "settled_rss_bytes_median": 22036480
+          },
+          "operator-1": {
+            "first_ms_median": 152.26708299999814,
+            "final_ms_median": 154.7878749999967,
+            "settled_rss_bytes_median": 22036480
+          },
+          "repair": {
+            "first_ms_median": 153.54574999999926,
+            "final_ms_median": 156.20808300000277,
+            "settled_rss_bytes_median": 22036480
+          },
+          "operator-1000": {
+            "first_ms_median": 153.6928749999973,
+            "final_ms_median": 156.3598749999997,
+            "settled_rss_bytes_median": 22036480
+          },
+          "duplicates-1000": {
+            "first_ms_median": 151.51583300000482,
+            "final_ms_median": 154.063917000002,
+            "settled_rss_bytes_median": 22036480
+          },
+          "clean-final": {
+            "first_ms_median": 151.99370800000622,
+            "final_ms_median": 154.59933300000017,
+            "settled_rss_bytes_median": 22036480
+          }
+        }
+      },
+      "after": {
+        "peak_rss_bytes_max": 125173760,
+        "phases": {
+          "clean": {
+            "first_ms_median": 157.70616700000062,
+            "final_ms_median": 160.35645800000253,
+            "settled_rss_bytes_median": 22036480
+          },
+          "operator-1": {
+            "first_ms_median": 182.00399999999917,
+            "final_ms_median": 184.5121249999977,
+            "settled_rss_bytes_median": 22036480
+          },
+          "repair": {
+            "first_ms_median": 161.15241699999672,
+            "final_ms_median": 163.69737499999815,
+            "settled_rss_bytes_median": 22036480
+          },
+          "operator-1000": {
+            "first_ms_median": 186.4970000000028,
+            "final_ms_median": 191.84624999999755,
+            "settled_rss_bytes_median": 22036480
+          },
+          "duplicates-1000": {
+            "first_ms_median": 180.40091700000005,
+            "final_ms_median": 183.72083300000241,
+            "settled_rss_bytes_median": 22036480
+          },
+          "clean-final": {
+            "first_ms_median": 161.88791599999774,
+            "final_ms_median": 164.43474999999808,
+            "settled_rss_bytes_median": 22036480
+          }
+        }
+      }
+    }
+  ]
+}

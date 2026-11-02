@@ -1,0 +1,19 @@
+{
+  "grammars": [
+    {
+      "name": "dot_ls",
+      "camelcase": "DotLs",
+      "scope": "source.dot",
+      "path": ".",
+      "file-types": [
+        "dot",
+        "gv"
+      ]
+    }
+  ],
+  "metadata": {
+    "version": "0.1.0",
+    "license": "MIT",
+    "description": "Compact DOT editor grammar experiment derived from tree-sitter-dot"
+  }
+}

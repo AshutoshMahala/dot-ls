@@ -1,0 +1,14 @@
+--- a/src/dot/identifier.zig
++++ b/src/dot/identifier.zig
+@@ -9,6 +9,11 @@
+ const lex = @import("lexer/lexer.zig");
+ const Chunks = @import("identifier_value.zig").Chunks;
+ const encoding = @import("parser_support").encoding;
++
++// Local node-index bridge. Only use complete identifier spans emitted by the parser.
++// These helpers stream the logical value without validation or allocation.
++pub const valueHashAssumeValid = @import("identifier_value.zig").hashAssumeValid;
++pub const valueOrderAssumeValid = @import("identifier_value.zig").orderAssumeValid;
+ 
+ pub const DecodeError = error{ InvalidIdentifier, NoSpaceLeft, OverlappingBuffers };
+ pub const Form = enum { bare, numeral, quoted, html, concatenation };

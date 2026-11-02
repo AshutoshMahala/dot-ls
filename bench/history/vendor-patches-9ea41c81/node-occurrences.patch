@@ -1,0 +1,68 @@
+--- a/src/dot/syntax.zig
++++ b/src/dot/syntax.zig
+@@ -1373,10 +1373,19 @@
+ /// exact, never estimates. It cannot fail and never allocates; this is the
+ /// "count-only dry run" behind `measure` / `measureIn` (R-MEM-003).
+ pub const CountingSink = struct {
++    // Local optional observer. It cannot stop syntax analysis on index failure.
++    observer: ?struct { context: *anyopaque, emit: *const fn (*anyopaque, location.Span) void } = null,
+     counts: Capacities = .{},
+     scope_state: syntax_event.ScopeState = .{},
+     phase: enum { idle, building, committed, terminal } = .idle,
+ 
++    fn occurrence(self: *CountingSink, span: location.Span) void {
++        if (self.observer) |o| o.emit(o.context, span);
++    }
++    fn endpoints(self: *CountingSink, event: syntax_event.EdgeStatement) void {
++        if (event.left_scope == null) self.occurrence(event.left);
++        if (event.right_scope == null) self.occurrence(event.right);
++    }
+     pub const Error = error{};
+ 
+     pub fn comment(self: *CountingSink, _: Comment) Error!void {
+@@ -1387,21 +1396,25 @@
+         std.debug.assert(self.phase == .idle);
+         self.phase = .building;
+     }
+-    pub fn nodeStatement(self: *CountingSink, _: syntax_event.NodeStatement) Error!void {
++    pub fn nodeStatement(self: *CountingSink, event: syntax_event.NodeStatement) Error!void {
++        self.occurrence(event.identifier);
+         self.counts.nodes += 1;
+         self.counts.statements += 1;
+     }
+     pub fn edgeStatement(self: *CountingSink, event: syntax_event.EdgeStatement) Error!void {
++        self.endpoints(event);
+         if (self.isScoped(event)) return self.finishScopedEdge();
+         self.counts.edges += 1;
+         self.counts.statements += 1;
+     }
+     pub fn edgeChainStatement(self: *CountingSink, event: syntax_event.EdgeStatement) Error!void {
++        self.endpoints(event);
+         if (self.isScoped(event)) return self.finishScopedEdge();
+         self.counts.edge_chains += 1;
+         self.counts.statements += 1;
+     }
+-    pub fn edgeLink(self: *CountingSink, _: syntax_event.EdgeLink) Error!void {
++    pub fn edgeLink(self: *CountingSink, event: syntax_event.EdgeLink) Error!void {
++        self.occurrence(event.right);
+         if (self.scope_state.scoped_owner != null) {
+             self.counts.scoped_edge_links += 1;
+         } else {
+--- a/src/dot/profile.zig
++++ b/src/dot/profile.zig
+@@ -221,6 +221,15 @@
+                 return .{ .driver = if (runtime_policy) switch (variantOf(effective)) {
+                     inline else => |variant| @unionInit(Drivers, @tagName(variant), EngineFor(variant).MeasureSession.init(source, scratch, diagnostics, engineOptions(EngineFor(variant), effective, hook))),
+                 } else FixedEngine.MeasureSession.init(source, scratch, diagnostics, engineOptions(FixedEngine, effective, hook)) };
++            }
++            pub fn observeNodes(self: *Self, context: *anyopaque, emit: *const fn (*anyopaque, api.Span) void) void {
++                if (runtime_policy) {
++                    switch (self.driver) {
++                        inline else => |*driver| {
++                            driver.counting.observer = .{ .context = context, .emit = emit };
++                        },
++                    }
++                } else self.driver.counting.observer = .{ .context = context, .emit = emit };
+             }
+             pub fn advance(self: *Self, budget: usize) (if (runtime_policy) error{MeteringDisabled}!api.SessionProgress else api.SessionProgress) {
+                 if (runtime_policy) return switch (self.driver) {
