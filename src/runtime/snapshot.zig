@@ -68,7 +68,9 @@ test "retired feature stays charged and readable until the last reply releases i
 }
 
 test "snapshot allocation failure leaves the input owned by the caller" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, struct {
+    // Refuse in-place resizes so that every run makes the same allocations.
+    var no_resize = std.testing.FailingAllocator.init(std.testing.allocator, .{ .resize_fail_index = 0 });
+    try std.testing.checkAllAllocationFailures(no_resize.allocator(), struct {
         fn run(a: std.mem.Allocator) !void {
             var charged: usize = 0;
             var value: references.Index = .{ .entries = try a.alloc(references.Entry, 1) };

@@ -84,7 +84,9 @@ pub const Prepared = struct {
 };
 
 test "copied job preparation rolls back every allocation and commits once" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, struct {
+    // Refuse in-place resizes so that every run makes the same allocations.
+    var no_resize = std.testing.FailingAllocator.init(std.testing.allocator, .{ .resize_fail_index = 0 });
+    try std.testing.checkAllAllocationFailures(no_resize.allocator(), struct {
         fn run(allocator: std.mem.Allocator) !void {
             var prepared = try Prepared.init(allocator, .{ .text = "graph {}" }, "untitled:copy", 1, 3);
             defer prepared.deinit(allocator);
@@ -98,7 +100,9 @@ test "copied job preparation rolls back every allocation and commits once" {
 }
 
 test "packet preparation leaves caller ownership intact until commit" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, struct {
+    // Refuse in-place resizes so that every run makes the same allocations.
+    var no_resize = std.testing.FailingAllocator.init(std.testing.allocator, .{ .resize_fail_index = 0 });
+    try std.testing.checkAllAllocationFailures(no_resize.allocator(), struct {
         fn run(allocator: std.mem.Allocator) !void {
             const packet = try std.testing.allocator.dupe(u8, "---graph {}---");
             defer std.testing.allocator.free(packet);

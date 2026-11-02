@@ -416,7 +416,9 @@ test "context cancellation, yielding and allocation failure release storage" {
     cancel.store(false, .release);
     const waiting: std.atomic.Value(usize) = .init(1);
     try std.testing.expectError(error.Yield, build(std.testing.allocator, "digraph {}", .utf16, &cancel, &waiting));
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, struct {
+    // Refuse in-place resizes so that every run makes the same allocations.
+    var no_resize = std.testing.FailingAllocator.init(std.testing.allocator, .{ .resize_fail_index = 0 });
+    try std.testing.checkAllAllocationFailures(no_resize.allocator(), struct {
         fn run(gpa: std.mem.Allocator) !void {
             const flag: std.atomic.Value(bool) = .init(false);
             var index = try build(gpa, "digraph {\n \"😀\" -> b [label=x];\n}", .utf16, &flag, null);

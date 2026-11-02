@@ -323,7 +323,9 @@ test "delayed checks reuse exact HTML bytes, share duplicates and keep local spa
 }
 
 test "HTML checking is cancellable and allocation failures release entries" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, struct {
+    // Refuse in-place resizes so that every run makes the same allocations.
+    var no_resize = std.testing.FailingAllocator.init(std.testing.allocator, .{ .resize_fail_index = 0 });
+    try std.testing.checkAllAllocationFailures(no_resize.allocator(), struct {
         fn run(gpa: std.mem.Allocator) !void {
             var budget: Budget = .{};
             defer std.debug.assert(budget.live.load(.acquire) == 0);
@@ -448,7 +450,9 @@ test "compact selection checks more than 65536 labels within source-derived stor
 }
 
 test "compact label span growth releases allocations on failure" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, struct {
+    // Refuse in-place resizes so that every run makes the same allocations.
+    var no_resize = std.testing.FailingAllocator.init(std.testing.allocator, .{ .resize_fail_index = 0 });
+    try std.testing.checkAllAllocationFailures(no_resize.allocator(), struct {
         fn run(gpa: std.mem.Allocator) !void {
             var spans: Spans = .{};
             defer spans.deinit(gpa);

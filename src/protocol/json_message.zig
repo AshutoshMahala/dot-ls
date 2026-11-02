@@ -193,7 +193,9 @@ fn inplaceAllocationCheck(allocator: std.mem.Allocator) !void {
     try message.parseInPlace(&bytes);
 }
 test "in-place metadata allocation failures release all owners" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, inplaceAllocationCheck, .{});
+    // Refuse in-place resizes so that every run makes the same allocations.
+    var no_resize = std.testing.FailingAllocator.init(std.testing.allocator, .{ .resize_fail_index = 0 });
+    try std.testing.checkAllAllocationFailures(no_resize.allocator(), inplaceAllocationCheck, .{});
 }
 
 test "in-place arbitrary ASCII strings match standard encoder" {

@@ -332,7 +332,9 @@ test "dispatcher rejects pressure while control reserve remains available" {
 }
 
 test "all encoding allocation failures roll back reserved bytes and slots" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, struct {
+    // Refuse in-place resizes so that every run makes the same allocations.
+    var no_resize = std.testing.FailingAllocator.init(std.testing.allocator, .{ .resize_fail_index = 0 });
+    try std.testing.checkAllAllocationFailures(no_resize.allocator(), struct {
         fn run(a: std.mem.Allocator) !void {
             var q: Queue = .{ .allocator = a, .io = std.testing.io };
             defer q.deinit();

@@ -167,7 +167,9 @@ test "coordinate construction preserves cancellation yield budget and allocation
             defer index.deinit(gpa);
         }
     };
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, Harness.run, .{});
+    // Refuse in-place resizes so that every run makes the same allocations.
+    var no_resize = std.testing.FailingAllocator.init(std.testing.allocator, .{ .resize_fail_index = 0 });
+    try std.testing.checkAllAllocationFailures(no_resize.allocator(), Harness.run, .{});
     var cancel: std.atomic.Value(bool) = .init(true);
     const waiting: std.atomic.Value(usize) = .init(1);
     var cancelled: Builder = .{ .gpa = std.testing.allocator, .source = "abc", .cancel = &cancel, .waiting = null };

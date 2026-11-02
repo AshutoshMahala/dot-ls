@@ -486,7 +486,9 @@ test "invalidation releases queued jobs and requests but only cancels the active
 }
 
 test "failed worker startup and preparation never transfer the caller packet" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, struct {
+    // Refuse in-place resizes so that every run makes the same allocations.
+    var no_resize = std.testing.FailingAllocator.init(std.testing.allocator, .{ .resize_fail_index = 0 });
+    try std.testing.checkAllAllocationFailures(no_resize.allocator(), struct {
         fn run(allocator: std.mem.Allocator) !void {
             var recorder: Recorder = .{};
             var state: Server = .{ .allocator = allocator, .html_allocator = allocator, .io = std.testing.io };

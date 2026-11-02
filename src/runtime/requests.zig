@@ -76,7 +76,9 @@ pub const Observer = struct {
 };
 
 test "pending request IDs are owned and append failures release copies" {
-    try std.testing.checkAllAllocationFailures(std.testing.allocator, struct {
+    // Refuse in-place resizes so that every run makes the same allocations.
+    var no_resize = std.testing.FailingAllocator.init(std.testing.allocator, .{ .resize_fail_index = 0 });
+    try std.testing.checkAllAllocationFailures(no_resize.allocator(), struct {
         fn run(allocator: std.mem.Allocator) !void {
             var queue: Queue = .{};
             defer queue.clear(allocator);
