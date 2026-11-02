@@ -347,8 +347,9 @@ output cap is preallocated at startup.
 
 The implemented transport uses Zig 0.17 POSIX `poll`, nonblocking stdin/stdout and a
 nonblocking wake pipe. The existing protocol thread advances both streams; the
-one analysis worker only encodes and queues frames. The transport is runtime-tested on macOS and cross-compiles for aarch64 Linux.
-Linux runtime checks and other platforms remain release work.
+one analysis worker only encodes and queues frames. The protocol tests, including
+the output transport tests, pass on macOS and on Linux ARM64 and x86-64 in the
+Package workflow. Windows is not supported.
 
 Output has a 128 MiB JSON body cap, 144 MiB bulk allocation-credit cap and 256
 bulk frame slots. Credits include active encoders and queued chunk capacities.

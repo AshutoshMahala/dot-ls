@@ -69,8 +69,9 @@ The following areas prevent a blanket claim that M0 is complete:
 - Runtime/protocol migration steps 0–8 are implemented, including bounded output.
   The local packaged Zed smoke check passes, including user-confirmed diagnostics,
   hover and quick-fix application. Review worst-case request fairness for release.
-  The Package workflow runs the protocol tests on Linux ARM64 and x86-64. It has
-  not run on GitHub yet. Until it passes, Linux coverage is a cross-build only.
+  The Package workflow runs all protocol tests on Linux ARM64 and x86-64 after
+  clean extraction. They pass on GitHub-hosted runners as of 2026-11-02
+  ([run](https://github.com/AshutoshMahala/dot-ls/actions/runs/41412696569)). Stress and sustained-edit checks still run on macOS only.
 - macOS sustained-edit, cancellation, multi-document/error-load, close/reopen,
   memory recovery, active-shutdown and paused-reader checks pass for the tested
   5/20/40 MB workloads. See [PERFORMANCE.md](PERFORMANCE.md). Carry these checks
@@ -82,7 +83,8 @@ The following areas prevent a blanket claim that M0 is complete:
 - Native and prebuilt Zed packaging is implemented for 0.0.1. The repository is
   `AshutoshMahala/dot-ls`. Its Package workflow builds all archives, runs the
   protocol tests on each of the four systems after clean extraction, and creates
-  a draft release for a version tag. The workflows have not run on GitHub yet.
+  a draft release for a version tag. CI and Package pass on `main` as of
+  2026-11-02 ([Package run](https://github.com/AshutoshMahala/dot-ls/actions/runs/41412696569)). No version tag or release exists yet.
   See [DEVELOPMENT.md](DEVELOPMENT.md#continuous-integration).
 - Archives rebuilt with the `01b0a8e` pin pass all protocol tests after clean
   extraction on Mac ARM64
