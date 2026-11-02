@@ -318,11 +318,15 @@ pinned parser. `.gitignore` leaves out files that tools can create again:
 | `editors/zed/target/`, `extension.wasm`, `grammars/` | Zed extension build output | Zed dev install. `tools/package_release.py` also clones into `grammars/` by default. |
 | `editors/zed/.cargo/config.toml` | Settings for one machine | Not needed |
 | `temp/` | Your scratch files | Not needed |
+| `.zed/`, `.vscode/`, `.idea/` | Your own editor settings for this repository | Not needed |
 | `__pycache__/`, `.DS_Store`, `nvim.log` | Caches, system files and logs | Not needed |
 
 Rules:
 
 - Put scratch files in `temp/` at the project root.
+- Put editor support in `editors/<editor>/`, for example `editors/zed/`. That
+  folder's guide documents the editor settings. Do not commit editor settings
+  folders such as `.zed/` or `.vscode/`.
 - Put measurements in `bench/results/` and reports in `bench/reports/`. Never
   put them in `docs/`.
 - Put development commands in `tools/` and list them in its README.

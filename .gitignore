@@ -8,6 +8,11 @@ zig-out/
 # Local scratch files
 /temp/
 
+# Personal editor settings. Editor support lives in editors/<editor>/.
+/.zed/
+/.vscode/
+/.idea/
+
 # Large editor test files. Recreate them with tools/make_large_examples.py.
 /examples/editor-*mb.dot
 

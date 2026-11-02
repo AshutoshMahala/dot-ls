@@ -204,7 +204,10 @@ reason. The extension does not use it.
 To test a change:
 
 1. Build the server: `zig build -Doptimize=safe`.
-2. Set `lsp.dotls.binary.path` to the full path of `zig-out/bin/dot-ls`.
+2. Set `lsp.dotls.binary.path` to the full path of `zig-out/bin/dot-ls`. You
+   can also add the `languages` and `file_types` entries from [Settings](#settings).
+   Put them in your own settings file, or in `.zed/settings.json` in your clone.
+   Git ignores `.zed/`.
 3. Install this folder as a dev extension, as in [Install](#install).
 4. Open `examples/message-templates.dot`. Check hover help on `shape` and the
    quick fix for the missing `]`.
