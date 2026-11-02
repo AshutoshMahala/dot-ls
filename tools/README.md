@@ -10,6 +10,7 @@ Raw output belongs in `bench/results/`, never `docs/`.
 | `install_zed_local.py` | Seed a new isolated Zed profile with prebuilt extension and offline server cache |
 | `check_vendor.py` | Reverse the declared parser patches in a temporary copy and verify exact upstream file hashes |
 | `check_layout.py` | Check documentation links, directory policy, Python syntax and source import paths |
+| `ci_report.py` | Run a check in GitHub Actions; on failure, show the last output lines as an annotation that needs no sign-in |
 | `make_large_examples.py` | Write the large `examples/editor-*mb.dot` benchmark files, which are not in Git; checks their SHA-256 values |
 | `stress.py` | macOS sustained full-text edits, queued cancellation, multi-document/error load, close/reopen cleanup and active shutdown; isolated server RSS |
 | `server_compare.py`, `summarize_server_compare.py` | Controlled server comparison; macOS memory sampling; shared benchmark client |

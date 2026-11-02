@@ -34,11 +34,13 @@ jobs:
           python3 tools/check_layout.py
           python3 tools/check_vendor.py
 
+      # tools/ci_report.py repeats the end of a failure as an annotation, which
+      # the run page shows without a GitHub sign-in.
       - name: Unit tests
         run: |
-          zig build test
-          zig build test -Doptimize=safe
-          zig build test-parser -Doptimize=safe
+          python3 tools/ci_report.py zig build test
+          python3 tools/ci_report.py zig build test -Doptimize=safe
+          python3 tools/ci_report.py zig build test-parser -Doptimize=safe
 
       - name: Build server
         run: |
@@ -49,7 +51,7 @@ jobs:
         run: |
           for suite in lsp protocol validation completion attributes references html code_actions outline output templates; do
             echo "::group::$suite"
-            python3 "tests/$suite.py" zig-out/bin/dot-ls
+            python3 tools/ci_report.py python3 "tests/$suite.py" zig-out/bin/dot-ls
             echo "::endgroup::"
           done
 

@@ -146,6 +146,10 @@ three jobs:
    other jobs pass. It creates a draft GitHub release with all archives and
    `SHA256SUMS`.
 
+GitHub shows full job logs only to signed-in users. The workflows run each test
+command through `tools/ci_report.py`. When a command fails, its last 40 output
+lines appear as an annotation on the run page, which anyone can read.
+
 The Package workflow pins its tools: Zig 0.17.0, Rust 1.99.1 and WASI SDK 34.
 It checks the WASI SDK download against a fixed SHA-256 value. Rust and the WASI
 SDK are set only in the `env` block at the top of `package.yml`. The Zig version
